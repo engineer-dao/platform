@@ -1,0 +1,12 @@
+{
+    "name": "engineer-dao-platform",
+    "version": "1.0.0",
+    "author": "EngineerDAO",
+    "license": "MIT",
+    "devDependencies": {
+    },
+    "scripts": {
+    },
+    "dependencies": {
+    }
+}
