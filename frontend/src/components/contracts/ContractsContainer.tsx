@@ -44,7 +44,7 @@ const ContractsContainer = () => {
   ];
 
   return (
-    <ul role="list" className="grid grid-cols-1 gap-6">
+    <ul className="grid grid-cols-1 gap-6">
       {contracts.map((item) => (
         <ContractItem contract={item} />
       ))}

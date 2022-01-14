@@ -18,10 +18,6 @@ const ContractItem: React.FC<IContractItemProps> = ({ contract }) => {
     buy_in,
     buy_in_suffix,
     availability,
-    timeframe,
-    technologies,
-    testing_type,
-    anon_type,
   } = contract;
 
   return (
