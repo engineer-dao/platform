@@ -1,5 +1,10 @@
 import { useState } from 'react';
-import { ClipboardIcon, HomeIcon } from '@heroicons/react/outline';
+import {
+  ClipboardCheckIcon,
+  ClipboardIcon,
+  HomeIcon,
+  UserGroupIcon,
+} from '@heroicons/react/outline';
 import Sidebar from '../components/Sidebar';
 import Content from '../components/Content';
 import { useLocation } from 'react-router-dom';
@@ -24,6 +29,18 @@ export default function Admin() {
       href: SectionPath.contracts,
       icon: ClipboardIcon,
       current: current(SectionPath.contracts),
+    },
+    {
+      name: 'My Contracts',
+      href: SectionPath.myContracts,
+      icon: ClipboardCheckIcon,
+      current: current(SectionPath.myContracts),
+    },
+    {
+      name: 'Community',
+      href: SectionPath.community,
+      icon: UserGroupIcon,
+      current: current(SectionPath.community),
     },
   ];
 

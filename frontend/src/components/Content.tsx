@@ -1,8 +1,10 @@
 import { MenuIcon } from '@heroicons/react/outline';
 import { Route, Switch } from 'react-router-dom';
 import { SectionPath } from '../enums/admin/Sections';
+import Community from '../pages/Community';
 import Contracts from '../pages/Contracts';
 import Dashboard from '../pages/Dashboard';
+import MyContracts from '../pages/MyContracts';
 
 interface IContent {
   reportSidebarOpen: (e: boolean) => void;
@@ -32,6 +34,12 @@ const Content = (props: IContent) => {
                 </Route>
                 <Route path={SectionPath.contracts} exact>
                   <Contracts />
+                </Route>
+                <Route path={SectionPath.myContracts} exact>
+                  <MyContracts />
+                </Route>
+                <Route path={SectionPath.community} exact>
+                  <Community />
                 </Route>
               </Switch>
             </div>
