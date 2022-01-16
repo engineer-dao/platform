@@ -1,4 +1,5 @@
 export interface IDataTableItem {
-  key: string;
-  value: string;
+  label: string;
+  value: string | string[];
+  chipColor?: string;
 }
