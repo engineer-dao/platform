@@ -3,4 +3,5 @@ export enum SectionPath {
   contracts = '/contracts',
   myContracts = '/my-contracts',
   community = '/community',
+  contract = '/contract/:id',
 }

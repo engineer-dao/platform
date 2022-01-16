@@ -4,6 +4,7 @@ import {
   ChevronRightIcon,
 } from '@heroicons/react/outline';
 import { IContract } from '../../interfaces/IContract';
+import { Link } from 'react-router-dom';
 
 interface IContractItemProps {
   contract: IContract;
@@ -25,7 +26,7 @@ const ContractItem: React.FC<IContractItemProps> = ({ contract }) => {
       key={id}
       className="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200"
     >
-      <a href="#" className="block hover:bg-gray-50 rounded-lg">
+      <Link to={`/contract/${id}`}>
         <div className="w-full flex items-center justify-between p-6 space-x-6">
           {/* Left section */}
           <div className="flex-1 truncate">
@@ -65,7 +66,7 @@ const ContractItem: React.FC<IContractItemProps> = ({ contract }) => {
             />
           </div>
         </div>
-      </a>
+      </Link>
       {/* Left section and right section */}
     </li>
   );
