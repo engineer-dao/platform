@@ -1,9 +1,10 @@
-import { IDataTableItem } from '../../interfaces/IDataTableItem';
 import DataTableItemChips from './row-types/DataTableItemChips';
+import DataTableItemCurrency from './row-types/DataTableItemCurrency';
+import DataTableItemFiles from './row-types/DataTableItemFiles';
 import DataTableItemText from './row-types/DataTableItemText';
 
 interface IDataTableProps {
-  data: IDataTableItem[];
+  data: any[];
 }
 
 const DataTable: React.FC<IDataTableProps> = (props) => {
@@ -28,6 +29,17 @@ const DataTable: React.FC<IDataTableProps> = (props) => {
             label={data[7].label}
             value={data[7].value}
             chipColor="bg-cyan-200 text-cyan-800"
+          />
+          <DataTableItemFiles label={data[8].label} value={data[8].value} />
+          <DataTableItemCurrency label={data[9].label} value={data[9].value} />
+          <DataTableItemCurrency
+            label={data[10].label}
+            value={data[10].value}
+          />
+          <DataTableItemCurrency
+            label={data[11].label}
+            value={data[11].value}
+            totalRow
           />
         </dl>
       </div>

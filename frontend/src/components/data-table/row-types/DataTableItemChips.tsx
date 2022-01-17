@@ -1,8 +1,8 @@
 import classNames from 'classnames';
 import React from 'react';
-import { IDataTableItem } from '../../../interfaces/IDataTableItem';
+import { IDataTableItemChips } from '../../../interfaces/IDataTableItem';
 
-const DataTableItemChips: React.FC<IDataTableItem> = (props) => {
+const DataTableItemChips: React.FC<IDataTableItemChips> = (props) => {
   const { label, value, chipColor } = props;
 
   return (
@@ -10,16 +10,18 @@ const DataTableItemChips: React.FC<IDataTableItem> = (props) => {
       <dt className="text-sm font-medium text-gray-500">{label}</dt>
       <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
         <div className="flex">
-          {(Array.isArray(value) ? value : [value])?.map((item: string) => (
-            <span
-              className={classNames(
-                chipColor,
-                'mr-2 px-3 py-0.5 rounded-full text-sm font-medium bg-green-200 text-green-800'
-              )}
-            >
-              {item}
-            </span>
-          ))}
+          {(Array.isArray(value) ? value : ([value] as any[]))?.map(
+            (item: string) => (
+              <span
+                className={classNames(
+                  chipColor,
+                  'mr-2 px-3 py-0.5 rounded-full text-sm font-medium bg-green-200 text-green-800'
+                )}
+              >
+                {item}
+              </span>
+            )
+          )}
         </div>
       </dd>
     </div>

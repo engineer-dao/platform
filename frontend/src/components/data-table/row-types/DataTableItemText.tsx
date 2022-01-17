@@ -1,7 +1,7 @@
 import React from 'react';
-import { IDataTableItem } from '../../../interfaces/IDataTableItem';
+import { IDataTableItemText } from '../../../interfaces/IDataTableItem';
 
-const DataTableItemText: React.FC<IDataTableItem> = (props) => {
+const DataTableItemText: React.FC<IDataTableItemText> = (props) => {
   const { label, value } = props;
 
   return (
