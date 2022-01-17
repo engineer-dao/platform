@@ -3,7 +3,7 @@ import React from 'react';
 import { IDataTableItemChips } from '../../../interfaces/IDataTableItem';
 
 const DataTableItemChips: React.FC<IDataTableItemChips> = (props) => {
-  const { label, value, chipColor } = props;
+  const { label, value, chipColor = 'bg-green-200 text-green-800' } = props;
 
   return (
     <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -14,8 +14,8 @@ const DataTableItemChips: React.FC<IDataTableItemChips> = (props) => {
             (item: string) => (
               <span
                 className={classNames(
-                  chipColor,
-                  'mr-2 px-3 py-0.5 rounded-full text-sm font-medium bg-green-200 text-green-800'
+                  'mr-2 px-3 py-0.5 rounded-full text-sm font-medium',
+                  chipColor
                 )}
               >
                 {item}
