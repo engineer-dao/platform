@@ -5,21 +5,16 @@ import {
 } from '@heroicons/react/outline';
 import { IContract } from '../../interfaces/IContract';
 import { Link } from 'react-router-dom';
+import { ContractStatus } from '../../enums/ContractStatus';
+import ContractStatusLabel from './ContractStatusLabel';
 
 interface IContractItemProps {
   contract: IContract;
 }
 
 const ContractItem: React.FC<IContractItemProps> = ({ contract }) => {
-  const {
-    id,
-    title,
-    bounty,
-    bounty_suffix,
-    buy_in,
-    buy_in_suffix,
-    availability,
-  } = contract;
+  const { id, title, bounty, bounty_suffix, buy_in, buy_in_suffix, status } =
+    contract;
 
   return (
     <li
@@ -55,9 +50,7 @@ const ContractItem: React.FC<IContractItemProps> = ({ contract }) => {
 
           {/* Right section */}
           <div className="flex-0 truncate">
-            <h3 className="text-md font-medium truncate text-green-600">
-              {availability}
-            </h3>
+            <ContractStatusLabel status={status} />
           </div>
           <div className="ml-5 flex-shrink-0">
             <ChevronRightIcon

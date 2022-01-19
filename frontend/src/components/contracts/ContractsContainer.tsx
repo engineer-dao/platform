@@ -1,7 +1,13 @@
-import { contracts } from '../../mocks/contracts';
+import { IContract } from '../../interfaces/IContract';
 import ContractItem from './ContractItem';
 
-const ContractsContainer = () => {
+interface IContractsContainer {
+  contracts: IContract[];
+}
+
+const ContractsContainer: React.FC<IContractsContainer> = (props) => {
+  const { contracts } = props;
+
   return (
     <ul className="grid grid-cols-1 gap-6">
       {contracts.map((item) => (
