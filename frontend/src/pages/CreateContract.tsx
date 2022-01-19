@@ -1,11 +1,9 @@
-import ContractsContainer from '../components/contracts/ContractsContainer';
-import SortFilterHeading from '../components/SortFilterHeading';
+import { CreateContractContainer } from '../components/create-contract/ContractsContainer';
 
 export const CreateContract = () => {
   return (
     <>
-      <SortFilterHeading />
-      <ContractsContainer />
+      <CreateContractContainer />
     </>
   );
 };
