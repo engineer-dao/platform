@@ -5,7 +5,7 @@ const ContractsContainer = () => {
   return (
     <ul className="grid grid-cols-1 gap-6">
       {contracts.map((item) => (
-        <ContractItem contract={item} />
+        <ContractItem key={item.id} contract={item} />
       ))}
     </ul>
   );

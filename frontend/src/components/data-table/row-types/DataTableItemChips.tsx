@@ -11,8 +11,9 @@ const DataTableItemChips: React.FC<IDataTableItemChips> = (props) => {
       <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
         <div className="flex">
           {(Array.isArray(value) ? value : ([value] as any[]))?.map(
-            (item: string) => (
+            (item: string, index: number) => (
               <span
+                key={index}
                 className={classNames(
                   'mr-2 px-3 py-0.5 rounded-full text-sm font-medium',
                   chipColor
