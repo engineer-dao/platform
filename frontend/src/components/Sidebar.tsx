@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import { Link } from 'react-router-dom';
-import WalletConnectionStatus from './wallet/WalletConnectionStatus';
+import { WalletConnectionStatus } from 'components/wallet/WalletConnectionStatus';
 
 interface ISidebar {
   navigation: any;
