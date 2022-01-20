@@ -10,8 +10,7 @@ import Content from '../components/Content';
 import { useLocation } from 'react-router-dom';
 import { SectionPath } from '../enums/admin/Sections';
 import MobileSidebar from '../components/MobileSidebar';
-import { WalletContext } from 'lib/wallet/WalletContext';
-import { DefaultWalletConnection } from 'lib/wallet/WalletConnection';
+import { WalletContext, DefaultWalletConnection } from 'contexts/WalletContext';
 
 export default function Admin() {
   const [sidebarOpen, setSidebarOpen] = useState(false);

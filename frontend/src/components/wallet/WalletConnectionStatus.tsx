@@ -1,22 +1,17 @@
 import { useState, useEffect, useContext } from 'react';
 import { utils } from 'ethers';
-import { WalletContext } from 'lib/wallet/WalletContext';
+import { WalletContext } from 'contexts/WalletContext';
+import { IMetaMaskError } from 'interfaces/IMetaMaskError';
 import metamaskLogo from 'assets/img/metamask.svg';
 
+// allow looking for window.ethereum for MetaMask availability
 declare const window: Window &
   typeof globalThis & {
     ethereum: any;
   };
 
-interface MetaMaskError {
-  code: number;
-  message: string;
-}
-
 export const WalletConnectionStatus = () => {
   const [errorMessage, setErrorMessage] = useState('');
-  const [defaultAccount, setDefaultAccount] = useState('');
-  const [shortAddress, setShortAddress] = useState('');
   const { walletConnection, setWalletConnection } = useContext(WalletContext);
 
   useEffect(() => {
@@ -33,7 +28,7 @@ export const WalletConnectionStatus = () => {
             accountChangedHandler(result[0]);
           }
         })
-        .catch((error: MetaMaskError) => {
+        .catch((error: IMetaMaskError) => {
           // Some unexpected error.
           console.error(`Metamask returned error: ${error.message}`);
           setErrorMessage(error.message);
@@ -49,7 +44,7 @@ export const WalletConnectionStatus = () => {
       // MetaMask is locked or the user has not connected any accounts
       setErrorMessage('MetaMask has disconnected');
       accountChangedHandler('');
-    } else if (accounts[0] !== defaultAccount) {
+    } else if (accounts[0] !== walletConnection.account) {
       accountChangedHandler(accounts[0]);
     }
   }
@@ -64,7 +59,7 @@ export const WalletConnectionStatus = () => {
             accountChangedHandler(result[0]);
           }
         })
-        .catch((error: MetaMaskError) => {
+        .catch((error: IMetaMaskError) => {
           let msg = error.message;
           if (error.code === 4001) {
             msg = 'You canceled the request. Please try again.';
@@ -78,18 +73,14 @@ export const WalletConnectionStatus = () => {
   };
 
   const accountChangedHandler = (newAccount: string) => {
-    if (newAccount !== defaultAccount) {
-      setDefaultAccount(newAccount);
-
+    if (newAccount !== walletConnection.account) {
       if (newAccount.length > 0) {
-        setShortAddress(shorten(utils.getAddress(newAccount)));
         setWalletConnection({
           connected: true,
           account: newAccount,
           provider: 'metamask',
         });
       } else {
-        setShortAddress('');
         setWalletConnection({
           connected: false,
           account: '',
@@ -108,15 +99,15 @@ export const WalletConnectionStatus = () => {
   };
 
   return (
-    <div>
+    <>
       {/* button */}
       <div>
-        {defaultAccount ? (
+        {walletConnection.connected ? (
           // wallet is connected
           <button className="rounded-lg border-2 border:gray-700 text-gray-200 hover:border-white hover:bg-gray-700 hover:text-white py-2 px-3 w-100 whitespace-nowrap">
             <div className="flex w-full">
               <img className="w-6 mr-2" src={metamaskLogo} alt="MetaMask"></img>
-              <div className="">{shortAddress}</div>
+              <div>{shorten(utils.getAddress(walletConnection.account))}</div>
             </div>
           </button>
         ) : (
@@ -137,6 +128,6 @@ export const WalletConnectionStatus = () => {
           <p className="font-medium text-white">{errorMessage}</p>
         </div>
       )}
-    </div>
+    </>
   );
 };
