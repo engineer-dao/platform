@@ -109,19 +109,28 @@ export const WalletConnectionStatus = () => {
 
   return (
     <div>
-      <div className="rounded-lg border-2 border:gray-700 text-gray-200 hover:border-white hover:bg-gray-700 hover:text-white py-2 px-3 w-min whitespace-nowrap">
+      {/* button */}
+      <div>
         {defaultAccount ? (
-          <button className="flex">
-            <img className="w-6 mr-2" src={metamaskLogo} alt="MetaMask"></img>
-            <span className="pr-6">{shortAddress}</span>
+          // wallet is connected
+          <button className="rounded-lg border-2 border:gray-700 text-gray-200 hover:border-white hover:bg-gray-700 hover:text-white py-2 px-3 w-100 whitespace-nowrap">
+            <div className="flex w-full">
+              <img className="w-6 mr-2" src={metamaskLogo} alt="MetaMask"></img>
+              <div className="">{shortAddress}</div>
+            </div>
           </button>
         ) : (
           // wallet is not connected
-          <button onClick={connectWalletHandler} className="btn">
-            Connect Wallet
+          <button
+            onClick={connectWalletHandler}
+            className="rounded-lg border-2 border:gray-700 text-gray-200 hover:border-white hover:bg-gray-700 hover:text-white py-2 px-3 w-100 whitespace-nowrap"
+          >
+            <div className="w-full">Connect Wallet</div>
           </button>
         )}
       </div>
+
+      {/* error message */}
       {errorMessage && (
         // display the error message
         <div className="my-2 py-2 px-3 bg-red-800 rounded-lg">

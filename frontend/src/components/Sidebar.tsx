@@ -19,6 +19,9 @@ function Sidebar(props: ISidebar) {
                 EngineerDAO
               </h1>
             </div>
+            <div className="px-2 pt-7 pb-1 text-center">
+              <WalletConnectionStatus />
+            </div>
             <nav className="mt-5 flex-1 px-2 bg-gray-800 space-y-1">
               {navigation.map((item: any) => (
                 <Link
@@ -43,9 +46,6 @@ function Sidebar(props: ISidebar) {
                   {item.name}
                 </Link>
               ))}
-              <div className="px-2 py-2 pt-7">
-                <WalletConnectionStatus />
-              </div>
             </nav>
           </div>
         </div>
