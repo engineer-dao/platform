@@ -1,19 +1,15 @@
 import { Fragment, useState } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
 import { CheckIcon, SelectorIcon } from '@heroicons/react/solid';
+import classNames from 'classnames';
+import { IListBoxItem } from '../interfaces/IListBoxItem';
 
-interface Props {
-  items: {
-    id: number;
-    name: string;
-  }[];
+interface IListBoxProps {
+  items: IListBoxItem[];
 }
 
-const classNames = (...classes: string[]) => {
-  return classes.filter(Boolean).join(' ');
-};
-
-export const ListBox = ({ items }: Props) => {
+export const ListBox: React.FC<IListBoxProps> = (props) => {
+  const { items } = props;
   const [selected, setSelected] = useState(items[3]);
 
   return (

@@ -1,5 +1,14 @@
+import ContractsContainer from '../components/contracts/ContractsContainer';
+import SortFilterHeading from '../components/SortFilterHeading';
+import { myContracts } from '../mocks/myContracts';
+
 const MyContracts = () => {
-  return <div>MyContracts</div>;
+  return (
+    <>
+      <SortFilterHeading heading="My Contracts" />
+      <ContractsContainer contracts={myContracts} />
+    </>
+  );
 };
 
 export default MyContracts;
