@@ -5,7 +5,6 @@ import {
 } from '@heroicons/react/outline';
 import { IContract } from '../../interfaces/IContract';
 import { Link } from 'react-router-dom';
-import { ContractStatus } from '../../enums/ContractStatus';
 import ContractStatusLabel from './ContractStatusLabel';
 
 interface IContractItemProps {
