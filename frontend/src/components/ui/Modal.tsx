@@ -1,6 +1,5 @@
-import { Fragment, useState } from 'react';
+import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import * as HeroIcons from '@heroicons/react/outline';
 
 import { IModalProps } from 'interfaces/IModalProps';
 import { DynamicHeroIcon } from 'components/ui/DynamicHeroIcon';
@@ -46,8 +45,6 @@ export const MyComponent: React.FunctionComponent = () => {
 export const Modal: React.FunctionComponent<IModalProps> = (
   props: IModalProps
 ) => {
-  const [open, setOpen] = useState(props.isOpen);
-
   const onClose = () => {
     props.onRequestClose && props.onRequestClose();
   };

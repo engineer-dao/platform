@@ -3,7 +3,6 @@ import { utils } from 'ethers';
 import { WalletContext } from 'contexts/WalletContext';
 import { IMetaMaskError } from 'interfaces/IMetaMaskError';
 import metamaskLogo from 'assets/img/metamask.svg';
-import { Modal } from 'components/ui/Modal';
 
 // allow looking for window.ethereum for MetaMask availability
 declare const window: Window &
@@ -99,8 +98,6 @@ export const WalletConnectionStatus = () => {
     );
   };
 
-  const [showModal, setShowModal] = useState(false);
-
   return (
     <>
       {/* button */}
@@ -131,28 +128,6 @@ export const WalletConnectionStatus = () => {
           <p className="font-medium text-white">{errorMessage}</p>
         </div>
       )}
-
-      <button
-        className="mt-2 rounded-lg border-2 border:gray-700 text-gray-200 hover:border-white hover:bg-gray-700 hover:text-white py-2 px-3 w-100 whitespace-nowrap"
-        onClick={() => {
-          setShowModal(true);
-        }}
-      >
-        Click to Show Modal
-      </button>
-      <Modal
-        title="Example Modal Title"
-        icon="EmojiHappyIcon"
-        closeButton="I'm good"
-        isOpen={showModal}
-        onRequestClose={() => {
-          setShowModal(false);
-        }}
-      >
-        <div className="hidden">Body of the modal goes here</div>
-        <p>Example modal content here.</p>
-        <p>Another line of information is here.</p>
-      </Modal>
     </>
   );
 };
