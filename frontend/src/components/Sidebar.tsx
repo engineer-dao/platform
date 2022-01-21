@@ -1,5 +1,6 @@
 import classNames from 'classnames';
 import { Link } from 'react-router-dom';
+import { WalletConnectionStatus } from 'components/wallet/WalletConnectionStatus';
 
 interface ISidebar {
   navigation: any;
@@ -17,6 +18,9 @@ function Sidebar(props: ISidebar) {
               <h1 className="text-2xl leading-6 font-extrabold tracking-tight text-white sm:text-4xl">
                 EngineerDAO
               </h1>
+            </div>
+            <div className="px-2 pt-7 pb-1 text-center">
+              <WalletConnectionStatus />
             </div>
             <nav className="mt-5 flex-1 px-2 bg-gray-800 space-y-1">
               {navigation.map((item: any) => (
