@@ -3,21 +3,27 @@ import { utils } from 'ethers';
 import { WalletContext } from 'contexts/WalletContext';
 import { IMetaMaskError } from 'interfaces/IMetaMaskError';
 import metamaskLogo from 'assets/img/metamask.svg';
-
-// allow looking for window.ethereum for MetaMask availability
-declare const window: Window &
-  typeof globalThis & {
-    ethereum: any;
-  };
+import { getWalletBalance, shortenAddress } from 'utils/ethereum';
 
 export const WalletConnectionStatus = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const { walletConnection, setWalletConnection } = useContext(WalletContext);
+  const [walletBalance, setWalletBalance] = useState<string | undefined>();
+
+  const getBalance = async (balance: string) => {
+    const _balance = await getWalletBalance(balance);
+
+    setWalletBalance(_balance);
+  };
 
   useEffect(() => {
     // on load, try and connect the current wallet
     initWallet();
   });
+
+  useEffect(() => {
+    walletConnection?.account && getBalance(walletConnection.account);
+  }, [walletConnection]);
 
   const initWallet = () => {
     if (window.ethereum) {
@@ -90,14 +96,6 @@ export const WalletConnectionStatus = () => {
     }
   };
 
-  const shorten = (fullAddress: string) => {
-    return (
-      fullAddress.substring(0, 6) +
-      '...' +
-      fullAddress.substring(fullAddress.length - 4)
-    );
-  };
-
   return (
     <>
       {/* button */}
@@ -107,7 +105,10 @@ export const WalletConnectionStatus = () => {
           <button className="rounded-lg border-2 border:gray-700 text-gray-200 hover:border-white hover:bg-gray-700 hover:text-white py-2 px-3 w-100 whitespace-nowrap">
             <div className="flex w-full">
               <img className="w-6 mr-2" src={metamaskLogo} alt="MetaMask"></img>
-              <div>{shorten(utils.getAddress(walletConnection.account))}</div>
+              <div>
+                {shortenAddress(utils.getAddress(walletConnection.account))} |{' '}
+                {walletBalance} ETH
+              </div>
             </div>
           </button>
         ) : (
