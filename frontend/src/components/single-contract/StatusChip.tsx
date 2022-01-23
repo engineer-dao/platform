@@ -5,10 +5,11 @@ import { ContractStatus } from '../../enums/ContractStatus';
 interface IStatusChipProps {
   status: keyof typeof ContractStatus;
   color?: string;
+  size?: 'large' | 'small';
 }
 
 const StatusChip: React.FC<IStatusChipProps> = (props) => {
-  const { status, color } = props;
+  const { status, color, size = 'large' } = props;
 
   let _color = color;
 
@@ -39,7 +40,9 @@ const StatusChip: React.FC<IStatusChipProps> = (props) => {
   return (
     <span
       className={classNames(
-        'inline-flex items-center px-4 py-1 rounded-full text-lg font-medium',
+        'inline-flex items-center rounded-full font-medium',
+        size === 'large' && 'text-lg px-4 py-1',
+        size === 'small' && 'text-sm px-2 py-0.5',
         _color
       )}
     >

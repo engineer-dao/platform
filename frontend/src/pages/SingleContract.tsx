@@ -1,3 +1,4 @@
+import ActivityFeed from 'components/activity-feed/ActivityFeed';
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import SingleContractData from '../components/single-contract/SingleContractData';
@@ -18,6 +19,7 @@ const SingleContract: React.FC = () => {
     <>
       <SingleContractHeading contract={contract} />
       <SingleContractData />
+      <ActivityFeed />
     </>
   ) : null;
 };
