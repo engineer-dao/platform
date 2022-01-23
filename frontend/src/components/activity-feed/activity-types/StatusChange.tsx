@@ -2,11 +2,11 @@ import { IActivityFeedItem } from 'interfaces/IActivityFeedItem';
 import { UserCircleIcon } from '@heroicons/react/solid';
 import StatusChip from 'components/single-contract/StatusChip';
 
-interface AssignmentProps {
+interface StatusChangeProps {
   activityItem: IActivityFeedItem;
 }
 
-export const StatusChange: React.FC<AssignmentProps> = ({ activityItem }) => {
+export const StatusChange: React.FC<StatusChangeProps> = ({ activityItem }) => {
   return activityItem.status ? (
     <>
       <div>

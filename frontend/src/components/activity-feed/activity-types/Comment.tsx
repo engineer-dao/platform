@@ -1,5 +1,5 @@
 import { IActivityFeedItem } from 'interfaces/IActivityFeedItem';
-import { ChatAltIcon, TagIcon, UserCircleIcon } from '@heroicons/react/solid';
+import { ChatAltIcon } from '@heroicons/react/solid';
 
 interface CommentProps {
   activityItem: IActivityFeedItem;
