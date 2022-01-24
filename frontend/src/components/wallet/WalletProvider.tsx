@@ -83,7 +83,7 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       connected: true,
       account,
       provider,
-      providerInfo: getInjectedProvider(),
+      providerInfo,
     });
   };
 
