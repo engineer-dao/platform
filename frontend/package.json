@@ -14,6 +14,7 @@
     "eslint-plugin-prettier": "^3.4.0",
     "ethers": "^5.5.3",
     "formik": "^2.2.9",
+    "fortmatic": "^2.2.1",
     "highlight.js": "^10.0.3",
     "history": "^5.0.1",
     "prettier": "^2.3.2",
@@ -23,7 +24,8 @@
     "react-scripts": "5.0.0",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat",
     "typescript": "^4.1.2",
-    "web-vitals": "^1.0.1"
+    "web-vitals": "^1.0.1",
+    "web3modal": "^1.9.5"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^5.11.4",
