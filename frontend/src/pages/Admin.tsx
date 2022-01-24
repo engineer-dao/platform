@@ -10,7 +10,7 @@ import Content from '../components/Content';
 import { useLocation } from 'react-router-dom';
 import { SectionPath } from '../enums/admin/Sections';
 import MobileSidebar from '../components/MobileSidebar';
-import { WalletConnectionProvider } from 'components/wallet/WalletConnectionProvider';
+import { WalletProvider } from 'components/wallet/WalletProvider';
 
 export default function Admin() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -46,7 +46,7 @@ export default function Admin() {
   ];
 
   return (
-    <WalletConnectionProvider>
+    <WalletProvider>
       <div className="h-screen flex overflow-hidden bg-gray-100">
         <MobileSidebar
           sidebarOpen={sidebarOpen}
@@ -56,6 +56,6 @@ export default function Admin() {
         <Sidebar navigation={navigation} />
         <Content reportSidebarOpen={setSidebarOpen} />
       </div>
-    </WalletConnectionProvider>
+    </WalletProvider>
   );
 }

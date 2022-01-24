@@ -1,21 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { WalletContext, DefaultWalletConnection } from 'contexts/WalletContext';
+import React, { useEffect, useMemo, useReducer } from 'react';
 import { IMetaMaskError } from 'interfaces/IMetaMaskError';
 import EventEmitter from 'events';
 import { ethers } from 'ethers';
 import Web3Modal, { getInjectedProvider, IProviderInfo } from 'web3modal';
 import Fortmatic from 'fortmatic';
+import { WalletContext, WalletState } from 'components/wallet/WalletContext';
+import { walletReducer } from './WalletReducer';
 
-export const WalletConnectionProvider = ({
-  children,
-}: {
-  children: React.ReactNode;
-}) => {
-  const [walletConnection, setWalletConnection] = useState(
-    DefaultWalletConnection
-  );
+const initialState: WalletState = {
+  account: null,
+  connected: false,
+  provider: null,
+  providerInfo: null,
+};
 
+const fortmaticNetworkOptions = {
+  rpcUrl: 'https://rpc-mainnet.maticvigil.com',
+  chainId: 137,
+};
+
+const providerOptions = {
+  fortmatic: {
+    package: Fortmatic,
+    options: {
+      key: process.env.REACT_APP_FORTMATIC_KEY || 'INVALID_KEY',
+      network: fortmaticNetworkOptions,
+    },
+  },
+};
+
+const web3Modal = new Web3Modal({
+  network: 'mainnet',
+  cacheProvider: false,
+  providerOptions,
+});
+
+export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   let boundProviderConnection: EventEmitter | null = null;
+
+  const [state, dispatch] = useReducer(walletReducer, initialState);
 
   useEffect(() => {
     initWallet();
@@ -25,28 +48,8 @@ export const WalletConnectionProvider = ({
         unbindConnectionEvents(boundProviderConnection);
       }
     };
-  });
-
-  const fortmaticNetworkOptions = {
-    rpcUrl: 'https://rpc-mainnet.maticvigil.com',
-    chainId: 137,
-  };
-
-  const providerOptions = {
-    fortmatic: {
-      package: Fortmatic,
-      options: {
-        key: process.env.REACT_APP_FORTMATIC_KEY || 'INVALID_KEY',
-        network: fortmaticNetworkOptions,
-      },
-    },
-  };
-
-  const web3Modal = new Web3Modal({
-    network: 'mainnet',
-    cacheProvider: false,
-    providerOptions,
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const initWallet = async () => {
     const providerInfo = getInjectedProvider();
@@ -74,14 +77,32 @@ export const WalletConnectionProvider = ({
     providerInfo: IProviderInfo,
     account: string
   ) => {
-    const web3Provider = await connectToWeb3Provider(providerInfo.id);
-    accountChangedHandler(account, web3Provider);
+    const provider = await connectToWeb3Provider(providerInfo.id);
+
+    setWalletConnection({
+      connected: true,
+      account,
+      provider,
+      providerInfo: getInjectedProvider(),
+    });
   };
 
   const connectToWallet = async () => {
-    const web3Provider = await connectToWeb3Provider(null);
-    const accounts = await web3Provider.listAccounts();
-    accountChangedHandler(accounts[0], web3Provider);
+    const provider = await connectToWeb3Provider(null);
+    const account = (await provider.listAccounts())[0];
+
+    setWalletConnection({
+      connected: true,
+      account,
+      provider,
+      providerInfo: getInjectedProvider(),
+    });
+  };
+
+  const disconnectWallet = async () => {
+    await web3Modal.clearCachedProvider();
+
+    setWalletConnection(initialState);
   };
 
   const connectToWeb3Provider = async (providerId: string | null) => {
@@ -91,31 +112,8 @@ export const WalletConnectionProvider = ({
         : await web3Modal.connectTo(providerId);
     bindConnectionEvents(connection);
     boundProviderConnection = connection;
-    const web3Provider = new ethers.providers.Web3Provider(connection);
-    return web3Provider;
-  };
 
-  const accountChangedHandler = (
-    newAccount: string | null,
-    newProvider: ethers.providers.Web3Provider | null
-  ) => {
-    if (newAccount !== walletConnection.account) {
-      if (newAccount !== null && newAccount.length > 0) {
-        setWalletConnection({
-          connected: true,
-          account: newAccount,
-          provider: newProvider,
-          providerInfo: getInjectedProvider(),
-        });
-      } else {
-        setWalletConnection({
-          connected: false,
-          account: null,
-          provider: null,
-          providerInfo: null,
-        });
-      }
-    }
+    return new ethers.providers.Web3Provider(connection);
   };
 
   const bindConnectionEvents = (connection: EventEmitter) => {
@@ -128,7 +126,7 @@ export const WalletConnectionProvider = ({
 
   const onAccountsChanged = (accounts: string[]) => {
     // erase the connection and let the wallet reload
-    accountChangedHandler(null, null);
+    setWalletConnection(initialState);
   };
 
   const onConnected = (info: { chainId: number }) => {
@@ -140,14 +138,26 @@ export const WalletConnectionProvider = ({
     connection.removeListener('connect', onConnected);
   };
 
-  const defaultWalletConnectionValue = {
-    walletConnection,
-    setWalletConnection,
-    connectToWallet: connectToWallet,
+  const setWalletConnection = (payload: WalletState) => {
+    dispatch({
+      type: 'set_wallet_connection',
+      payload,
+    });
   };
 
+  const contextValue = useMemo(
+    () => ({
+      ...state,
+      setWalletConnection,
+      connectToWallet,
+      disconnectWallet,
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [state]
+  );
+
   return (
-    <WalletContext.Provider value={defaultWalletConnectionValue}>
+    <WalletContext.Provider value={contextValue}>
       {children}
     </WalletContext.Provider>
   );
