@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 
-import Web3Modal, { IProviderInfo } from 'web3modal';
+import { IProviderInfo } from 'web3modal';
 
 export interface IWalletConnection {
   connected: boolean;

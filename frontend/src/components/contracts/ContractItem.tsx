@@ -18,27 +18,27 @@ const ContractItem: React.FC<IContractItemProps> = ({ contract }) => {
   return (
     <li
       key={id}
-      className="col-span-1 bg-white rounded-lg shadow divide-y divide-gray-200"
+      className="col-span-1 divide-y divide-gray-200 rounded-lg bg-white shadow"
     >
       <Link to={`/contract/${id}`}>
-        <div className="w-full flex items-center justify-between p-6 space-x-6">
+        <div className="flex w-full items-center justify-between space-x-6 p-6">
           {/* Left section */}
           <div className="flex-1 truncate">
             <div className="flex flex-col items-start">
-              <h3 className="text-gray-700 text-lg font-medium truncate mb-6">
+              <h3 className="mb-6 truncate text-lg font-medium text-gray-700">
                 {title}
               </h3>
-              <div className="flex item-center">
-                <p className="mt-1 mr-3 text-gray-700 font-bold text-md truncate flex items-center">
+              <div className="item-center flex">
+                <p className="text-md mt-1 mr-3 flex items-center truncate font-bold text-gray-700">
                   <CashIcon
-                    className="h-5 w-5 mr-2 text-green-500"
+                    className="mr-2 h-5 w-5 text-green-500"
                     aria-hidden="true"
                   />
                   {bounty} {bounty_suffix} Bounty
                 </p>
-                <p className="mt-1 text-gray-700 font-bold text-md truncate flex items-center">
+                <p className="text-md mt-1 flex items-center truncate font-bold text-gray-700">
                   <OutlineCashIcon
-                    className="h-5 w-5 mr-2 text-green-500"
+                    className="mr-2 h-5 w-5 text-green-500"
                     aria-hidden="true"
                   />
                   {buy_in} {buy_in_suffix} Buy-In

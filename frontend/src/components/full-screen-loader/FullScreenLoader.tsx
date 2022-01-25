@@ -2,11 +2,11 @@ import './FullScreenLoader.css';
 
 const FullScreenLoader = () => {
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gray-800">
-      <div className="loader bg-white p-5 rounded-full flex space-x-3">
-        <div className="w-5 h-5 bg-gray-800 rounded-full animate-bounce"></div>
-        <div className="w-5 h-5 bg-gray-800 rounded-full animate-bounce"></div>
-        <div className="w-5 h-5 bg-gray-800 rounded-full animate-bounce"></div>
+    <div className="flex min-h-screen items-center justify-center bg-gray-800">
+      <div className="loader flex space-x-3 rounded-full bg-white p-5">
+        <div className="h-5 w-5 animate-bounce rounded-full bg-gray-800"></div>
+        <div className="h-5 w-5 animate-bounce rounded-full bg-gray-800"></div>
+        <div className="h-5 w-5 animate-bounce rounded-full bg-gray-800"></div>
       </div>
     </div>
   );

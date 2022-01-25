@@ -9,8 +9,8 @@ import PaymentSummary from './PaymentSummary';
 
 const CreateContractForm = () => {
   return (
-    <div className="mt-6 shadow overflow-hidden sm:rounded-md">
-      <div className="px-4 py-5 bg-white sm:p-6">
+    <div className="mt-6 overflow-hidden shadow sm:rounded-md">
+      <div className="bg-white px-4 py-5 sm:p-6">
         <div className="grid grid-cols-6 gap-6">
           <div className="col-span-6">
             <Input id="title" label="Title" />
@@ -71,7 +71,7 @@ const CreateContractForm = () => {
             <input
               type="date"
               id="end-date"
-              className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             />
           </div>
           <div className="col-span-6">
@@ -80,7 +80,7 @@ const CreateContractForm = () => {
             </label>
             <Dropzone />
           </div>
-          <div className="col-span-6 px-4 py-5 bg-gray-50 sm:p-6 w-full flex">
+          <div className="col-span-6 flex w-full bg-gray-50 px-4 py-5 sm:p-6">
             <div className="w-1/2">
               <PaymentSummary />
             </div>
@@ -88,10 +88,10 @@ const CreateContractForm = () => {
               <OptionsSummary />
             </div>
           </div>
-          <div className="col-span-6 text-right text-sm text-white leading-5 font-normal">
+          <div className="col-span-6 text-right text-sm font-normal leading-5 text-white">
             <button
               type="button"
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="focus:outline-none inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
               Fund &amp; Create
             </button>

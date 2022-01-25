@@ -47,7 +47,7 @@ export default function Admin() {
 
   return (
     <WalletProvider>
-      <div className="h-screen flex overflow-hidden bg-gray-100">
+      <div className="flex h-screen overflow-hidden bg-gray-100">
         <MobileSidebar
           sidebarOpen={sidebarOpen}
           reportSidebarOpen={setSidebarOpen}

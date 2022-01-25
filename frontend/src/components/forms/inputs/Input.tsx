@@ -16,7 +16,7 @@ const Input: React.FC<IInputProps> = (props) => {
       <input
         type="text"
         id={id}
-        className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
       />
     </>
   );

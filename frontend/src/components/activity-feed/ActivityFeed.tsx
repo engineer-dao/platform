@@ -4,7 +4,7 @@ import { StatusChange } from './activity-types/StatusChange';
 
 const ActivityFeed = () => {
   return (
-    <div className="flow-root bg-white shadow overflow-hidden sm:rounded-lg border-t border-gray-200 mt-4 p-4 sm:px-6 sm:py-5">
+    <div className="mt-4 flow-root overflow-hidden border-t border-gray-200 bg-white p-4 shadow sm:rounded-lg sm:px-6 sm:py-5">
       <ul className="-mb-8">
         {activity.map((activityItem, index) => (
           <li key={activityItem.id}>

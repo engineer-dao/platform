@@ -11,7 +11,7 @@ export const StatusChange: React.FC<StatusChangeProps> = ({ activityItem }) => {
     <>
       <div>
         <div className="relative px-1">
-          <div className="h-8 w-8 bg-gray-100 rounded-full ring-8 ring-white flex items-center justify-center">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 ring-8 ring-white">
             <UserCircleIcon
               className="h-5 w-5 text-gray-500"
               aria-hidden="true"

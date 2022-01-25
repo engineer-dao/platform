@@ -10,7 +10,7 @@ const MobileSidebar = (props: any) => {
     <Transition.Root show={sidebarOpen} as={Fragment}>
       <Dialog
         as="div"
-        className="fixed inset-0 flex z-40 md:hidden"
+        className="fixed inset-0 z-40 flex md:hidden"
         onClose={reportSidebarOpen}
       >
         <Transition.Child
@@ -33,7 +33,7 @@ const MobileSidebar = (props: any) => {
           leaveFrom="translate-x-0"
           leaveTo="-translate-x-full"
         >
-          <div className="relative flex-1 flex flex-col max-w-xs w-full bg-gray-800">
+          <div className="relative flex w-full max-w-xs flex-1 flex-col bg-gray-800">
             <Transition.Child
               as={Fragment}
               enter="ease-in-out duration-300"
@@ -46,7 +46,7 @@ const MobileSidebar = (props: any) => {
               <div className="absolute top-0 right-0 -mr-12 pt-2">
                 <button
                   type="button"
-                  className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+                  className="focus:outline-none ml-1 flex h-10 w-10 items-center justify-center rounded-full focus:ring-2 focus:ring-inset focus:ring-white"
                   onClick={() => reportSidebarOpen(false)}
                 >
                   <span className="sr-only">Close sidebar</span>
@@ -57,7 +57,7 @@ const MobileSidebar = (props: any) => {
             <Navigation navigation={navigation} />
           </div>
         </Transition.Child>
-        <div className="flex-shrink-0 w-14">
+        <div className="w-14 flex-shrink-0">
           {/* Force sidebar to shrink to fit close icon */}
         </div>
       </Dialog>

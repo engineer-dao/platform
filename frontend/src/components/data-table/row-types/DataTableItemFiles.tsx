@@ -8,22 +8,22 @@ const DataTableItemFiles: React.FC<IDataTableItemFiles> = (props) => {
   if (!Array.isArray(value)) return null;
 
   return (
-    <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+    <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
       <dt className="text-sm font-medium text-gray-500">{label}</dt>
-      <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-        <ul className="border border-gray-200 rounded-md divide-y divide-gray-200">
+      <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+        <ul className="divide-y divide-gray-200 rounded-md border border-gray-200">
           {/* To be replaced: these types will all be different in the future as we hook up to real data. */}
           {(value as any[]).map((item: any, index: number) => (
             <li
               key={index}
-              className="pl-3 pr-4 py-3 flex items-center justify-between text-sm"
+              className="flex items-center justify-between py-3 pl-3 pr-4 text-sm"
             >
-              <div className="w-0 flex-1 flex items-center">
+              <div className="flex w-0 flex-1 items-center">
                 <PaperClipIcon
-                  className="flex-shrink-0 h-5 w-5 text-gray-400"
+                  className="h-5 w-5 flex-shrink-0 text-gray-400"
                   aria-hidden="true"
                 />
-                <span className="ml-2 flex-1 w-0 truncate">
+                <span className="ml-2 w-0 flex-1 truncate">
                   {item.filename}
                 </span>
               </div>

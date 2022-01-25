@@ -124,7 +124,7 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     connection.on('connect', onConnected);
   };
 
-  const onAccountsChanged = (accounts: string[]) => {
+  const onAccountsChanged = () => {
     // erase the connection and let the wallet reload
     setWalletConnection(initialState);
   };

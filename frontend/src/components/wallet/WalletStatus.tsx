@@ -31,12 +31,12 @@ export const WalletConnectionStatus = () => {
           // wallet is connected
           <button
             onClick={() => disconnectWallet()}
-            className="rounded-lg border-2 border:gray-700 text-gray-200 hover:border-white hover:bg-gray-700 hover:text-white py-2 px-3 w-100 whitespace-nowrap"
+            className="border:gray-700 w-100 whitespace-nowrap rounded-lg border-2 py-2 px-3 text-gray-200 hover:border-white hover:bg-gray-700 hover:text-white"
           >
             <div className="flex w-full">
               {providerInfo && providerInfo.logo && (
                 <img
-                  className="w-6 mr-2"
+                  className="mr-2 w-6"
                   src={providerInfo.logo}
                   alt="MetaMask"
                 ></img>
@@ -51,7 +51,7 @@ export const WalletConnectionStatus = () => {
           // wallet is not connected
           <button
             onClick={connectToWallet}
-            className="rounded-lg border-2 border:gray-700 text-gray-200 hover:border-white hover:bg-gray-700 hover:text-white py-2 px-3 w-100 whitespace-nowrap"
+            className="border:gray-700 w-100 whitespace-nowrap rounded-lg border-2 py-2 px-3 text-gray-200 hover:border-white hover:bg-gray-700 hover:text-white"
           >
             <div className="w-full">Connect Wallet</div>
           </button>

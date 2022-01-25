@@ -13,9 +13,9 @@ const SingleContractHeading: React.FC<ISingleContractHeadingProps> = (
 
   return (
     <div className="pb-5">
-      <div className="sm:flex sm:justify-between sm:items-baseline">
+      <div className="sm:flex sm:items-baseline sm:justify-between">
         <div className="sm:w-0 sm:flex-1">
-          <h3 className="text-xl leading-6 font-medium text-gray-900">
+          <h3 className="text-xl font-medium leading-6 text-gray-900">
             {title}
           </h3>
         </div>

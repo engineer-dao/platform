@@ -35,7 +35,7 @@ const ContractStatusLabel: React.FC<IContractStatusLabelProps> = (props) => {
   }
 
   return (
-    <h3 className={classNames('text-md font-medium truncate', _color)}>
+    <h3 className={classNames('text-md truncate font-medium', _color)}>
       {ContractStatus[status]}
     </h3>
   );

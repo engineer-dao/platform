@@ -41,8 +41,8 @@ const StatusChip: React.FC<IStatusChipProps> = (props) => {
     <span
       className={classNames(
         'inline-flex items-center rounded-full font-medium',
-        size === 'large' && 'text-lg px-4 py-1',
-        size === 'small' && 'text-sm px-2 py-0.5',
+        size === 'large' && 'px-4 py-1 text-lg',
+        size === 'small' && 'px-2 py-0.5 text-sm',
         _color
       )}
     >
