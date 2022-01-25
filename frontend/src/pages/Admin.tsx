@@ -10,17 +10,10 @@ import Content from '../components/Content';
 import { useLocation } from 'react-router-dom';
 import { SectionPath } from '../enums/admin/Sections';
 import MobileSidebar from '../components/MobileSidebar';
-import { WalletContext, DefaultWalletConnection } from 'contexts/WalletContext';
+import { WalletProvider } from 'components/wallet/WalletProvider';
 
 export default function Admin() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [walletConnection, setWalletConnection] = useState(
-    DefaultWalletConnection
-  );
-  const defaultWalletConnectionValue = {
-    walletConnection,
-    setWalletConnection,
-  };
   const location = useLocation();
 
   const current = (id: string) => location.pathname === id;
@@ -53,7 +46,7 @@ export default function Admin() {
   ];
 
   return (
-    <WalletContext.Provider value={defaultWalletConnectionValue}>
+    <WalletProvider>
       <div className="h-screen flex overflow-hidden bg-gray-100">
         <MobileSidebar
           sidebarOpen={sidebarOpen}
@@ -63,6 +56,6 @@ export default function Admin() {
         <Sidebar navigation={navigation} />
         <Content reportSidebarOpen={setSidebarOpen} />
       </div>
-    </WalletContext.Provider>
+    </WalletProvider>
   );
 }
