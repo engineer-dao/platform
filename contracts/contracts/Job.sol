@@ -13,6 +13,9 @@ contract Job {
 
         uint startTime;
 
+        bool closedBySupplier;
+        bool closedByEngineer;
+
         States state;
     }
 
@@ -30,7 +33,8 @@ contract Job {
         Started,
         Completed,
         FinalApproved,
-        FinalCanceledBySupplier
+        FinalCanceledBySupplier,
+        FinalMutualClose
     }
 
     uint constant MINIMUM_BOUNTY = 50000000000000000000; // 50 paymentTokens ($50)
@@ -46,6 +50,10 @@ contract Job {
     event JobStarted(address indexed engineer, uint indexed jobId);
     event JobCompleted(uint indexed jobId);
     event JobApproved(uint indexed jobId, uint payoutAmount);
+    event JobCanceled(uint indexed jobId);
+    event JobClosedBySupplier(uint indexed jobId);
+    event JobClosedByEngineer(uint indexed jobId);
+    event JobClosed(uint indexed jobId);
 
     ////////////////////////////////////////
     // modifiers
@@ -102,6 +110,8 @@ contract Job {
             engineer: address(0),
             deposit: 0,
             startTime: 0,
+            closedBySupplier: false,
+            closedByEngineer: false,
             state: States.Available
         });
 
@@ -157,11 +167,47 @@ contract Job {
         jobs[jobId].state = States.FinalCanceledBySupplier;
 
         sendJobRefund(jobId);
+
+        emit JobCanceled(jobId);
+    }
+
+    // job is closed if both supplier and engineer agree to cancel the job after it was started
+    function closeJob(uint jobId) public requiresJobState(jobId, States.Started) {
+        // must be supplier or engineer
+        if (msg.sender == address(jobs[jobId].supplier)) {
+            closeJobBySupplier(jobId);
+        } else if (msg.sender == address(jobs[jobId].engineer)) {
+            closeJobByEngineer(jobId);
+        } else {
+            revert("Method not available for this caller");
+        }
+
+        // if closed by both parties, then change state and refund
+        if (jobs[jobId].closedBySupplier && jobs[jobId].closedByEngineer) {
+            jobs[jobId].state = States.FinalMutualClose;
+            sendJobRefund(jobId);
+
+            emit JobClosed(jobId);
+        }
     }
 
 
     ////////////////////////////////////////
     // internal functions
+
+    function closeJobBySupplier(uint jobId) internal {
+        require(jobs[jobId].closedBySupplier == false, "Close request already received");
+        jobs[jobId].closedBySupplier = true;
+
+        emit JobClosedBySupplier(jobId);
+    }
+
+    function closeJobByEngineer(uint jobId) internal {
+        require(jobs[jobId].closedByEngineer == false, "Close request already received");
+        jobs[jobId].closedByEngineer = true;
+
+        emit JobClosedByEngineer(jobId);
+    }
 
     function sendJobRefund(uint jobId) internal {
         sendFunds(address(jobs[jobId].supplier), jobs[jobId].bounty);

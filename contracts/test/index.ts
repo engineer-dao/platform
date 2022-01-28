@@ -4,8 +4,6 @@ import { ethers } from 'hardhat';
 
 import * as testUtil from './lib/testUtil';
 
-// 1 ETH = 1000000000000000000 wei
-
 describe('A test ERC20 token', function () {
   it('can be created', async function () {
     const testToken = await testUtil.deployERC20Token();
@@ -279,6 +277,17 @@ describe('A cancellable job', function () {
       testUtil.cancelJob(job, testUtil.JOB_ID_1, otherSigner)
     ).to.be.revertedWith('Method not available for this caller');
   });
+
+  it('emits JobCanceled event', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+
+    await expect(testUtil.cancelJob(job, testUtil.JOB_ID_1))
+      .to.emit(job, 'JobCanceled')
+      .withArgs(testUtil.JOB_ID_1);
+  });
 });
 
 describe('A completable job', function () {
@@ -352,7 +361,6 @@ describe('An approvable job', function () {
     // updates funds
     const fundsValue = await job.daoFunds();
     expect(fundsValue).to.equal(testUtil.TEN_TOKENS);
-
   });
 
   it('requires completed state', async function () {
@@ -405,11 +413,170 @@ describe('An approvable job', function () {
     await testUtil.completeJob(job, testUtil.JOB_ID_1);
     await testUtil.approveJob(job, testUtil.JOB_ID_1);
 
-    const engineerBalance = await testToken.balanceOf(_signers.engineer.address);
+    const engineerBalance = await testToken.balanceOf(
+      _signers.engineer.address
+    );
     expect(engineerBalance).to.equal(testUtil.ONE_THOUS_NINETY_TOKENS);
 
-    const supplierBalance = await testToken.balanceOf(_signers.supplier.address);
+    const supplierBalance = await testToken.balanceOf(
+      _signers.supplier.address
+    );
     expect(supplierBalance).to.equal('900000000000000000000');
   });
+});
 
+describe('A closeable job', function () {
+  it('may be closed', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.closeBySupplier(job, testUtil.JOB_ID_1);
+    await testUtil.closeByEngineer(job, testUtil.JOB_ID_1);
+
+    // get the job
+    const jobOne = await job.jobs(testUtil.JOB_ID_1);
+
+    // check state
+    expect(jobOne.state).to.equal(testUtil.STATE_FinalMutualClose);
+
+    // updates escrow
+    const escrowValue = await job.daoEscrow();
+    expect(escrowValue).to.equal(0);
+
+    // updates funds
+    const fundsValue = await job.daoFunds();
+    expect(fundsValue).to.equal(0);
+  });
+
+  it('requires started state', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+
+    await expect(
+      testUtil.closeBySupplier(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Method not available for job state');
+
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.closeBySupplier(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Method not available for job state');
+
+    await expect(
+      testUtil.closeByEngineer(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Method not available for job state');
+  });
+
+  it('may only be called by engineer or supplier', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.closeJob(job, testUtil.JOB_ID_1, _signers.other)
+    ).to.be.revertedWith('Method not available for this caller');
+
+    await expect(
+      testUtil.closeJob(job, testUtil.JOB_ID_1, _signers.other2)
+    ).to.be.revertedWith('Method not available for this caller');
+  });
+
+  it('may only be called by supplier once', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.closeBySupplier(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.closeBySupplier(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Close request already received');
+  });
+
+  it('may only be called by engineer once', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.closeByEngineer(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.closeByEngineer(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Close request already received');
+  });
+
+  it('emits JobClosed event when closed by engineer', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+
+    await testUtil.closeBySupplier(job, testUtil.JOB_ID_1);
+
+    await expect(testUtil.closeByEngineer(job, testUtil.JOB_ID_1))
+      .to.emit(job, 'JobClosed')
+      .withArgs(testUtil.JOB_ID_1);
+  });
+
+  it('emits JobClosedBySupplier and JobClosedByEngineer events when closed', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+
+    await expect(testUtil.closeBySupplier(job, testUtil.JOB_ID_1))
+      .to.emit(job, 'JobClosedBySupplier')
+      .withArgs(testUtil.JOB_ID_1);
+
+    await expect(testUtil.closeByEngineer(job, testUtil.JOB_ID_1))
+      .to.emit(job, 'JobClosedByEngineer')
+      .withArgs(testUtil.JOB_ID_1);
+  });
+
+  it('emits JobClosed event when closed by supplier', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+
+    await testUtil.closeByEngineer(job, testUtil.JOB_ID_1);
+
+    await expect(testUtil.closeBySupplier(job, testUtil.JOB_ID_1))
+      .to.emit(job, 'JobClosed')
+      .withArgs(testUtil.JOB_ID_1);
+  });
+
+  it('refunds bounty and deposit when closed', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+
+    const startingSupplierBalance = await testToken.balanceOf(
+      _signers.supplier.address
+    );
+    expect(startingSupplierBalance).to.equal('900000000000000000000');
+
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+
+    const startingEngineerBalance = await testToken.balanceOf(
+      _signers.engineer.address
+    );
+    expect(startingEngineerBalance).to.equal('990000000000000000000');
+
+    await testUtil.closeBySupplier(job, testUtil.JOB_ID_1);
+    await testUtil.closeByEngineer(job, testUtil.JOB_ID_1);
+
+    const engineerBalance = await testToken.balanceOf(
+      _signers.engineer.address
+    );
+    expect(engineerBalance).to.equal(testUtil.ONE_THOUS_TOKENS);
+
+    const supplierBalance = await testToken.balanceOf(
+      _signers.supplier.address
+    );
+    expect(supplierBalance).to.equal(testUtil.ONE_THOUS_TOKENS);
+  });
 });

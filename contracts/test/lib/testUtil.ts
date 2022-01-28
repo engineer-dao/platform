@@ -25,7 +25,8 @@ export const STATE_Available = 1;
 export const STATE_Started = 2;
 export const STATE_Completed = 3;
 export const STATE_FinalApproved = 4;
-export const STATE_FinalCanceledBySupplier = 5;        
+export const STATE_FinalCanceledBySupplier = 5;
+export const STATE_FinalMutualClose = 6;
 
 interface JobMetaData {
   ver?: string;
@@ -191,6 +192,38 @@ export const cancelJob = async (
   const cancelJobTx = await job.connect(signer).cancelJob(jobId);
 
   return cancelJobTx;
+};
+
+export const closeBySupplier = async (
+  job: ContractTypes.Job,
+  jobId: number
+) => {
+  const signer = (await signers()).supplier;
+
+  return await closeJob(job, jobId, signer);
+};
+
+export const closeByEngineer = async (
+  job: ContractTypes.Job,
+  jobId: number
+) => {
+  const signer = (await signers()).engineer;
+
+  return await closeJob(job, jobId, signer);
+};
+
+export const closeJob = async (
+  job: ContractTypes.Job,
+  jobId: number,
+  signer: Signer
+) => {
+  if (signer === null) {
+    signer = (await signers()).supplier;
+  }
+
+  const closeJobTx = await job.connect(signer).closeJob(jobId);
+
+  return closeJobTx;
 };
 
 export const signers = async () => {
