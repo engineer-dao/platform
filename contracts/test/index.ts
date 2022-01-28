@@ -36,12 +36,6 @@ describe('A new job', function () {
     // get the job
     const jobOne = await job.jobs(testUtil.JOB_ID_1);
 
-    // check postTime
-    const blockNumBefore = await ethers.provider.getBlockNumber();
-    const blockBefore = await ethers.provider.getBlock(blockNumBefore);
-    const blockTimestamp = blockBefore.timestamp;
-    expect(jobOne.postTime).to.equal(blockTimestamp);
-
     // check supplier
     const supplierSigner = (await testUtil.signers()).supplier;
     expect(jobOne.supplier).to.equal(supplierSigner.address);
@@ -106,7 +100,7 @@ describe('A new job', function () {
     expect(secondEscrowValue).to.equal(totalExpectedEscrow);
   });
 
-  it('A new job can be loaded', async function () {
+  it('can be loaded', async function () {
     const bountyAmount = '190000000000000000000'; // $190
     const { job } = await testUtil.setupJobAndTokenBalances();
     await testUtil.postSampleJob(job, bountyAmount);
@@ -118,7 +112,7 @@ describe('A new job', function () {
     expect(jobData.bounty).to.equal(bountyAmount);
   });
 
-  it('Emits JobPosted event', async function () {
+  it('emits JobPosted event', async function () {
     const { job } = await testUtil.setupJobAndTokenBalances();
 
     await expect(testUtil.postSampleJob(job))
@@ -126,7 +120,7 @@ describe('A new job', function () {
       .withArgs(testUtil.JOB_ID_1, JSON.stringify(testUtil.defaultJobMetaData));
   });
 
-  it('Emits JobSupplied event', async function () {
+  it('emits JobSupplied event', async function () {
     const { job } = await testUtil.setupJobAndTokenBalances();
 
     const supplierSigner = (await testUtil.signers()).supplier;
@@ -135,7 +129,7 @@ describe('A new job', function () {
       .withArgs(supplierSigner.address, testUtil.JOB_ID_1);
   });
 
-  it('Multiple jobs can be posted', async function () {
+  it('can be posted multiple times', async function () {
     // get the senders
     const _signers = await testUtil.signers();
 
@@ -163,6 +157,8 @@ describe('A new job', function () {
 
 describe('A job to be accepted', function () {
   it('can be accepted', async function () {
+    const _signers = await testUtil.signers();
+
     const { job } = await testUtil.setupJobAndTokenBalances();
     await testUtil.postSampleJob(job);
 
@@ -172,11 +168,10 @@ describe('A job to be accepted', function () {
     const jobData = await job.jobs(testUtil.JOB_ID_1);
 
     // check engineer
-    const engineerSigner = (await testUtil.signers()).engineer;
-    expect(jobData.engineer).to.equal(engineerSigner.address);
+    expect(jobData.engineer).to.equal(_signers.engineer.address);
 
-    // check buyIn
-    expect(jobData.buyIn).to.equal(testUtil.TEN_TOKENS);
+    // check deposit
+    expect(jobData.deposit).to.equal(testUtil.TEN_TOKENS);
 
     // check startTime
     const blockTimestamp = (
@@ -188,7 +183,7 @@ describe('A job to be accepted', function () {
     expect(jobData.state).to.equal(testUtil.STATE_Started);
   });
 
-  it('must have a 10% buy-in', async function () {
+  it('must have a 10% deposit', async function () {
     const { job } = await testUtil.setupJobAndTokenBalances();
     await testUtil.postSampleJob(job);
 
@@ -284,4 +279,137 @@ describe('A cancellable job', function () {
       testUtil.cancelJob(job, testUtil.JOB_ID_1, otherSigner)
     ).to.be.revertedWith('Method not available for this caller');
   });
+});
+
+describe('A completable job', function () {
+  it('may be completed', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+
+    // get the job
+    const jobOne = await job.jobs(testUtil.JOB_ID_1);
+
+    // check state
+    expect(jobOne.state).to.equal(testUtil.STATE_Completed);
+  });
+
+  it('requires started state', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+
+    await expect(
+      testUtil.completeJob(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Method not available for job state');
+  });
+
+  it('may only be called by engineer', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.completeJob(job, testUtil.JOB_ID_1, _signers.supplier)
+    ).to.be.revertedWith('Method not available for this caller');
+
+    await expect(
+      testUtil.completeJob(job, testUtil.JOB_ID_1, _signers.other)
+    ).to.be.revertedWith('Method not available for this caller');
+  });
+
+  it('emits JobCompleted event', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+
+    await expect(testUtil.completeJob(job, testUtil.JOB_ID_1))
+      .to.emit(job, 'JobCompleted')
+      .withArgs(testUtil.JOB_ID_1);
+  });
+});
+
+describe('An approvable job', function () {
+  it('may be approved', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+    await testUtil.approveJob(job, testUtil.JOB_ID_1);
+
+    // get the job
+    const jobOne = await job.jobs(testUtil.JOB_ID_1);
+
+    // check state
+    expect(jobOne.state).to.equal(testUtil.STATE_FinalApproved);
+
+    // updates escrow
+    const escrowValue = await job.daoEscrow();
+    expect(escrowValue).to.equal(0);
+
+    // updates funds
+    const fundsValue = await job.daoFunds();
+    expect(fundsValue).to.equal(testUtil.TEN_TOKENS);
+
+  });
+
+  it('requires completed state', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.approveJob(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Method not available for job state');
+  });
+
+  it('may only be called by supplier', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.approveJob(job, testUtil.JOB_ID_1, _signers.engineer)
+    ).to.be.revertedWith('Method not available for this caller');
+
+    await expect(
+      testUtil.approveJob(job, testUtil.JOB_ID_1, _signers.other)
+    ).to.be.revertedWith('Method not available for this caller');
+  });
+
+  it('emits JobApproved event', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+
+    // $100 - $10 + $10 = $100
+    const expectedPayoutAmount = testUtil.ONE_HUND_TOKENS;
+
+    await expect(testUtil.approveJob(job, testUtil.JOB_ID_1))
+      .to.emit(job, 'JobApproved')
+      .withArgs(testUtil.JOB_ID_1, expectedPayoutAmount);
+  });
+
+  it('sends bounty to engineer', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+    await testUtil.approveJob(job, testUtil.JOB_ID_1);
+
+    const engineerBalance = await testToken.balanceOf(_signers.engineer.address);
+    expect(engineerBalance).to.equal(testUtil.ONE_THOUS_NINETY_TOKENS);
+
+    const supplierBalance = await testToken.balanceOf(_signers.supplier.address);
+    expect(supplierBalance).to.equal('900000000000000000000');
+  });
+
 });

@@ -14,6 +14,7 @@ export const ONE_HUND_TEN_TOKENS = '110000000000000000000';
 export const NINETY_TOKENS = '9000000000000000000';
 export const ELEVEN_HUND_TOKENS = '110000000000000000000';
 export const ONE_THOUS_TOKENS = '1000000000000000000000';
+export const ONE_THOUS_NINETY_TOKENS = '1090000000000000000000';
 export const ONE_HUND_THOUS_TOKENS = '100000000000000000000000';
 
 export const JOB_ID_1 = 1;
@@ -22,7 +23,9 @@ export const JOB_ID_3 = 3;
 
 export const STATE_Available = 1;
 export const STATE_Started = 2;
-export const STATE_FinalCanceledBySupplier = 3;
+export const STATE_Completed = 3;
+export const STATE_FinalApproved = 4;
+export const STATE_FinalCanceledBySupplier = 5;        
 
 interface JobMetaData {
   ver?: string;
@@ -133,19 +136,47 @@ export const postSampleJob = async (
 export const startJob = async (
   job: ContractTypes.Job,
   jobId: number,
-  buyIn: null | string = null,
+  deposit: null | string = null,
   signer: Signer | null = null
 ) => {
   if (signer === null) {
     signer = (await signers()).engineer;
   }
 
-  if (buyIn === null) {
-    buyIn = TEN_TOKENS; // $10
+  if (deposit === null) {
+    deposit = TEN_TOKENS; // $10
   }
-  const startJobTx = await job.connect(signer).startJob(jobId, buyIn);
+  const startJobTx = await job.connect(signer).startJob(jobId, deposit);
 
   return startJobTx;
+};
+
+export const completeJob = async (
+  job: ContractTypes.Job,
+  jobId: number,
+  signer: Signer | null = null
+) => {
+  if (signer === null) {
+    signer = (await signers()).engineer;
+  }
+
+  const completeJobTx = await job.connect(signer).completeJob(jobId);
+
+  return completeJobTx;
+};
+
+export const approveJob = async (
+  job: ContractTypes.Job,
+  jobId: number,
+  signer: Signer | null = null
+) => {
+  if (signer === null) {
+    signer = (await signers()).supplier;
+  }
+
+  const approveJobTx = await job.connect(signer).approveJob(jobId);
+
+  return approveJobTx;
 };
 
 export const cancelJob = async (

@@ -9,9 +9,8 @@ contract Job {
         address supplier;
         uint bounty;
         address engineer;
-        uint buyIn;
+        uint deposit;
 
-        uint postTime;
         uint startTime;
 
         States state;
@@ -23,31 +22,35 @@ contract Job {
     mapping(uint => JobData) public jobs;
 
     uint public daoEscrow;
+    uint public daoFunds;
 
     enum States {
         DoesNotExist,
         Available,
         Started,
+        Completed,
+        FinalApproved,
         FinalCanceledBySupplier
     }
 
     uint constant MINIMUM_BOUNTY = 50000000000000000000; // 50 paymentTokens ($50)
     uint constant BUY_IN_PERCENTAGE = 1000; // out of 10000
+    uint constant PAYOUT_PERCENTAGE = 9000; // (10000 - <platform fee>) out of 10000
     uint constant BASE_PERCENTAGE = 10000; // for integer percentage math
 
+    ////////////////////////////////////////
+    // events
+
     event JobPosted(uint indexed jobId, string jobMetaData);
-    event JobSupplied(address indexed supplier, uint jobId);
-    event JobStarted(address indexed engineer, uint jobId);
+    event JobSupplied(address indexed supplier, uint indexed jobId);
+    event JobStarted(address indexed engineer, uint indexed jobId);
+    event JobCompleted(uint indexed jobId);
+    event JobApproved(uint indexed jobId, uint payoutAmount);
 
-    constructor(address _paymentToken) {
-        paymentToken = _paymentToken;
-        jobCount = 0;
-        daoEscrow = 0;
-    }
-
+    ////////////////////////////////////////
     // modifiers
 
-    modifier requiresPayment(uint amount, uint minimumPaymentAmount) {
+    modifier requiresAmount(uint amount, uint minimumPaymentAmount) {
         require(amount >= minimumPaymentAmount, "Minimum payment not provided");
         _;
     }
@@ -68,9 +71,23 @@ contract Job {
         _;
     }
 
+    modifier requiresEngineer(uint jobId) {
+        require(jobs[jobId].engineer == msg.sender, "Method not available for this caller");
+        _;
+    }
+
+    ////////////////////////////////////////
     // public functions
 
-    function postJob(uint bountyValue, string memory jobMetaData) public requiresApproval(bountyValue) requiresPayment(bountyValue, MINIMUM_BOUNTY) {
+    constructor(address _paymentToken) {
+        paymentToken = _paymentToken;
+        jobCount = 0;
+        daoEscrow = 0;
+        daoFunds = 0;
+    }
+
+    // supplier posts a new job
+    function postJob(uint bountyValue, string memory jobMetaData) public requiresApproval(bountyValue) requiresAmount(bountyValue, MINIMUM_BOUNTY) {
         // receive funds
         receiveFunds(msg.sender, bountyValue);
 
@@ -83,8 +100,7 @@ contract Job {
             supplier: msg.sender,
             bounty: bountyValue,
             engineer: address(0),
-            buyIn: 0,
-            postTime: block.timestamp,
+            deposit: 0,
             startTime: 0,
             state: States.Available
         });
@@ -98,41 +114,77 @@ contract Job {
         emit JobSupplied(msg.sender, newJobId);
     }
 
-    function startJob(uint jobId, uint buyIn) public requiresJobState(jobId, States.Available) {
-        // require buy-in payment
+    // engineer starts a posted job
+    function startJob(uint jobId, uint deposit) public requiresJobState(jobId, States.Available) {
+        // require deposit payment
         uint requiredBuyIn = jobs[jobId].bounty * BUY_IN_PERCENTAGE / BASE_PERCENTAGE;
-        require(buyIn >= requiredBuyIn, "Minimum payment not provided");
+        require(deposit >= requiredBuyIn, "Minimum payment not provided");
 
-        receiveFunds(msg.sender, buyIn);
+        receiveFunds(msg.sender, deposit);
 
         // can't accept your own job
         require(msg.sender != jobs[jobId].supplier, "Address may not be job poster");
 
         // update state
         jobs[jobId].engineer = msg.sender;
-        jobs[jobId].buyIn = buyIn;
+        jobs[jobId].deposit = deposit;
         jobs[jobId].startTime = block.timestamp;
         jobs[jobId].state = States.Started;
 
-        daoEscrow += buyIn;
+        daoEscrow += deposit;
     }
 
+    // engineer marks a job as completed
+    function completeJob(uint jobId) public requiresJobState(jobId, States.Started) requiresEngineer(jobId) {
+        jobs[jobId].state = States.Completed;
+
+        emit JobCompleted(jobId);
+    }
+
+    // job is approved by the supplier and paid out
+    function approveJob(uint jobId) public requiresJobState(jobId, States.Completed) requiresSupplier(jobId) {
+        jobs[jobId].state = States.FinalApproved;
+        
+        (uint payoutAmount, uint daoTakeAmount) = calculatePayout(jobs[jobId].bounty, jobs[jobId].deposit);
+        sendJobPayout(jobId, payoutAmount, daoTakeAmount);
+
+        emit JobApproved(jobId, payoutAmount);
+    }
+
+
+    // job is canceled by supplier before it was started
     function cancelJob(uint jobId) public requiresJobState(jobId, States.Available) requiresSupplier(jobId) {
         jobs[jobId].state = States.FinalCanceledBySupplier;
 
         sendJobRefund(jobId);
     }
 
-    //
+
+    ////////////////////////////////////////
+    // internal functions
 
     function sendJobRefund(uint jobId) internal {
         sendFunds(address(jobs[jobId].supplier), jobs[jobId].bounty);
         daoEscrow = daoEscrow - jobs[jobId].bounty;
 
-        if (jobs[jobId].buyIn > 0) {
-            sendFunds(address(jobs[jobId].engineer), jobs[jobId].buyIn);
-            daoEscrow = daoEscrow - jobs[jobId].buyIn;
+        if (jobs[jobId].deposit > 0) {
+            sendFunds(address(jobs[jobId].engineer), jobs[jobId].deposit);
+            daoEscrow = daoEscrow - jobs[jobId].deposit;
         }
+    }
+
+    function calculatePayout(uint bounty, uint deposit) internal pure returns (uint payoutAmount, uint daoTakeAmount) {
+        uint bountyPayout = bounty * PAYOUT_PERCENTAGE / BASE_PERCENTAGE;
+
+        daoTakeAmount = bounty - bountyPayout;
+        payoutAmount = bountyPayout + deposit;
+    }
+
+    function sendJobPayout(uint jobId, uint payoutAmount, uint daoTakeAmount) internal {
+        daoEscrow = daoEscrow - payoutAmount - daoTakeAmount;
+        daoFunds += daoTakeAmount;
+
+        sendFunds(address(jobs[jobId].engineer), payoutAmount);
     }
 
     function receiveFunds(address _from, uint amount) internal {
