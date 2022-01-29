@@ -12,6 +12,7 @@ contract Job {
         uint deposit;
 
         uint startTime;
+        uint completedTime;
 
         bool closedBySupplier;
         bool closedByEngineer;
@@ -34,13 +35,17 @@ contract Job {
         Completed,
         FinalApproved,
         FinalCanceledBySupplier,
-        FinalMutualClose
+        FinalMutualClose,
+        FinalNoResponse
     }
 
     uint constant MINIMUM_BOUNTY = 50000000000000000000; // 50 paymentTokens ($50)
-    uint constant BUY_IN_PERCENTAGE = 1000; // out of 10000
-    uint constant PAYOUT_PERCENTAGE = 9000; // (10000 - <platform fee>) out of 10000
+
     uint constant BASE_PERCENTAGE = 10000; // for integer percentage math
+    uint constant DEPOSIT_PERCENTAGE = 1000; // out of 10000
+    uint constant PAYOUT_PERCENTAGE = 9000; // (10000 - <platform fee>) out of 10000
+
+    uint constant COMPLETED_TIMEOUT_SECONDS = 432000; // Number of seconds after job is completed before job is awarded to engineer
 
     ////////////////////////////////////////
     // events
@@ -50,6 +55,7 @@ contract Job {
     event JobStarted(address indexed engineer, uint indexed jobId);
     event JobCompleted(uint indexed jobId);
     event JobApproved(uint indexed jobId, uint payoutAmount);
+    event JobTimeoutPayout(uint indexed jobId, uint payoutAmount);
     event JobCanceled(uint indexed jobId);
     event JobClosedBySupplier(uint indexed jobId);
     event JobClosedByEngineer(uint indexed jobId);
@@ -110,6 +116,7 @@ contract Job {
             engineer: address(0),
             deposit: 0,
             startTime: 0,
+            completedTime: 0,
             closedBySupplier: false,
             closedByEngineer: false,
             state: States.Available
@@ -127,7 +134,7 @@ contract Job {
     // engineer starts a posted job
     function startJob(uint jobId, uint deposit) public requiresJobState(jobId, States.Available) {
         // require deposit payment
-        uint requiredBuyIn = jobs[jobId].bounty * BUY_IN_PERCENTAGE / BASE_PERCENTAGE;
+        uint requiredBuyIn = jobs[jobId].bounty * DEPOSIT_PERCENTAGE / BASE_PERCENTAGE;
         require(deposit >= requiredBuyIn, "Minimum payment not provided");
 
         receiveFunds(msg.sender, deposit);
@@ -147,6 +154,7 @@ contract Job {
     // engineer marks a job as completed
     function completeJob(uint jobId) public requiresJobState(jobId, States.Started) requiresEngineer(jobId) {
         jobs[jobId].state = States.Completed;
+        jobs[jobId].completedTime = block.timestamp;
 
         emit JobCompleted(jobId);
     }
@@ -154,7 +162,7 @@ contract Job {
     // job is approved by the supplier and paid out
     function approveJob(uint jobId) public requiresJobState(jobId, States.Completed) requiresSupplier(jobId) {
         jobs[jobId].state = States.FinalApproved;
-        
+
         (uint payoutAmount, uint daoTakeAmount) = calculatePayout(jobs[jobId].bounty, jobs[jobId].deposit);
         sendJobPayout(jobId, payoutAmount, daoTakeAmount);
 
@@ -191,6 +199,16 @@ contract Job {
         }
     }
 
+    function approveTimedOutJob(uint jobId) public requiresJobState(jobId, States.Completed) requiresEngineer(jobId) {
+        require(block.timestamp - jobs[jobId].completedTime >= COMPLETED_TIMEOUT_SECONDS, "Job still in approval time window");
+
+        jobs[jobId].state = States.FinalNoResponse;
+
+        (uint payoutAmount, uint daoTakeAmount) = calculatePayout(jobs[jobId].bounty, jobs[jobId].deposit);
+        sendJobPayout(jobId, payoutAmount, daoTakeAmount);
+
+        emit JobTimeoutPayout(jobId, payoutAmount);
+    }
 
     ////////////////////////////////////////
     // internal functions

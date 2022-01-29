@@ -17,6 +17,9 @@ describe('A test ERC20 token', function () {
   });
 });
 
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+
 describe('A new job', function () {
   it('should have correct variables', async function () {
     // deploy the contract
@@ -153,6 +156,9 @@ describe('A new job', function () {
   });
 });
 
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+
 describe('A job to be accepted', function () {
   it('can be accepted', async function () {
     const _signers = await testUtil.signers();
@@ -228,6 +234,9 @@ describe('A job to be accepted', function () {
   });
 });
 
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+
 describe('A cancellable job', function () {
   it('may be cancelled', async function () {
     const _signers = await testUtil.signers();
@@ -290,6 +299,9 @@ describe('A cancellable job', function () {
   });
 });
 
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+
 describe('A completable job', function () {
   it('may be completed', async function () {
     const { job, testToken } = await testUtil.setupJobAndTokenBalances();
@@ -339,6 +351,9 @@ describe('A completable job', function () {
       .withArgs(testUtil.JOB_ID_1);
   });
 });
+
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
 
 describe('An approvable job', function () {
   it('may be approved', async function () {
@@ -404,7 +419,7 @@ describe('An approvable job', function () {
       .withArgs(testUtil.JOB_ID_1, expectedPayoutAmount);
   });
 
-  it('sends bounty to engineer', async function () {
+  it('sends bounty and deposit to engineer', async function () {
     const _signers = await testUtil.signers();
 
     const { job, testToken } = await testUtil.setupJobAndTokenBalances();
@@ -424,6 +439,9 @@ describe('An approvable job', function () {
     expect(supplierBalance).to.equal('900000000000000000000');
   });
 });
+
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
 
 describe('A closeable job', function () {
   it('may be closed', async function () {
@@ -579,4 +597,133 @@ describe('A closeable job', function () {
     );
     expect(supplierBalance).to.equal(testUtil.ONE_THOUS_TOKENS);
   });
+});
+
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+
+describe('A timed-out job', function () {
+  it('may be timed-out', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+
+    // time-out
+    await hre.timeAndMine.setTimeIncrease(432001);
+
+    await testUtil.approveTimedOutJob(job, testUtil.JOB_ID_1);
+
+    // get the job
+    const jobOne = await job.jobs(testUtil.JOB_ID_1);
+
+    // check state
+    expect(jobOne.state).to.equal(testUtil.STATE_FinalNoResponse);
+
+    // updates escrow
+    const escrowValue = await job.daoEscrow();
+    expect(escrowValue).to.equal(0);
+
+    // updates funds
+    const fundsValue = await job.daoFunds();
+    expect(fundsValue).to.equal(testUtil.TEN_TOKENS);
+  });
+
+  it('requires completed state', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+
+    await expect(
+      testUtil.approveTimedOutJob(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Method not available for job state');
+
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.approveTimedOutJob(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Method not available for job state');
+
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+    await testUtil.approveJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.approveTimedOutJob(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Method not available for job state');
+
+  });
+
+  it('requires time to pass', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.approveTimedOutJob(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Job still in approval time window');
+
+  });
+
+  it('may only be called by engineer', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+
+    // time-out
+    await hre.timeAndMine.setTimeIncrease(432001);
+
+
+    await expect(
+      testUtil.approveTimedOutJob(job, testUtil.JOB_ID_1, _signers.supplier)
+    ).to.be.revertedWith('Method not available for this caller');
+
+    await expect(
+      testUtil.approveTimedOutJob(job, testUtil.JOB_ID_1, _signers.other)
+    ).to.be.revertedWith('Method not available for this caller');
+  });
+
+
+  it('emits JobTimeoutPayout event when timed out', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+
+    // time-out
+    await hre.timeAndMine.setTimeIncrease(432001);
+
+    const expectedPayoutAmount = testUtil.ONE_HUND_TOKENS;
+    await expect(testUtil.approveTimedOutJob(job, testUtil.JOB_ID_1))
+      .to.emit(job, 'JobTimeoutPayout')
+      .withArgs(testUtil.JOB_ID_1, expectedPayoutAmount);
+  });
+
+  it('sends bounty and deposit to engineer', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+
+    // time-out
+    await hre.timeAndMine.setTimeIncrease(432001);
+
+    await testUtil.approveTimedOutJob(job, testUtil.JOB_ID_1);
+
+    const engineerBalance = await testToken.balanceOf(
+      _signers.engineer.address
+    );
+    expect(engineerBalance).to.equal(testUtil.ONE_THOUS_NINETY_TOKENS);
+
+    const supplierBalance = await testToken.balanceOf(
+      _signers.supplier.address
+    );
+    expect(supplierBalance).to.equal('900000000000000000000');
+  });
+
 });
