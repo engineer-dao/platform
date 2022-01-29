@@ -2,20 +2,12 @@ import { ethers } from 'hardhat';
 import * as ContractTypes from '../../typechain/index';
 import { Signer } from 'ethers';
 
-// export const ONE_ETH = '1000000000000000000';
-// export const ONE_TENTH_ETH = '100000000000000000';
-// export const POINT_ZERO_NINE_ETH = '90000000000000000';
-// export const ONE_POINT_ONE_ETH = '1100000000000000000';
-
-export const ONE_TOKEN = '1000000000000000000';
-export const TEN_TOKENS = '10000000000000000000';
-export const ONE_HUND_TOKENS = '100000000000000000000';
-export const ONE_HUND_TEN_TOKENS = '110000000000000000000';
-export const NINETY_TOKENS = '9000000000000000000';
-export const ELEVEN_HUND_TOKENS = '110000000000000000000';
-export const ONE_THOUS_TOKENS = '1000000000000000000000';
-export const ONE_THOUS_NINETY_TOKENS = '1090000000000000000000';
-export const ONE_HUND_THOUS_TOKENS = '100000000000000000000000';
+export const T_SUFFIX = '000000000000000000';
+export const ONE_TOKEN = '1' + T_SUFFIX;
+export const TEN_TOKENS = '10' + T_SUFFIX;
+export const ONE_HUND_TOKENS = '100' + T_SUFFIX;
+export const ONE_THOUS_TOKENS = '1000' + T_SUFFIX;
+export const ONE_HUND_THOUS_TOKENS = '100000' + T_SUFFIX;
 
 export const JOB_ID_1 = 1;
 export const JOB_ID_2 = 2;
@@ -24,10 +16,16 @@ export const JOB_ID_3 = 3;
 export const STATE_Available = 1;
 export const STATE_Started = 2;
 export const STATE_Completed = 3;
-export const STATE_FinalApproved = 4;
-export const STATE_FinalCanceledBySupplier = 5;
-export const STATE_FinalMutualClose = 6;
-export const STATE_FinalNoResponse = 7;
+export const STATE_Disputed = 4;
+export const STATE_FinalApproved = 5;
+export const STATE_FinalCanceledBySupplier = 6;
+export const STATE_FinalMutualClose = 7;
+export const STATE_FinalNoResponse = 8;
+export const STATE_FinalDisputeResolvedForSupplier = 9;
+export const STATE_FinalDisputeResolvedForEngineer = 10;
+export const STATE_FinalDisputeResolvedWithSplit = 11;
+
+export const DISPUTE_RESOLUTION_PCT = 0.06;
 
 interface JobMetaData {
   ver?: string;
@@ -218,13 +216,12 @@ export const closeJob = async (
   jobId: number,
   signer: Signer
 ) => {
-
   const closeJobTx = await job.connect(signer).closeJob(jobId);
 
   return closeJobTx;
 };
 
-export const approveTimedOutJob = async (
+export const completeTimedOutJob = async (
   job: ContractTypes.Job,
   jobId: number,
   signer: Signer | null = null
@@ -233,10 +230,75 @@ export const approveTimedOutJob = async (
     signer = (await signers()).engineer;
   }
 
-  const closeJobTx = await job.connect(signer).approveTimedOutJob(jobId);
+  const closeJobTx = await job.connect(signer).completeTimedOutJob(jobId);
 
   return closeJobTx;
 };
+
+export const disputeJob = async (
+  job: ContractTypes.Job,
+  jobId: number,
+  signer: Signer | null = null
+) => {
+  if (signer === null) {
+    signer = (await signers()).supplier;
+  }
+
+  const disputeJobTx = await job.connect(signer).disputeJob(jobId);
+
+  return disputeJobTx;
+};
+
+export const resolveDisputeForSupplier = async (
+  job: ContractTypes.Job,
+  jobId: number,
+  signer: Signer | null = null
+) => {
+  if (signer === null) {
+    signer = (await signers()).owner;
+  }
+
+  const resolveDisputeForSupplierTx = await job
+    .connect(signer)
+    .resolveDisputeForSupplier(jobId);
+
+  return resolveDisputeForSupplierTx;
+};
+
+export const resolveDisputeForEngineer = async (
+  job: ContractTypes.Job,
+  jobId: number,
+  signer: Signer | null = null
+) => {
+  if (signer === null) {
+    signer = (await signers()).owner;
+  }
+
+  const resolveDisputeForEngineerTx = await job
+    .connect(signer)
+    .resolveDisputeForEngineer(jobId);
+
+  return resolveDisputeForEngineerTx;
+};
+
+export const resolveDisputeWithCustomSplit = async (
+  job: ContractTypes.Job,
+  jobId: number,
+  engineerAmountPct: number,
+  signer: Signer | null = null
+) => {
+  if (signer === null) {
+    signer = (await signers()).owner;
+  }
+
+  const resolveDisputeWithCustomSplitTx = await job
+    .connect(signer)
+    .resolveDisputeWithCustomSplit(jobId, engineerAmountPct);
+
+  return resolveDisputeWithCustomSplitTx;
+};
+
+////////////////////////////////////////////////////////////////
 
 export const signers = async () => {
   const [owner, supplier, engineer, other, other2, other3] =
@@ -249,4 +311,16 @@ export const signers = async () => {
     other2,
     other3,
   };
+};
+
+// converts number into token value
+//   supports 0, 1 or 2 decimal places
+export const toBigNum = (num: number) => {
+  return Math.floor(num * 100) + '0000000000000000';
+};
+
+// converts number into an integer percentage divided by 10000
+//   supports 0, 1 or 2 decimal places
+export const toPercentage = (num: number) => {
+  return Math.floor(num * 100);
 };

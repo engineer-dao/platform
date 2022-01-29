@@ -9,11 +9,11 @@ describe('A test ERC20 token', function () {
     const testToken = await testUtil.deployERC20Token();
 
     const supply = await testToken.totalSupply();
-    expect(supply).to.equal('1000000000000000000000000');
+    expect(supply).to.equal(testUtil.toBigNum(1000000));
 
     const ownerSigner = (await testUtil.signers()).owner;
     const ownerBalance = await testToken.balanceOf(ownerSigner.address);
-    expect(ownerBalance).to.equal('1000000000000000000000000');
+    expect(ownerBalance).to.equal(testUtil.toBigNum(1000000));
   });
 });
 
@@ -86,9 +86,9 @@ describe('A new job', function () {
   });
 
   it('inreases daoEscrow', async function () {
-    const bounty1Amount = '110000000000000000000'; // $110
-    const bounty2Amount = '220000000000000000000'; // $220
-    const totalExpectedEscrow = '330000000000000000000'; // $330
+    const bounty1Amount = testUtil.toBigNum(110); // $110
+    const bounty2Amount = testUtil.toBigNum(220); // $220
+    const totalExpectedEscrow = testUtil.toBigNum(330); // $330
 
     const { job } = await testUtil.setupJobAndTokenBalances();
 
@@ -102,7 +102,7 @@ describe('A new job', function () {
   });
 
   it('can be loaded', async function () {
-    const bountyAmount = '190000000000000000000'; // $190
+    const bountyAmount = testUtil.toBigNum(190); // $190
     const { job } = await testUtil.setupJobAndTokenBalances();
     await testUtil.postSampleJob(job, bountyAmount);
 
@@ -113,7 +113,7 @@ describe('A new job', function () {
     expect(jobData.bounty).to.equal(bountyAmount);
   });
 
-  it('emits JobPosted event', async function () {
+  it('emits JobPosted event when posted', async function () {
     const { job } = await testUtil.setupJobAndTokenBalances();
 
     await expect(testUtil.postSampleJob(job))
@@ -121,7 +121,7 @@ describe('A new job', function () {
       .withArgs(testUtil.JOB_ID_1, JSON.stringify(testUtil.defaultJobMetaData));
   });
 
-  it('emits JobSupplied event', async function () {
+  it('emits JobSupplied event when posted', async function () {
     const { job } = await testUtil.setupJobAndTokenBalances();
 
     const supplierSigner = (await testUtil.signers()).supplier;
@@ -230,7 +230,7 @@ describe('A job to be accepted', function () {
     await testUtil.startJob(job, testUtil.JOB_ID_1);
 
     const secondEscrowValue = await job.daoEscrow();
-    expect(secondEscrowValue).to.equal(testUtil.ONE_HUND_TEN_TOKENS);
+    expect(secondEscrowValue).to.equal(testUtil.toBigNum(110));
   });
 });
 
@@ -238,7 +238,7 @@ describe('A job to be accepted', function () {
 ///////////////////////////////////////////////////////////////////////////////////
 
 describe('A cancellable job', function () {
-  it('may be cancelled', async function () {
+  it('may be canceled', async function () {
     const _signers = await testUtil.signers();
 
     const { job, testToken } = await testUtil.setupJobAndTokenBalances();
@@ -264,7 +264,7 @@ describe('A cancellable job', function () {
     expect(jobOne.state).to.equal(testUtil.STATE_FinalCanceledBySupplier);
   });
 
-  it('may only be cancelled when in the available state', async function () {
+  it('may only be canceled when in the available state', async function () {
     const { job } = await testUtil.setupJobAndTokenBalances();
     await testUtil.postSampleJob(job);
 
@@ -276,7 +276,7 @@ describe('A cancellable job', function () {
     );
   });
 
-  it('may only be cancelled by the supplier', async function () {
+  it('may only be canceled by the supplier', async function () {
     const { job } = await testUtil.setupJobAndTokenBalances();
     await testUtil.postSampleJob(job);
 
@@ -287,7 +287,7 @@ describe('A cancellable job', function () {
     ).to.be.revertedWith('Method not available for this caller');
   });
 
-  it('emits JobCanceled event', async function () {
+  it('emits JobCanceled event when canceled', async function () {
     const _signers = await testUtil.signers();
 
     const { job, testToken } = await testUtil.setupJobAndTokenBalances();
@@ -341,7 +341,7 @@ describe('A completable job', function () {
     ).to.be.revertedWith('Method not available for this caller');
   });
 
-  it('emits JobCompleted event', async function () {
+  it('emits JobCompleted event when completed', async function () {
     const { job, testToken } = await testUtil.setupJobAndTokenBalances();
     await testUtil.postSampleJob(job);
     await testUtil.startJob(job, testUtil.JOB_ID_1);
@@ -405,7 +405,7 @@ describe('An approvable job', function () {
     ).to.be.revertedWith('Method not available for this caller');
   });
 
-  it('emits JobApproved event', async function () {
+  it('emits JobApproved event when approved', async function () {
     const { job, testToken } = await testUtil.setupJobAndTokenBalances();
     await testUtil.postSampleJob(job);
     await testUtil.startJob(job, testUtil.JOB_ID_1);
@@ -431,12 +431,12 @@ describe('An approvable job', function () {
     const engineerBalance = await testToken.balanceOf(
       _signers.engineer.address
     );
-    expect(engineerBalance).to.equal(testUtil.ONE_THOUS_NINETY_TOKENS);
+    expect(engineerBalance).to.equal(testUtil.toBigNum(1090));
 
     const supplierBalance = await testToken.balanceOf(
       _signers.supplier.address
     );
-    expect(supplierBalance).to.equal('900000000000000000000');
+    expect(supplierBalance).to.equal(testUtil.toBigNum(900));
   });
 });
 
@@ -575,14 +575,14 @@ describe('A closeable job', function () {
     const startingSupplierBalance = await testToken.balanceOf(
       _signers.supplier.address
     );
-    expect(startingSupplierBalance).to.equal('900000000000000000000');
+    expect(startingSupplierBalance).to.equal(testUtil.toBigNum(900));
 
     await testUtil.startJob(job, testUtil.JOB_ID_1);
 
     const startingEngineerBalance = await testToken.balanceOf(
       _signers.engineer.address
     );
-    expect(startingEngineerBalance).to.equal('990000000000000000000');
+    expect(startingEngineerBalance).to.equal(testUtil.toBigNum(990));
 
     await testUtil.closeBySupplier(job, testUtil.JOB_ID_1);
     await testUtil.closeByEngineer(job, testUtil.JOB_ID_1);
@@ -603,7 +603,7 @@ describe('A closeable job', function () {
 ///////////////////////////////////////////////////////////////////////////////////
 
 describe('A timed-out job', function () {
-  it('may be timed-out', async function () {
+  it('may be finalized', async function () {
     const { job, testToken } = await testUtil.setupJobAndTokenBalances();
     await testUtil.postSampleJob(job);
     await testUtil.startJob(job, testUtil.JOB_ID_1);
@@ -612,7 +612,7 @@ describe('A timed-out job', function () {
     // time-out
     await hre.timeAndMine.setTimeIncrease(432001);
 
-    await testUtil.approveTimedOutJob(job, testUtil.JOB_ID_1);
+    await testUtil.completeTimedOutJob(job, testUtil.JOB_ID_1);
 
     // get the job
     const jobOne = await job.jobs(testUtil.JOB_ID_1);
@@ -634,22 +634,21 @@ describe('A timed-out job', function () {
     await testUtil.postSampleJob(job);
 
     await expect(
-      testUtil.approveTimedOutJob(job, testUtil.JOB_ID_1)
+      testUtil.completeTimedOutJob(job, testUtil.JOB_ID_1)
     ).to.be.revertedWith('Method not available for job state');
 
     await testUtil.startJob(job, testUtil.JOB_ID_1);
 
     await expect(
-      testUtil.approveTimedOutJob(job, testUtil.JOB_ID_1)
+      testUtil.completeTimedOutJob(job, testUtil.JOB_ID_1)
     ).to.be.revertedWith('Method not available for job state');
 
     await testUtil.completeJob(job, testUtil.JOB_ID_1);
     await testUtil.approveJob(job, testUtil.JOB_ID_1);
 
     await expect(
-      testUtil.approveTimedOutJob(job, testUtil.JOB_ID_1)
+      testUtil.completeTimedOutJob(job, testUtil.JOB_ID_1)
     ).to.be.revertedWith('Method not available for job state');
-
   });
 
   it('requires time to pass', async function () {
@@ -659,9 +658,8 @@ describe('A timed-out job', function () {
     await testUtil.completeJob(job, testUtil.JOB_ID_1);
 
     await expect(
-      testUtil.approveTimedOutJob(job, testUtil.JOB_ID_1)
+      testUtil.completeTimedOutJob(job, testUtil.JOB_ID_1)
     ).to.be.revertedWith('Job still in approval time window');
-
   });
 
   it('may only be called by engineer', async function () {
@@ -675,16 +673,14 @@ describe('A timed-out job', function () {
     // time-out
     await hre.timeAndMine.setTimeIncrease(432001);
 
-
     await expect(
-      testUtil.approveTimedOutJob(job, testUtil.JOB_ID_1, _signers.supplier)
+      testUtil.completeTimedOutJob(job, testUtil.JOB_ID_1, _signers.supplier)
     ).to.be.revertedWith('Method not available for this caller');
 
     await expect(
-      testUtil.approveTimedOutJob(job, testUtil.JOB_ID_1, _signers.other)
+      testUtil.completeTimedOutJob(job, testUtil.JOB_ID_1, _signers.other)
     ).to.be.revertedWith('Method not available for this caller');
   });
-
 
   it('emits JobTimeoutPayout event when timed out', async function () {
     const { job, testToken } = await testUtil.setupJobAndTokenBalances();
@@ -697,7 +693,7 @@ describe('A timed-out job', function () {
     await hre.timeAndMine.setTimeIncrease(432001);
 
     const expectedPayoutAmount = testUtil.ONE_HUND_TOKENS;
-    await expect(testUtil.approveTimedOutJob(job, testUtil.JOB_ID_1))
+    await expect(testUtil.completeTimedOutJob(job, testUtil.JOB_ID_1))
       .to.emit(job, 'JobTimeoutPayout')
       .withArgs(testUtil.JOB_ID_1, expectedPayoutAmount);
   });
@@ -713,17 +709,553 @@ describe('A timed-out job', function () {
     // time-out
     await hre.timeAndMine.setTimeIncrease(432001);
 
-    await testUtil.approveTimedOutJob(job, testUtil.JOB_ID_1);
+    await testUtil.completeTimedOutJob(job, testUtil.JOB_ID_1);
 
     const engineerBalance = await testToken.balanceOf(
       _signers.engineer.address
     );
-    expect(engineerBalance).to.equal(testUtil.ONE_THOUS_NINETY_TOKENS);
+    expect(engineerBalance).to.equal(testUtil.toBigNum(1090));
 
     const supplierBalance = await testToken.balanceOf(
       _signers.supplier.address
     );
-    expect(supplierBalance).to.equal('900000000000000000000');
+    expect(supplierBalance).to.equal(testUtil.toBigNum(900));
+  });
+});
+
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+
+describe('A disputable job', function () {
+  it('may be disputed when started', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+
+    // get the job
+    const jobOne = await job.jobs(testUtil.JOB_ID_1);
+
+    // check state
+    expect(jobOne.state).to.equal(testUtil.STATE_Disputed);
   });
 
+  it('may be disputed when completed', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+
+    // get the job
+    const jobOne = await job.jobs(testUtil.JOB_ID_1);
+
+    // check state
+    expect(jobOne.state).to.equal(testUtil.STATE_Disputed);
+  });
+
+  it('requires started or completed state', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+
+    await expect(
+      testUtil.disputeJob(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Method not available for job state');
+
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+    await testUtil.approveJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.disputeJob(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Method not available for job state');
+  });
+
+  it('may only be called by supplier', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.disputeJob(job, testUtil.JOB_ID_1, _signers.engineer)
+    ).to.be.revertedWith('Method not available for this caller');
+
+    await expect(
+      testUtil.disputeJob(job, testUtil.JOB_ID_1, _signers.other)
+    ).to.be.revertedWith('Method not available for this caller');
+  });
+
+  it('emits JobDisputed event when disputed', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+
+    await expect(testUtil.disputeJob(job, testUtil.JOB_ID_1))
+      .to.emit(job, 'JobDisputed')
+      .withArgs(testUtil.JOB_ID_1);
+  });
+});
+
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+
+describe('A disputed job that will be resolved for the supplier', function () {
+  it('may be resolved for supplier', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+    await testUtil.resolveDisputeForSupplier(job, testUtil.JOB_ID_1);
+
+    // get the job
+    const jobOne = await job.jobs(testUtil.JOB_ID_1);
+
+    // check state
+    expect(jobOne.state).to.equal(
+      testUtil.STATE_FinalDisputeResolvedForSupplier
+    );
+  });
+
+  it('requires disputed state', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+
+    await expect(
+      testUtil.resolveDisputeForSupplier(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Method not available for job state');
+
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.resolveDisputeForSupplier(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Method not available for job state');
+
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.resolveDisputeForSupplier(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Method not available for job state');
+
+    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+    await testUtil.resolveDisputeForSupplier(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.resolveDisputeForSupplier(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Method not available for job state');
+  });
+
+  it('may only be called by owner', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.resolveDisputeForSupplier(
+        job,
+        testUtil.JOB_ID_1,
+        _signers.supplier
+      )
+    ).to.be.revertedWith('Method not available for this caller');
+
+    await expect(
+      testUtil.resolveDisputeForSupplier(
+        job,
+        testUtil.JOB_ID_1,
+        _signers.engineer
+      )
+    ).to.be.revertedWith('Method not available for this caller');
+
+    await expect(
+      testUtil.resolveDisputeForSupplier(job, testUtil.JOB_ID_1, _signers.other)
+    ).to.be.revertedWith('Method not available for this caller');
+  });
+
+  it('emits JobDisputeResolved event when resolved', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+
+    await expect(testUtil.resolveDisputeForSupplier(job, testUtil.JOB_ID_1))
+      .to.emit(job, 'JobDisputeResolved')
+      .withArgs(
+        testUtil.JOB_ID_1,
+        testUtil.STATE_FinalDisputeResolvedForSupplier
+      );
+  });
+
+  it('sends funds and updates balances when resolved', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+    await testUtil.resolveDisputeForSupplier(job, testUtil.JOB_ID_1);
+
+    // updates escrow
+    const escrowValue = await job.daoEscrow();
+    expect(escrowValue).to.equal(0);
+
+    // updates funds
+    const fundsValue = await job.daoFunds();
+    expect(fundsValue).to.equal(testUtil.toBigNum(6.6));
+
+    // sends funds to supplier
+    expect(await testToken.balanceOf(_signers.supplier.address)).to.equal(
+      testUtil.toBigNum(1000 + 103.4 - 100)
+    );
+
+    // check engineer funds
+    expect(await testToken.balanceOf(_signers.engineer.address)).to.equal(
+      testUtil.toBigNum(1000 - 10)
+    );
+  });
+});
+
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+
+describe('A disputed job that will be resolved for the engineer', function () {
+  it('may be resolved for engineer', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+    await testUtil.resolveDisputeForEngineer(job, testUtil.JOB_ID_1);
+
+    // get the job
+    const jobOne = await job.jobs(testUtil.JOB_ID_1);
+
+    // check state
+    expect(jobOne.state).to.equal(
+      testUtil.STATE_FinalDisputeResolvedForEngineer
+    );
+  });
+
+  it('requires disputed state', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+
+    await expect(
+      testUtil.resolveDisputeForEngineer(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Method not available for job state');
+
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.resolveDisputeForEngineer(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Method not available for job state');
+
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.resolveDisputeForEngineer(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Method not available for job state');
+
+    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+    await testUtil.resolveDisputeForEngineer(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.resolveDisputeForEngineer(job, testUtil.JOB_ID_1)
+    ).to.be.revertedWith('Method not available for job state');
+  });
+
+  it('may only be called by owner', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.resolveDisputeForEngineer(
+        job,
+        testUtil.JOB_ID_1,
+        _signers.supplier
+      )
+    ).to.be.revertedWith('Method not available for this caller');
+
+    await expect(
+      testUtil.resolveDisputeForEngineer(
+        job,
+        testUtil.JOB_ID_1,
+        _signers.engineer
+      )
+    ).to.be.revertedWith('Method not available for this caller');
+
+    await expect(
+      testUtil.resolveDisputeForEngineer(job, testUtil.JOB_ID_1, _signers.other)
+    ).to.be.revertedWith('Method not available for this caller');
+  });
+
+  it('emits JobDisputeResolved event when resolved', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+
+    await expect(testUtil.resolveDisputeForEngineer(job, testUtil.JOB_ID_1))
+      .to.emit(job, 'JobDisputeResolved')
+      .withArgs(
+        testUtil.JOB_ID_1,
+        testUtil.STATE_FinalDisputeResolvedForEngineer
+      );
+  });
+
+  it('sends funds and updates balances when resolved', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+    await testUtil.resolveDisputeForEngineer(job, testUtil.JOB_ID_1);
+
+    // updates escrow
+    const escrowValue = await job.daoEscrow();
+    expect(escrowValue).to.equal(0);
+
+    // updates funds
+    const fundsValue = await job.daoFunds();
+    expect(fundsValue).to.equal(testUtil.toBigNum(6.6));
+
+    // sends funds to engineer
+    expect(await testToken.balanceOf(_signers.engineer.address)).to.equal(
+      testUtil.toBigNum(1000 - 10 + 103.4)
+    );
+
+    // check supplier funds
+    expect(await testToken.balanceOf(_signers.supplier.address)).to.equal(
+      testUtil.toBigNum(1000 - 100)
+    );
+  });
+});
+
+///////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////
+
+describe('A disputed job that will be resolved with a custom split', function () {
+  it('may be resolved with a split', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+    await testUtil.resolveDisputeWithCustomSplit(
+      job,
+      testUtil.JOB_ID_1,
+      testUtil.toPercentage(30)
+    );
+
+    // get the job
+    const jobOne = await job.jobs(testUtil.JOB_ID_1);
+
+    // check state
+    expect(jobOne.state).to.equal(testUtil.STATE_FinalDisputeResolvedWithSplit);
+  });
+
+  it('requires disputed state', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+
+    await expect(
+      testUtil.resolveDisputeWithCustomSplit(
+        job,
+        testUtil.JOB_ID_1,
+        testUtil.toPercentage(30)
+      )
+    ).to.be.revertedWith('Method not available for job state');
+
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.resolveDisputeWithCustomSplit(
+        job,
+        testUtil.JOB_ID_1,
+        testUtil.toPercentage(30)
+      )
+    ).to.be.revertedWith('Method not available for job state');
+
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.resolveDisputeWithCustomSplit(
+        job,
+        testUtil.JOB_ID_1,
+        testUtil.toPercentage(30)
+      )
+    ).to.be.revertedWith('Method not available for job state');
+
+    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+    await testUtil.resolveDisputeWithCustomSplit(
+      job,
+      testUtil.JOB_ID_1,
+      testUtil.toPercentage(30)
+    );
+
+    await expect(
+      testUtil.resolveDisputeWithCustomSplit(
+        job,
+        testUtil.JOB_ID_1,
+        testUtil.toPercentage(30)
+      )
+    ).to.be.revertedWith('Method not available for job state');
+  });
+
+  it('may only be called by owner', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.resolveDisputeWithCustomSplit(
+        job,
+        testUtil.JOB_ID_1,
+        testUtil.toPercentage(30),
+        _signers.supplier
+      )
+    ).to.be.revertedWith('Method not available for this caller');
+
+    await expect(
+      testUtil.resolveDisputeWithCustomSplit(
+        job,
+        testUtil.JOB_ID_1,
+        testUtil.toPercentage(30),
+        _signers.engineer
+      )
+    ).to.be.revertedWith('Method not available for this caller');
+
+    await expect(
+      testUtil.resolveDisputeWithCustomSplit(
+        job,
+        testUtil.JOB_ID_1,
+        testUtil.toPercentage(30),
+        _signers.other
+      )
+    ).to.be.revertedWith('Method not available for this caller');
+  });
+
+  it('muust be called with a valid percentage', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.resolveDisputeWithCustomSplit(
+        job,
+        testUtil.JOB_ID_1,
+        testUtil.toPercentage(0.9)
+      )
+    ).to.be.revertedWith('Percentage too low');
+
+    await expect(
+      testUtil.resolveDisputeWithCustomSplit(
+        job,
+        testUtil.JOB_ID_1,
+        testUtil.toPercentage(99.1)
+      )
+    ).to.be.revertedWith('Percentage too high');
+  });
+
+  it('emits JobDisputeResolved event when resolved', async function () {
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+
+    await expect(
+      testUtil.resolveDisputeWithCustomSplit(
+        job,
+        testUtil.JOB_ID_1,
+        testUtil.toPercentage(30)
+      )
+    )
+      .to.emit(job, 'JobDisputeResolved')
+      .withArgs(
+        testUtil.JOB_ID_1,
+        testUtil.STATE_FinalDisputeResolvedWithSplit
+      );
+  });
+
+  it('sends funds and updates balances when resolved at 30% for the engineer', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+    await testUtil.resolveDisputeWithCustomSplit(
+      job,
+      testUtil.JOB_ID_1,
+      testUtil.toPercentage(30)
+    );
+
+    // updates escrow
+    const escrowValue = await job.daoEscrow();
+    expect(escrowValue).to.equal(0);
+
+    // updates funds
+    const fundsValue = await job.daoFunds();
+    expect(fundsValue).to.equal(testUtil.toBigNum(6.6));
+
+    // sends funds to engineer
+    const expectedEngineerPayout =
+      (110 - 110 * testUtil.DISPUTE_RESOLUTION_PCT) * 0.3;
+    expect(await testToken.balanceOf(_signers.engineer.address)).to.equal(
+      testUtil.toBigNum(1000 - 10 + expectedEngineerPayout)
+    );
+
+    const expectedSupplierPayout =
+      (110 - 110 * testUtil.DISPUTE_RESOLUTION_PCT) * 0.7;
+    expect(await testToken.balanceOf(_signers.supplier.address)).to.equal(
+      testUtil.toBigNum(1000 - 100 + expectedSupplierPayout)
+    );
+  });
+
+  it('sends funds and updates balances when resolved at 60% for the engineer', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+    await testUtil.resolveDisputeWithCustomSplit(
+      job,
+      testUtil.JOB_ID_1,
+      testUtil.toPercentage(60)
+    );
+
+    // updates escrow
+    const escrowValue = await job.daoEscrow();
+    expect(escrowValue).to.equal(0);
+
+    // updates funds
+    const fundsValue = await job.daoFunds();
+    expect(fundsValue).to.equal(testUtil.toBigNum(6.6));
+
+    // sends funds to engineer
+    const expectedEngineerPayout =
+      (110 - 110 * testUtil.DISPUTE_RESOLUTION_PCT) * 0.6;
+    expect(await testToken.balanceOf(_signers.engineer.address)).to.equal(
+      testUtil.toBigNum(1000 - 10 + expectedEngineerPayout)
+    );
+
+    const expectedSupplierPayout =
+      (110 - 110 * testUtil.DISPUTE_RESOLUTION_PCT) * 0.4;
+    expect(await testToken.balanceOf(_signers.supplier.address)).to.equal(
+      testUtil.toBigNum(1000 - 100 + expectedSupplierPayout)
+    );
+  });
 });

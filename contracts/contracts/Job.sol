@@ -20,10 +20,11 @@ contract Job {
         States state;
     }
 
-    address public paymentToken;
-
     uint public jobCount;
     mapping(uint => JobData) public jobs;
+
+    address public owner;
+    address public paymentToken;
 
     uint public daoEscrow;
     uint public daoFunds;
@@ -33,10 +34,14 @@ contract Job {
         Available,
         Started,
         Completed,
+        Disputed,
         FinalApproved,
         FinalCanceledBySupplier,
         FinalMutualClose,
-        FinalNoResponse
+        FinalNoResponse,
+        FinalDisputeResolvedForSupplier,
+        FinalDisputeResolvedForEngineer,
+        FinalDisputeResolvedWithSplit
     }
 
     uint constant MINIMUM_BOUNTY = 50000000000000000000; // 50 paymentTokens ($50)
@@ -44,6 +49,8 @@ contract Job {
     uint constant BASE_PERCENTAGE = 10000; // for integer percentage math
     uint constant DEPOSIT_PERCENTAGE = 1000; // out of 10000
     uint constant PAYOUT_PERCENTAGE = 9000; // (10000 - <platform fee>) out of 10000
+    uint constant RESOLUTION_FEE_PERCENTAGE = 600; // out of 10000
+    uint constant MINIMUM_SPLIT_CHUNK_PERCENTAGE = 100; // out of 10000
 
     uint constant COMPLETED_TIMEOUT_SECONDS = 432000; // Number of seconds after job is completed before job is awarded to engineer
 
@@ -60,6 +67,8 @@ contract Job {
     event JobClosedBySupplier(uint indexed jobId);
     event JobClosedByEngineer(uint indexed jobId);
     event JobClosed(uint indexed jobId);
+    event JobDisputed(uint indexed jobId);
+    event JobDisputeResolved(uint indexed jobId, States finalState);
 
     ////////////////////////////////////////
     // modifiers
@@ -80,6 +89,11 @@ contract Job {
         _;
     }
 
+    modifier requiresOneOfJobStates(uint jobId, States requiredState1, States requiredState2) {
+        require(jobs[jobId].state == requiredState1 || jobs[jobId].state == requiredState2, "Method not available for job state");
+        _;
+    }
+
     modifier requiresSupplier(uint jobId) {
         require(jobs[jobId].supplier == msg.sender, "Method not available for this caller");
         _;
@@ -90,10 +104,16 @@ contract Job {
         _;
     }
 
+    modifier requiresResolver() {
+        require(owner == msg.sender, "Method not available for this caller");
+        _;
+    }
+
     ////////////////////////////////////////
     // public functions
 
     constructor(address _paymentToken) {
+        owner = msg.sender;
         paymentToken = _paymentToken;
         jobCount = 0;
         daoEscrow = 0;
@@ -164,7 +184,7 @@ contract Job {
         jobs[jobId].state = States.FinalApproved;
 
         (uint payoutAmount, uint daoTakeAmount) = calculatePayout(jobs[jobId].bounty, jobs[jobId].deposit);
-        sendJobPayout(jobId, payoutAmount, daoTakeAmount);
+        sendJobPayout(payoutAmount, daoTakeAmount, address(jobs[jobId].engineer));
 
         emit JobApproved(jobId, payoutAmount);
     }
@@ -199,15 +219,51 @@ contract Job {
         }
     }
 
-    function approveTimedOutJob(uint jobId) public requiresJobState(jobId, States.Completed) requiresEngineer(jobId) {
+    function completeTimedOutJob(uint jobId) public requiresJobState(jobId, States.Completed) requiresEngineer(jobId) {
         require(block.timestamp - jobs[jobId].completedTime >= COMPLETED_TIMEOUT_SECONDS, "Job still in approval time window");
 
         jobs[jobId].state = States.FinalNoResponse;
 
         (uint payoutAmount, uint daoTakeAmount) = calculatePayout(jobs[jobId].bounty, jobs[jobId].deposit);
-        sendJobPayout(jobId, payoutAmount, daoTakeAmount);
+        sendJobPayout(payoutAmount, daoTakeAmount, address(jobs[jobId].engineer));
 
         emit JobTimeoutPayout(jobId, payoutAmount);
+    }
+
+    function disputeJob(uint jobId) public requiresOneOfJobStates(jobId, States.Started, States.Completed) requiresSupplier(jobId) {
+        jobs[jobId].state = States.Disputed;
+
+        emit JobDisputed(jobId);
+    }
+
+    function resolveDisputeForSupplier(uint jobId) public requiresJobState(jobId, States.Disputed) requiresResolver() {
+        jobs[jobId].state = States.FinalDisputeResolvedForSupplier;
+
+        (uint payoutAmount, uint daoTakeAmount) = calculateFullDisputeResolutionPayout(jobs[jobId].bounty, jobs[jobId].deposit);
+        sendJobPayout(payoutAmount, daoTakeAmount, address(jobs[jobId].supplier));
+
+        emit JobDisputeResolved(jobId, States.FinalDisputeResolvedForSupplier);
+    }
+
+    function resolveDisputeForEngineer(uint jobId) public requiresJobState(jobId, States.Disputed) requiresResolver() {
+        jobs[jobId].state = States.FinalDisputeResolvedForEngineer;
+
+        (uint payoutAmount, uint daoTakeAmount) = calculateFullDisputeResolutionPayout(jobs[jobId].bounty, jobs[jobId].deposit);
+        sendJobPayout(payoutAmount, daoTakeAmount, address(jobs[jobId].engineer));
+
+        emit JobDisputeResolved(jobId, States.FinalDisputeResolvedForEngineer);
+    }
+
+    function resolveDisputeWithCustomSplit(uint jobId, uint engineerAmountPct) public requiresJobState(jobId, States.Disputed) requiresResolver() {
+        require(engineerAmountPct >= MINIMUM_SPLIT_CHUNK_PERCENTAGE, "Percentage too low");
+        require(engineerAmountPct <= BASE_PERCENTAGE - MINIMUM_SPLIT_CHUNK_PERCENTAGE, "Percentage too high");
+
+        jobs[jobId].state = States.FinalDisputeResolvedWithSplit;
+
+        (uint supplierPayoutAmount, uint engineerPayoutAmount, uint daoTakeAmount) = calculateSplitDisputeResolutionPayout(jobs[jobId].bounty, jobs[jobId].deposit, engineerAmountPct);
+        sendSplitJobPayout(jobId, supplierPayoutAmount, engineerPayoutAmount, daoTakeAmount);
+
+        emit JobDisputeResolved(jobId, States.FinalDisputeResolvedWithSplit);
     }
 
     ////////////////////////////////////////
@@ -244,11 +300,36 @@ contract Job {
         payoutAmount = bountyPayout + deposit;
     }
 
-    function sendJobPayout(uint jobId, uint payoutAmount, uint daoTakeAmount) internal {
+    function calculateFullDisputeResolutionPayout(uint bounty, uint deposit) internal pure returns (uint payoutAmount, uint daoTakeAmount) {
+        uint resolutionPayout = bounty + deposit;
+
+        daoTakeAmount = resolutionPayout * RESOLUTION_FEE_PERCENTAGE / BASE_PERCENTAGE;
+        payoutAmount = resolutionPayout - daoTakeAmount;
+    }
+
+    function sendJobPayout(uint payoutAmount, uint daoTakeAmount, address destination) internal {
         daoEscrow = daoEscrow - payoutAmount - daoTakeAmount;
         daoFunds += daoTakeAmount;
 
-        sendFunds(address(jobs[jobId].engineer), payoutAmount);
+        sendFunds(destination, payoutAmount);
+    }
+
+    function calculateSplitDisputeResolutionPayout(uint bounty, uint deposit, uint engineerAmountPct) internal pure returns (uint supplierPayoutAmount, uint engineerPayoutAmount, uint daoTakeAmount) {
+        uint resolutionPayout = bounty + deposit;
+
+        daoTakeAmount = resolutionPayout * RESOLUTION_FEE_PERCENTAGE / BASE_PERCENTAGE;
+
+        uint totalPayoutAmount = resolutionPayout - daoTakeAmount;
+        engineerPayoutAmount = totalPayoutAmount * engineerAmountPct / BASE_PERCENTAGE;
+        supplierPayoutAmount = totalPayoutAmount - engineerPayoutAmount;
+    }
+
+    function sendSplitJobPayout(uint jobId, uint supplierPayoutAmount, uint engineerPayoutAmount, uint daoTakeAmount) internal {
+        daoEscrow = daoEscrow - supplierPayoutAmount - engineerPayoutAmount - daoTakeAmount;
+        daoFunds += daoTakeAmount;
+
+        sendFunds(address(jobs[jobId].supplier), supplierPayoutAmount);
+        sendFunds(address(jobs[jobId].engineer), engineerPayoutAmount);
     }
 
     function receiveFunds(address _from, uint amount) internal {
