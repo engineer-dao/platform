@@ -298,6 +298,23 @@ export const resolveDisputeWithCustomSplit = async (
   return resolveDisputeWithCustomSplitTx;
 };
 
+export const withdrawDaoFunds = async (
+  job: ContractTypes.Job,
+  address: string,
+  amount: string,
+  signer: Signer | null = null
+) => {
+  if (signer === null) {
+    signer = (await signers()).owner;
+  }
+
+  const withdrawDaoFundsTx = await job
+    .connect(signer)
+    .withdrawDaoFunds(address, amount);
+
+  return withdrawDaoFundsTx;
+};
+
 ////////////////////////////////////////////////////////////////
 
 export const signers = async () => {

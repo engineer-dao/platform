@@ -109,6 +109,11 @@ contract Job {
         _;
     }
 
+    modifier requiresFundManager() {
+        require(owner == msg.sender, "Method not available for this caller");
+        _;
+    }
+
     ////////////////////////////////////////
     // public functions
 
@@ -264,6 +269,16 @@ contract Job {
         sendSplitJobPayout(jobId, supplierPayoutAmount, engineerPayoutAmount, daoTakeAmount);
 
         emit JobDisputeResolved(jobId, States.FinalDisputeResolvedWithSplit);
+    }
+
+    ////////////////////////////////////////
+    // DAO management functions
+
+    function withdrawDaoFunds(address recipient, uint amount) public requiresFundManager() {
+        require(amount <= daoFunds, "Insufficient funds");
+
+        daoFunds = daoFunds - amount;
+        sendFunds(recipient, amount);
     }
 
     ////////////////////////////////////////

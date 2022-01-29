@@ -1041,221 +1041,85 @@ describe('A disputed job that will be resolved for the engineer', function () {
 ///////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
 
-describe('A disputed job that will be resolved with a custom split', function () {
-  it('may be resolved with a split', async function () {
-    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
-    await testUtil.postSampleJob(job);
-    await testUtil.startJob(job, testUtil.JOB_ID_1);
-    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
-    await testUtil.resolveDisputeWithCustomSplit(
-      job,
-      testUtil.JOB_ID_1,
-      testUtil.toPercentage(30)
-    );
-
-    // get the job
-    const jobOne = await job.jobs(testUtil.JOB_ID_1);
-
-    // check state
-    expect(jobOne.state).to.equal(testUtil.STATE_FinalDisputeResolvedWithSplit);
-  });
-
-  it('requires disputed state', async function () {
-    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
-    await testUtil.postSampleJob(job);
-
-    await expect(
-      testUtil.resolveDisputeWithCustomSplit(
-        job,
-        testUtil.JOB_ID_1,
-        testUtil.toPercentage(30)
-      )
-    ).to.be.revertedWith('Method not available for job state');
-
-    await testUtil.startJob(job, testUtil.JOB_ID_1);
-
-    await expect(
-      testUtil.resolveDisputeWithCustomSplit(
-        job,
-        testUtil.JOB_ID_1,
-        testUtil.toPercentage(30)
-      )
-    ).to.be.revertedWith('Method not available for job state');
-
-    await testUtil.completeJob(job, testUtil.JOB_ID_1);
-
-    await expect(
-      testUtil.resolveDisputeWithCustomSplit(
-        job,
-        testUtil.JOB_ID_1,
-        testUtil.toPercentage(30)
-      )
-    ).to.be.revertedWith('Method not available for job state');
-
-    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
-    await testUtil.resolveDisputeWithCustomSplit(
-      job,
-      testUtil.JOB_ID_1,
-      testUtil.toPercentage(30)
-    );
-
-    await expect(
-      testUtil.resolveDisputeWithCustomSplit(
-        job,
-        testUtil.JOB_ID_1,
-        testUtil.toPercentage(30)
-      )
-    ).to.be.revertedWith('Method not available for job state');
-  });
-
-  it('may only be called by owner', async function () {
+describe('DAO Funds', function () {
+  it('may be withdrawn', async function () {
     const _signers = await testUtil.signers();
 
     const { job, testToken } = await testUtil.setupJobAndTokenBalances();
     await testUtil.postSampleJob(job);
     await testUtil.startJob(job, testUtil.JOB_ID_1);
-    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+    await testUtil.approveJob(job, testUtil.JOB_ID_1);
+
+    await testUtil.withdrawDaoFunds(
+      job,
+      _signers.other.address,
+      testUtil.toBigNum(10)
+    );
+
+    // check other address balance
+    expect(await testToken.balanceOf(_signers.other.address)).to.equal(
+      testUtil.toBigNum(1000 + 10)
+    );
+  });
+  it('may only by be withdrawn by owner', async function () {
+    const _signers = await testUtil.signers();
+
+    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
+    await testUtil.postSampleJob(job);
+    await testUtil.startJob(job, testUtil.JOB_ID_1);
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+    await testUtil.approveJob(job, testUtil.JOB_ID_1);
 
     await expect(
-      testUtil.resolveDisputeWithCustomSplit(
+      testUtil.withdrawDaoFunds(
         job,
-        testUtil.JOB_ID_1,
-        testUtil.toPercentage(30),
-        _signers.supplier
-      )
-    ).to.be.revertedWith('Method not available for this caller');
-
-    await expect(
-      testUtil.resolveDisputeWithCustomSplit(
-        job,
-        testUtil.JOB_ID_1,
-        testUtil.toPercentage(30),
-        _signers.engineer
-      )
-    ).to.be.revertedWith('Method not available for this caller');
-
-    await expect(
-      testUtil.resolveDisputeWithCustomSplit(
-        job,
-        testUtil.JOB_ID_1,
-        testUtil.toPercentage(30),
+        _signers.other.address,
+        testUtil.toBigNum(10),
         _signers.other
       )
     ).to.be.revertedWith('Method not available for this caller');
-  });
 
-  it('muust be called with a valid percentage', async function () {
+    await expect(
+      testUtil.withdrawDaoFunds(
+        job,
+        _signers.other.address,
+        testUtil.toBigNum(10),
+        _signers.supplier
+      )
+    ).to.be.revertedWith('Method not available for this caller');
+  });
+  it('may not overdraw', async function () {
     const _signers = await testUtil.signers();
 
     const { job, testToken } = await testUtil.setupJobAndTokenBalances();
     await testUtil.postSampleJob(job);
     await testUtil.startJob(job, testUtil.JOB_ID_1);
-    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+    await testUtil.approveJob(job, testUtil.JOB_ID_1);
 
     await expect(
-      testUtil.resolveDisputeWithCustomSplit(
+      testUtil.withdrawDaoFunds(
         job,
-        testUtil.JOB_ID_1,
-        testUtil.toPercentage(0.9)
+        _signers.other.address,
+        testUtil.toBigNum(11)
       )
-    ).to.be.revertedWith('Percentage too low');
-
-    await expect(
-      testUtil.resolveDisputeWithCustomSplit(
-        job,
-        testUtil.JOB_ID_1,
-        testUtil.toPercentage(99.1)
-      )
-    ).to.be.revertedWith('Percentage too high');
+    ).to.be.revertedWith('Insufficient funds');
   });
-
-  it('emits JobDisputeResolved event when resolved', async function () {
-    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
-    await testUtil.postSampleJob(job);
-    await testUtil.startJob(job, testUtil.JOB_ID_1);
-    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
-
-    await expect(
-      testUtil.resolveDisputeWithCustomSplit(
-        job,
-        testUtil.JOB_ID_1,
-        testUtil.toPercentage(30)
-      )
-    )
-      .to.emit(job, 'JobDisputeResolved')
-      .withArgs(
-        testUtil.JOB_ID_1,
-        testUtil.STATE_FinalDisputeResolvedWithSplit
-      );
-  });
-
-  it('sends funds and updates balances when resolved at 30% for the engineer', async function () {
+  it('updates balance when withdrawn', async function () {
     const _signers = await testUtil.signers();
 
     const { job, testToken } = await testUtil.setupJobAndTokenBalances();
     await testUtil.postSampleJob(job);
     await testUtil.startJob(job, testUtil.JOB_ID_1);
-    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
-    await testUtil.resolveDisputeWithCustomSplit(
+    await testUtil.completeJob(job, testUtil.JOB_ID_1);
+    await testUtil.approveJob(job, testUtil.JOB_ID_1);
+    await testUtil.withdrawDaoFunds(
       job,
-      testUtil.JOB_ID_1,
-      testUtil.toPercentage(30)
+      _signers.other.address,
+      testUtil.toBigNum(8)
     );
-
-    // updates escrow
-    const escrowValue = await job.daoEscrow();
-    expect(escrowValue).to.equal(0);
-
-    // updates funds
     const fundsValue = await job.daoFunds();
-    expect(fundsValue).to.equal(testUtil.toBigNum(6.6));
-
-    // sends funds to engineer
-    const expectedEngineerPayout =
-      (110 - 110 * testUtil.DISPUTE_RESOLUTION_PCT) * 0.3;
-    expect(await testToken.balanceOf(_signers.engineer.address)).to.equal(
-      testUtil.toBigNum(1000 - 10 + expectedEngineerPayout)
-    );
-
-    const expectedSupplierPayout =
-      (110 - 110 * testUtil.DISPUTE_RESOLUTION_PCT) * 0.7;
-    expect(await testToken.balanceOf(_signers.supplier.address)).to.equal(
-      testUtil.toBigNum(1000 - 100 + expectedSupplierPayout)
-    );
-  });
-
-  it('sends funds and updates balances when resolved at 60% for the engineer', async function () {
-    const _signers = await testUtil.signers();
-
-    const { job, testToken } = await testUtil.setupJobAndTokenBalances();
-    await testUtil.postSampleJob(job);
-    await testUtil.startJob(job, testUtil.JOB_ID_1);
-    await testUtil.disputeJob(job, testUtil.JOB_ID_1);
-    await testUtil.resolveDisputeWithCustomSplit(
-      job,
-      testUtil.JOB_ID_1,
-      testUtil.toPercentage(60)
-    );
-
-    // updates escrow
-    const escrowValue = await job.daoEscrow();
-    expect(escrowValue).to.equal(0);
-
-    // updates funds
-    const fundsValue = await job.daoFunds();
-    expect(fundsValue).to.equal(testUtil.toBigNum(6.6));
-
-    // sends funds to engineer
-    const expectedEngineerPayout =
-      (110 - 110 * testUtil.DISPUTE_RESOLUTION_PCT) * 0.6;
-    expect(await testToken.balanceOf(_signers.engineer.address)).to.equal(
-      testUtil.toBigNum(1000 - 10 + expectedEngineerPayout)
-    );
-
-    const expectedSupplierPayout =
-      (110 - 110 * testUtil.DISPUTE_RESOLUTION_PCT) * 0.4;
-    expect(await testToken.balanceOf(_signers.supplier.address)).to.equal(
-      testUtil.toBigNum(1000 - 100 + expectedSupplierPayout)
-    );
+    expect(fundsValue).to.equal(testUtil.toBigNum(2));
   });
 });
