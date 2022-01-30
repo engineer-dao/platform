@@ -100,7 +100,9 @@ export const Modal: React.FunctionComponent<IModalProps> = (
                     {props.title}
                   </Dialog.Title>
                   <div className="mt-2">
-                    <p className="text-sm text-gray-500">{props.children}</p>
+                    <div className="text-sm text-gray-500">
+                      {props.children}
+                    </div>
                   </div>
                 </div>
               </div>

@@ -16,7 +16,7 @@ export const WalletConnectionStatus = () => {
   const getBalance = async (account: string) => {
     const _balance = await getWalletBalance(account);
 
-    setWalletBalance(_balance);
+    setWalletBalance(_balance.substring(0, 9));
   };
 
   useEffect(() => {
