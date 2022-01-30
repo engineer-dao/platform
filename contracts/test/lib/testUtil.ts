@@ -91,16 +91,6 @@ export const setupJobAndTokenBalances = async () => {
   return { job, testToken };
 };
 
-// export const deployAndPostJob = async (bounty: null | string = null) => {
-//   // deploy the contract
-//   const job = await deployJob(await deployERC20Token());
-
-//   // returns jobTx
-//   await postSampleJob(job, bounty);
-
-//   return job;
-// };
-
 export const postSampleJob = async (
   job: ContractTypes.Job,
   bounty: null | string = null,
