@@ -9,6 +9,14 @@ npx hardhat node
 Set your Metamask network to localhost:8545 to use your local node.
 
 
+# Copy contract code to front end
+
+After changing the contract, deploy the updated contract ABI to the frontend code with this task
+
+```shell
+npx hardhat copy-compiled
+```
+
 # Tests
 
 Try run tests:
