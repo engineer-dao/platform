@@ -1,11 +1,31 @@
 # EngineerDAO :: Contracts
 
-### Configuration
+To compile the contacts and run a local node, do this:
 
-| Variable                                        | Purpose                                                                                          | Default                                                                                  |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
-| PRIVATE_KEY              |         The `deployer / owner` wallet               |                                          |
-| INFURA_API_KEY | ---    |  |
-| RPC_URL | ---  | https://rpc-mainnet.maticvigil.com/                                                                    |
-| RPC_URL_TEST         | ---   | https://polygon-mumbai.infura.io/v3/ `{INFURA_API_KEY}`   |
-| POLYSCAN_KEY      | ---       | -                                                                                        |
+```shell
+npx hardhat node
+```
+
+Set your Metamask network to localhost:8545 to use your local node.
+
+
+# Copy contract code to front end
+
+After changing the contract, deploy the updated contract ABI to the frontend code with this task
+
+```shell
+npx hardhat copy-compiled
+```
+
+# Tests
+
+Try run tests:
+
+```shell
+npx hardhat test
+```
+
+
+# More info
+
+See https://github.com/nomiclabs/hardhat and https://github.com/wighawag/hardhat-deploy for more help.
