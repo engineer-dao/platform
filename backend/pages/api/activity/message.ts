@@ -43,12 +43,13 @@ export default async function handler(
     const postRef = push(reference);
 
     if (address === _address) {
-        set(postRef, {
+        const response = await set(postRef, {
             address,
             message,
             type,
             created_at: new Date().toISOString(),
         });
+        console.log(response);
         res.status(200).json({ message: "Success" });
     } else {
         res.status(403).json({ message: "Invalid message for address" });
