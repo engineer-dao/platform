@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import Cors from "cors";
 import { utils } from "ethers";
+import { database } from "../../../services/db";
+import { ref, set, push } from "firebase/database";
 
 const cors = Cors({
     methods: ["GET", "HEAD"],
@@ -32,11 +34,21 @@ export default async function handler(
 ) {
     await runMiddleware(req, res, cors);
 
-    const { sig, address, message } = req?.body || {};
+    const { sig, address, message, contract_id, type } = req?.body || {};
 
     const _address = utils.verifyMessage(message, sig);
 
+    const reference = ref(database, `messages/${contract_id}`);
+
+    const postRef = push(reference);
+
     if (address === _address) {
+        set(postRef, {
+            address,
+            message,
+            type,
+            created_at: new Date().toISOString(),
+        });
         res.status(200).json({ message: "Success" });
     } else {
         res.status(403).json({ message: "Invalid message for address" });

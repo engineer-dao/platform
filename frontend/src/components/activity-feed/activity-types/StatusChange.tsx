@@ -22,10 +22,10 @@ export const StatusChange: React.FC<StatusChangeProps> = ({ activityItem }) => {
       <div className="min-w-0 flex-1 py-1.5">
         <div className="text-sm text-gray-500">
           <a
-            href={activityItem.person.href}
+            href={activityItem?.person?.href}
             className="font-medium text-gray-900"
           >
-            {activityItem.person.name}
+            {activityItem?.person?.name}
           </a>{' '}
           changed status to{' '}
           <StatusChip status={activityItem.status} size="small" />{' '}
