@@ -7,6 +7,8 @@ import Dashboard from '../pages/Dashboard';
 import MyContracts from '../pages/MyContracts';
 import SingleContract from '../pages/SingleContract';
 import { CreateContract } from '../pages/CreateContract';
+import Testing from '../pages/Testing';
+import { isTestingEnvironment } from '../utils/testing';
 
 interface IContent {
   reportSidebarOpen: (e: boolean) => void;
@@ -49,6 +51,11 @@ const Content = (props: IContent) => {
                 <Route path={SectionPath.createContract} exact>
                   <CreateContract />
                 </Route>
+                {isTestingEnvironment() && (
+                  <Route path={SectionPath.testing} exact>
+                    <Testing />
+                  </Route>
+                )}
               </Switch>
             </div>
           </div>
