@@ -4,7 +4,7 @@ import {
   SmartContractAddresses,
 } from 'components/smart-contracts/useSmartContracts';
 import { TransactionModal } from 'components/smart-contracts/TransactionModal';
-import { ethers } from 'ethers';
+import { ContractReceipt } from 'ethers';
 
 export const RevokeERC20Modal = ({
   show,
@@ -21,7 +21,7 @@ export const RevokeERC20Modal = ({
     return contracts.ERC20.approve(SmartContractAddresses.Job, 0);
   };
 
-  const onConfirmed = (receipt: ethers.providers.TransactionReceipt) => {
+  const onConfirmed = (receipt: ContractReceipt) => {
     updateERC20Approval(false);
   };
 
