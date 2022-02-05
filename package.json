@@ -16,9 +16,11 @@
         "clean": "yarn lerna run clean --parallel",
         "test": "yarn lerna run test --parallel"
     },
-    "dependencies": {
-    },
+    "dependencies": {},
     "devDependencies": {
-        "lerna": "^4.0.0"
+        "eslint": "^8.8.0",
+        "eslint-plugin-import": "^2.25.4",
+        "lerna": "^4.0.0",
+        "typescript": "^4.5.5"
     }
 }
