@@ -4,7 +4,34 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Job {
+    /*************
+     * Constants *
+     *************/
 
+    uint constant MINIMUM_BOUNTY = 50000000000000000000; // 50 paymentTokens ($50)
+
+    uint constant BASE_PERCENTAGE = 10000; // for integer percentage math
+    uint constant DEPOSIT_PERCENTAGE = 1000; // out of 10000
+    uint constant PAYOUT_PERCENTAGE = 9000; // (10000 - <platform fee>) out of 10000
+    uint constant RESOLUTION_FEE_PERCENTAGE = 600; // out of 10000
+    uint constant MINIMUM_SPLIT_CHUNK_PERCENTAGE = 100; // out of 10000
+
+    uint constant COMPLETED_TIMEOUT_SECONDS = 432000; // Number of seconds after job is completed before job is awarded to engineer
+    
+    /*************
+     * Variables *
+     *************/
+     
+    address public owner;
+    address public paymentToken;
+
+    uint public daoEscrow;
+    uint public daoFunds;
+    
+    /***************
+     * Job State *
+     ***************/     
+     
     struct JobData {
         address supplier;
         uint bounty;
@@ -23,12 +50,6 @@ contract Job {
     uint public jobCount;
     mapping(uint => JobData) public jobs;
 
-    address public owner;
-    address public paymentToken;
-
-    uint public daoEscrow;
-    uint public daoFunds;
-
     enum States {
         DoesNotExist,
         Available,
@@ -44,18 +65,9 @@ contract Job {
         FinalDisputeResolvedWithSplit
     }
 
-    uint constant MINIMUM_BOUNTY = 50000000000000000000; // 50 paymentTokens ($50)
-
-    uint constant BASE_PERCENTAGE = 10000; // for integer percentage math
-    uint constant DEPOSIT_PERCENTAGE = 1000; // out of 10000
-    uint constant PAYOUT_PERCENTAGE = 9000; // (10000 - <platform fee>) out of 10000
-    uint constant RESOLUTION_FEE_PERCENTAGE = 600; // out of 10000
-    uint constant MINIMUM_SPLIT_CHUNK_PERCENTAGE = 100; // out of 10000
-
-    uint constant COMPLETED_TIMEOUT_SECONDS = 432000; // Number of seconds after job is completed before job is awarded to engineer
-
-    ////////////////////////////////////////
-    // events
+    /**********
+     * Events *
+     **********/
 
     event JobPosted(uint indexed jobId, string jobMetaData);
     event JobSupplied(address indexed supplier, uint indexed jobId);
@@ -70,8 +82,18 @@ contract Job {
     event JobDisputed(uint indexed jobId);
     event JobDisputeResolved(uint indexed jobId, States finalState);
 
-    ////////////////////////////////////////
-    // modifiers
+    /***************
+     * Constructor *
+     ***************/
+
+    constructor(address _paymentToken) {
+        owner = msg.sender;
+        paymentToken = _paymentToken;
+    }
+    
+    /**********************
+     * Function Modifiers *
+     **********************/
 
     modifier requiresAmount(uint amount, uint minimumPaymentAmount) {
         require(amount >= minimumPaymentAmount, "Minimum payment not provided");
@@ -113,18 +135,11 @@ contract Job {
         require(owner == msg.sender, "Method not available for this caller");
         _;
     }
-
-    ////////////////////////////////////////
-    // public functions
-
-    constructor(address _paymentToken) {
-        owner = msg.sender;
-        paymentToken = _paymentToken;
-        jobCount = 0;
-        daoEscrow = 0;
-        daoFunds = 0;
-    }
-
+    
+    /********************
+     * Public Functions *
+     ********************/
+     
     // supplier posts a new job
     function postJob(uint bountyValue, string memory jobMetaData) public requiresApproval(bountyValue) requiresAmount(bountyValue, MINIMUM_BOUNTY) {
         // receive funds
@@ -271,8 +286,9 @@ contract Job {
         emit JobDisputeResolved(jobId, States.FinalDisputeResolvedWithSplit);
     }
 
-    ////////////////////////////////////////
-    // DAO management functions
+    /****************************
+     * DAO Management Functions *
+     ****************************/
 
     function withdrawDaoFunds(address recipient, uint amount) public requiresFundManager() {
         require(amount <= daoFunds, "Insufficient funds");
@@ -281,8 +297,9 @@ contract Job {
         sendFunds(recipient, amount);
     }
 
-    ////////////////////////////////////////
-    // internal functions
+    /**********************
+     * Internal Functions *
+     **********************/
 
     function closeJobBySupplier(uint jobId) internal {
         require(jobs[jobId].closedBySupplier == false, "Close request already received");
