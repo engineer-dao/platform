@@ -3,10 +3,22 @@
     "version": "1.0.0",
     "author": "EngineerDAO",
     "license": "MIT",
-    "devDependencies": {
-    },
+    "private": true,
+    "workspaces": [
+        "frontend",
+        "backend",
+        "contracts"
+    ],
     "scripts": {
+        "start": "yarn lerna run start",
+        "build": "yarn lerna run build",
+        "lint": "yarn lerna run lint",
+        "clean": "yarn lerna run clean --parallel",
+        "test": "yarn lerna run test --parallel"
     },
     "dependencies": {
+    },
+    "devDependencies": {
+        "lerna": "^4.0.0"
     }
 }
