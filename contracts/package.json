@@ -9,7 +9,7 @@
         "compile": "hardhat compile --show-stack-traces",
         "clean": "rm -rf ./dist ./artifacts ./cache ./typechain",
         "test": "hardhat test --show-stack-traces",
-        "test:slither": "slither . --triage-mode",
+        "test:slither": "slither .",
         "lint:ts:check": "eslint . --max-warnings=0",
         "lint:contracts:check": "yarn solhint -f table 'contracts/**/*.sol'",
         "lint:check": "yarn lint:contracts:check && yarn lint:ts:check",
@@ -57,7 +57,5 @@
         "typechain": "^5.1.2",
         "typescript": "^4.5.5"
     },
-    "dependencies": {
-        "slither": "^0.2.2"
-    }
+    "dependencies": {}
 }

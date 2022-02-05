@@ -10,7 +10,6 @@
         "contracts"
     ],
     "scripts": {
-        "start": "yarn lerna run start",
         "build": "yarn lerna run build",
         "lint": "yarn lerna run lint",
         "clean": "yarn lerna run clean --parallel",
