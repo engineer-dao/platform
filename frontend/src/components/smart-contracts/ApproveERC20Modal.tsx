@@ -4,7 +4,7 @@ import {
   SmartContractAddresses,
 } from 'components/smart-contracts/useSmartContracts';
 import { TransactionModal } from 'components/smart-contracts/TransactionModal';
-import { ethers, constants } from 'ethers';
+import { constants, ContractReceipt } from 'ethers';
 
 export const ApproveERC20Modal = ({
   show,
@@ -26,7 +26,7 @@ export const ApproveERC20Modal = ({
   };
 
   // what to do when the transaction is confirmed on the blockchain
-  const onConfirmed = (receipt: ethers.providers.TransactionReceipt) => {
+  const onConfirmed = (receipt: ContractReceipt) => {
     updateERC20Approval(true);
   };
 

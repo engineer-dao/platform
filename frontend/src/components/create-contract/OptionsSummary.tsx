@@ -1,3 +1,5 @@
+import { CreateFormValues } from 'components/forms/types';
+
 import {
   CheckCircleIcon,
   ClockIcon,
@@ -7,7 +9,7 @@ import {
 } from '@heroicons/react/outline';
 import React from 'react';
 
-const OptionsSummary = () => {
+const OptionsSummary = ({ data }: { data: CreateFormValues }) => {
   return (
     <>
       <div className="flex">
