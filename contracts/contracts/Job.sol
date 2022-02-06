@@ -2,9 +2,12 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // TODO: consider using Ownable / OwnableUpgradeSafe if upgradable
 contract Job {
+    using SafeERC20 for IERC20;
+
     /*************
      * Constants *
      *************/
@@ -369,12 +372,12 @@ contract Job {
 
     function receiveFunds(address _from, uint amount) internal {
         IERC20 _paymentToken = IERC20(paymentToken);
-        require(_paymentToken.transferFrom(_from, address(this), amount), "Transfer Failed");
+        _paymentToken.safeTransferFrom(_from, address(this), amount);
     }
 
     function sendFunds(address _to, uint amount) internal {
         IERC20 _paymentToken = IERC20(paymentToken);
-        require(_paymentToken.transfer(_to, amount), "Transfer Failed");
+        _paymentToken.safeTransfer(_to, amount);
     }
 
 }
