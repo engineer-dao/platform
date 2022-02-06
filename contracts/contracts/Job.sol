@@ -1,37 +1,45 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+// TODO: consider using Ownable / OwnableUpgradeSafe if upgradable
 contract Job {
     /*************
      * Constants *
      *************/
 
-    uint constant MINIMUM_BOUNTY = 50000000000000000000; // 50 paymentTokens ($50)
+    // 50 paymentTokens ($50)
+    uint constant MINIMUM_BOUNTY = 50e18;
+    // Used for math
+    uint constant BASE_PERCENTAGE = 10_000;
+    // 90%
+    uint constant DEPOSIT_PERCENTAGE = 1000;
+    // 10%
+    uint constant PAYOUT_PERCENTAGE = 9000;
+    // 6%
+    uint constant RESOLUTION_FEE_PERCENTAGE = 600;
+    // 1%
+    uint constant MINIMUM_SPLIT_CHUNK_PERCENTAGE = 100;
 
-    uint constant BASE_PERCENTAGE = 10000; // for integer percentage math
-    uint constant DEPOSIT_PERCENTAGE = 1000; // out of 10000
-    uint constant PAYOUT_PERCENTAGE = 9000; // (10000 - <platform fee>) out of 10000
-    uint constant RESOLUTION_FEE_PERCENTAGE = 600; // out of 10000
-    uint constant MINIMUM_SPLIT_CHUNK_PERCENTAGE = 100; // out of 10000
+    uint constant COMPLETED_TIMEOUT_SECONDS = 432_000; // Number of seconds after job is completed before job is awarded to engineer
 
-    uint constant COMPLETED_TIMEOUT_SECONDS = 432000; // Number of seconds after job is completed before job is awarded to engineer
-    
     /*************
      * Variables *
      *************/
-     
+
     address public owner;
+    // TODO: Extend to support multiple tokens (like a whitelist)
     address public paymentToken;
 
+    // TODO: store
     uint public daoEscrow;
     uint public daoFunds;
-    
+
     /***************
      * Job State *
-     ***************/     
-     
+     ***************/
+
     struct JobData {
         address supplier;
         uint bounty;
@@ -90,7 +98,7 @@ contract Job {
         owner = msg.sender;
         paymentToken = _paymentToken;
     }
-    
+
     /**********************
      * Function Modifiers *
      **********************/
@@ -135,11 +143,11 @@ contract Job {
         require(owner == msg.sender, "Method not available for this caller");
         _;
     }
-    
+
     /********************
      * Public Functions *
      ********************/
-     
+
     // supplier posts a new job
     function postJob(uint bountyValue, string memory jobMetaData) public requiresApproval(bountyValue) requiresAmount(bountyValue, MINIMUM_BOUNTY) {
         // receive funds
@@ -150,23 +158,15 @@ contract Job {
         uint newJobId = jobCount;
 
         // update state
-        jobs[newJobId] = JobData({
-            supplier: msg.sender,
-            bounty: bountyValue,
-            engineer: address(0),
-            deposit: 0,
-            startTime: 0,
-            completedTime: 0,
-            closedBySupplier: false,
-            closedByEngineer: false,
-            state: States.Available
-        });
+        jobs[newJobId].supplier = msg.sender;
+        jobs[newJobId].bounty = bountyValue;
+        jobs[newJobId].state = States.Available;
 
         daoEscrow += bountyValue;
 
         // save the job meta data
         emit JobPosted(newJobId, jobMetaData);
-        
+
         // emit JobSupplied to map the supplier to the job
         emit JobSupplied(msg.sender, newJobId);
     }
@@ -363,6 +363,9 @@ contract Job {
         sendFunds(address(jobs[jobId].supplier), supplierPayoutAmount);
         sendFunds(address(jobs[jobId].engineer), engineerPayoutAmount);
     }
+
+    // TODO: Add a safety function to make sure that funds can never be locked in the contract.
+    // TODO: "initiateWithdraw" which starts a 24h timer after which "withdraw(token, amount, to)" can be called by onlyOwner()
 
     function receiveFunds(address _from, uint amount) internal {
         IERC20 _paymentToken = IERC20(paymentToken);
