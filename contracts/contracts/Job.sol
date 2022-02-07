@@ -22,7 +22,6 @@ contract Job is Ownable {
     // 50 paymentTokens ($50)
     uint256 public MINIMUM_BOUNTY = 50e18;
 
-    // TODO: Shouldn't we allow providers to set this percentage ?
     // 10%
     uint256 public DEFAULT_DEPOSIT_PERCENTAGE = 1000;
     // TODO: yet to be decided
@@ -84,7 +83,6 @@ contract Job is Ownable {
      * Events *
      **********/
 
-    // TODO: What about the paymentToken & bountyValue params ?
     event JobPosted(uint256 indexed jobId, string jobMetaData);
     event JobSupplied(address indexed supplier, uint256 indexed jobId);
     event JobStarted(address indexed engineer, uint256 indexed jobId);
@@ -172,7 +170,7 @@ contract Job is Ownable {
     ) public onlyWhitelisted(paymentToken) requiresApproval(paymentToken, bountyValue) {
         // TODO: add jobMetaData length check after ipfs integration is ready.
         require(bountyValue >= MINIMUM_BOUNTY, "Minimum payment not provided");
-        require(depositPct < BASE_PERCENTAGE, "Minimum payment not provided");
+        require(depositPct < BASE_PERCENTAGE, "Deposit percent is too high");
 
         // receive funds
         receiveFunds(paymentToken, msg.sender, bountyValue);
@@ -344,10 +342,9 @@ contract Job is Ownable {
      * DAO Management Functions *
      ****************************/
 
-    // TODO: Add a safety function to make sure that funds can never be locked in the contract.
-    // TODO: "initiateWithdraw" which starts a 24h timer after which "withdraw(jobId)" can be called by onlyOwner()
-
     // TODO: what if someone sends a token by mistake to this contract ?
+    // TODO: function withdraw
+
 
     function updatePaymentTokens(IERC20 token, bool value) external onlyOwner {
         paymentTokens[token] = value;
