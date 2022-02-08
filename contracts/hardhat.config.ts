@@ -53,8 +53,8 @@ const config: HardhatUserConfig = {
       chainId: 1337,
       live: false,
     },
-    ropsten: {
-      url: process.env.ROPSTEN_URL || '',
+    rinkeby: {
+      url: process.env.TESTNET_URL || '',
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
