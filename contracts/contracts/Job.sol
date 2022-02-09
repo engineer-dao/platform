@@ -236,7 +236,9 @@ contract Job is Ownable {
     function cancelJob(uint256 jobId) public onlySupplier(jobId) requiresJobState(jobId, States.Available) {
         JobData memory job = jobs[jobId];
 
-        // TODO: delete jobs[jobId] first ? Could the supplier re-activate the job ?
+        // TODO: delete jobs[jobId] first ? Do we need to store all the data ??
+        // TODO: How would the supplier-reopen flow work  ?
+        // TODO: Should the metadata be stored in events ?
         jobs[jobId].state = States.FinalCanceledBySupplier;
 
         sendJobRefund(job);

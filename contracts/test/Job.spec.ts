@@ -366,7 +366,6 @@ describe("JobContract ", function() {
 
     describe('A cancellable job', function() {
         it('may be canceled', async function() {
-
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.cancelJob(JobContract, testUtil.JOB_ID_1);
@@ -374,9 +373,6 @@ describe("JobContract ", function() {
             // dao escrow is now zero
             const escrowValue = await getBalanceOf(TestToken, JobContract.address);
             expect(escrowValue).to.equal(0);
-
-            // dao balance is now zero
-            expect(await TestToken.balanceOf(JobContract.address)).to.equal(0);
 
             // supplier was refunded
             expect(await TestToken.balanceOf(supplier.address)).to.equal(
@@ -410,10 +406,17 @@ describe("JobContract ", function() {
             await expect(
                 testUtil.cancelJob(JobContract, testUtil.JOB_ID_1, addr1)
             ).to.be.revertedWith('Method not available for this caller');
+
+            await expect(
+                testUtil.cancelJob(JobContract, testUtil.JOB_ID_1, engineer)
+            ).to.be.revertedWith('Method not available for this caller');
+
+            await expect(
+                testUtil.cancelJob(JobContract, testUtil.JOB_ID_1, owner)
+            ).to.be.revertedWith('Method not available for this caller');
         });
 
         it('emits JobCanceled event when canceled', async function() {
-
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
