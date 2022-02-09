@@ -3,7 +3,6 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IJob {
-
     /**********
      * Events *
      **********/
@@ -23,5 +22,4 @@ interface IJob {
     function paymentTokens(IERC20) external view returns (bool);
 
     function getAllPaymentTokens() external view returns (IERC20[] memory tokens);
-
 }

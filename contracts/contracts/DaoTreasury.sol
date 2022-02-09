@@ -9,26 +9,26 @@ interface IRouter {
     function getAmountsOut(uint256 amountIn, address[] memory path) external view returns (uint256[] memory amounts);
 
     function swapExactTokensForTokensSupportingFeeOnTransferTokens(
-        uint amountIn,
-        uint amountOutMin,
+        uint256 amountIn,
+        uint256 amountOutMin,
         address[] calldata path,
         address to,
-        uint deadline
+        uint256 deadline
     ) external;
 
     function swapExactTokensForETHSupportingFeeOnTransferTokens(
-        uint amountIn,
-        uint amountOutMin,
+        uint256 amountIn,
+        uint256 amountOutMin,
         address[] calldata path,
         address to,
-        uint deadline
+        uint256 deadline
     ) external;
 
     function swapExactETHForTokensSupportingFeeOnTransferTokens(
-        uint amountOutMin,
+        uint256 amountOutMin,
         address[] calldata path,
         address to,
-        uint deadline
+        uint256 deadline
     ) external payable;
 }
 
@@ -41,31 +41,33 @@ contract DaoTreasury is Ownable {
     // mainnet
     IRouter public Router = IRouter(0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff);
 
-    constructor () {
-    }
+    constructor() {}
 
-    function swapAllToStable(uint slippage) external onlyOwner {
+    function swapAllToStable(uint256 slippage) external onlyOwner {
         IERC20[] memory tokens = JobContract.getAllPaymentTokens();
-        uint balance;
-        for (uint i = 0; i < tokens.length; i++) {
+        uint256 balance;
+        for (uint256 i = 0; i < tokens.length; i++) {
             balance = tokens[i].balanceOf(address(this));
             if (balance > 0) {
                 tokens[i].approve(msg.sender, balance);
                 swapToStable(tokens[i], balance, slippage);
             }
-
         }
     }
 
-    function swapToStable(IERC20 token, uint tokenAmount, uint slip) public onlyOwner {
+    function swapToStable(
+        IERC20 token,
+        uint256 tokenAmount,
+        uint256 slip
+    ) public onlyOwner {
         address[] memory path = new address[](2);
         path[0] = address(token);
         path[0] = address(stableCoin);
 
         uint256[] memory amounts = Router.getAmountsOut(tokenAmount, path);
-        uint amountOut = amounts[amounts.length - 1];
+        uint256 amountOut = amounts[amounts.length - 1];
 
-        uint minAmountOut = amountOut - (amountOut * slip / 10000);
+        uint256 minAmountOut = amountOut - ((amountOut * slip) / 10000);
 
         Router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
             tokenAmount,
@@ -76,7 +78,11 @@ contract DaoTreasury is Ownable {
         );
     }
 
-    function transfer(IERC20 token, uint tokenAmount, address to) external onlyOwner {
+    function transfer(
+        IERC20 token,
+        uint256 tokenAmount,
+        address to
+    ) external onlyOwner {
         token.safeTransfer(to, tokenAmount);
     }
 
