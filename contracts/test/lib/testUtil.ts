@@ -25,11 +25,14 @@ export const STATE_FinalNoResponse = 8;
 export const STATE_FinalDisputeResolvedForSupplier = 9;
 export const STATE_FinalDisputeResolvedForEngineer = 10;
 export const STATE_FinalDisputeResolvedWithSplit = 11;
-
 export const DISPUTE_RESOLUTION_PCT = 0.06;
 
 export const DEFAULT_DEPOSIT_PCT = 1000;
 export const BASE_PERCENT = 10000;
+
+// TODO: can be moved to env & env.testnet and called "DAO_STABLE_COIN_ADDRESS"
+// polygon mainnet
+export const USDC_ADDRESS = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174";
 
 interface JobMetaData {
     ver?: string;
@@ -45,6 +48,14 @@ export const defaultJobMetaData: JobMetaData = {
     description: 'The job description',
     acceptance: 'The job acceptance criteria',
     contact: 'owner@myjobsite.com',
+};
+
+export const deployDaoTreasury = async () => {
+    const DaoTreasury = await (
+        await ethers.getContractFactory('DaoTreasury')
+    ).deploy();
+    await DaoTreasury.deployed();
+    return DaoTreasury;
 };
 
 export const deployERC20Token = async () => {
@@ -65,7 +76,12 @@ export const deployJob = async (testToken: ContractTypes.TestERC20) => {
 
 export const setupJobAndTokenBalances = async () => {
     const TestToken = await deployERC20Token();
+    const DaoTreasury = await deployDaoTreasury();
     const JobContract = await deployJob(TestToken);
+
+    await (await JobContract.setDaoTreasury(DaoTreasury.address)).wait();
+    await (await DaoTreasury.setJobContract(JobContract.address)).wait();
+    await (await DaoTreasury.setStableCoin(USDC_ADDRESS)).wait();
 
     // send balances
     const _signers = await signers();
@@ -92,7 +108,7 @@ export const setupJobAndTokenBalances = async () => {
         .connect(_signers.addr3)
         .approve(JobContract.address, ONE_HUND_THOUS_TOKENS);
 
-    return { JobContract, TestToken };
+    return { JobContract, TestToken, DaoTreasury };
 };
 
 export const getBalanceOf = async (TokenContract: ERC20, address: string) => {
