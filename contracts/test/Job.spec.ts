@@ -1,4 +1,12 @@
-import { getBalanceOf, signers, ONE_TOKEN, BASE_PERCENT, getJobPayouts, ONE_HUND_TOKENS } from "./lib/testUtil";
+import {
+    getBalanceOf,
+    signers,
+    ONE_TOKEN,
+    BASE_PERCENT,
+    getJobPayouts,
+    ONE_HUND_TOKENS,
+    resolveDisputeWithCustomSplit, STATE_FinalDisputeResolvedWithSplit
+} from "./lib/testUtil";
 
 const hre = require('hardhat');
 import { expect } from 'chai';
@@ -1277,6 +1285,153 @@ describe("JobContract ", function() {
 
     ///////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////
+
+    describe('A disputed job that will be resolved with custom split', function() {
+        it('may be resolved', async function() {
+            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
+            await testUtil.postSampleJob()(JobContract, TestToken);
+            await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
+            await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
+            await testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 5000, resolver);
+
+            // get the job
+            const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
+
+            // check state
+            expect(jobOne.state).to.equal(
+                testUtil.STATE_FinalDisputeResolvedWithSplit
+            );
+        });
+
+        it('requires disputed state', async function() {
+            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
+            await testUtil.postSampleJob()(JobContract, TestToken);
+
+            await expect(
+                testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 1000, resolver)
+            ).to.be.revertedWith('Method not available for job state');
+
+            await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
+
+            await expect(
+                testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 2000, resolver)
+            ).to.be.revertedWith('Method not available for job state');
+
+            await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
+
+            await expect(
+                testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 3000, resolver)
+            ).to.be.revertedWith('Method not available for job state');
+
+            await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
+            await testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 4000, resolver);
+
+            await expect(
+                testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 10000, resolver)
+            ).to.be.revertedWith('Method not available for job state');
+        });
+
+        it('may only be called by resolver', async function() {
+            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
+            await testUtil.postSampleJob()(JobContract, TestToken);
+            await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
+            await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
+
+            await expect(
+                testUtil.resolveDisputeWithCustomSplit(
+                    JobContract,
+                    testUtil.JOB_ID_1,
+                    200,
+                    supplier
+                )
+            ).to.be.revertedWith('Not Authorized !');
+
+            await expect(
+                testUtil.resolveDisputeWithCustomSplit(
+                    JobContract,
+                    testUtil.JOB_ID_1,
+                    300,
+                    engineer
+                )
+            ).to.be.revertedWith('Not Authorized !');
+
+            await expect(
+                testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 9999, addr1)
+            ).to.be.revertedWith('Not Authorized !');
+        });
+
+        it('emits JobDisputeResolved event when resolved', async function() {
+            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
+            await testUtil.postSampleJob()(JobContract, TestToken);
+            await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
+            await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
+
+            await expect(testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 2000, resolver))
+                .to.emit(JobContract, 'JobDisputeResolved')
+                .withArgs(
+                    testUtil.JOB_ID_1,
+                    testUtil.STATE_FinalDisputeResolvedWithSplit
+                );
+        });
+
+        it('sends funds and updates balances when resolved 50%', async function() {
+            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
+            await testUtil.postSampleJob()(JobContract, TestToken);
+
+            await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
+            await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
+            await testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 5000, resolver);
+
+            // JobContract 0
+            const contractValue = await getBalanceOf(TestToken, JobContract.address);
+            expect(contractValue).to.equal(0);
+
+            // check supplier funds  (-)
+            expect(await getBalanceOf(TestToken, supplier.address)).to.equal(
+                testUtil.toBigNum(1000 - 100 + 51.7)
+            );
+
+            // check engineer funds (+)
+            expect(await getBalanceOf(TestToken, engineer.address)).to.equal(
+                testUtil.toBigNum(1000 - 10 + 51.7)
+            );
+
+            // Dao % fee
+            const daoValue = await getBalanceOf(TestToken, DaoTreasury.address);
+            expect(daoValue).to.equal(testUtil.toBigNum(6.6));
+        });
+
+        it('sends funds and updates balances when resolved (with getter) 50%', async function() {
+            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
+            const supplierInitialAmount = await getBalanceOf(TestToken, supplier.address);
+
+            await testUtil.postSampleJob()(JobContract, TestToken);
+            await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
+            await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
+
+            const engineerInitialAmount = await getBalanceOf(TestToken, engineer.address);
+
+            await testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 5000, resolver);
+
+            const { forWinner, forDao } = await testUtil.getDisputePayouts(JobContract, testUtil.JOB_ID_1);
+
+            // JobContract 0
+            const contractValue = await getBalanceOf(TestToken, JobContract.address);
+            expect(contractValue).to.equal(0);
+
+            // check supplier (+)
+            expect(await getBalanceOf(TestToken, supplier.address)).to.equal(supplierInitialAmount.sub(ONE_HUND_TOKENS).add(forWinner.div(2)));
+
+            // check engineer (+)
+            const engineerAmount = await getBalanceOf(TestToken, engineer.address);
+            expect(engineerAmount).to.equal(engineerInitialAmount.add(forWinner.div(2)));
+
+            // check Dao funds
+            const daoValue = await getBalanceOf(TestToken, DaoTreasury.address);
+            expect(daoValue).to.equal(forDao);
+        });
+    });
+
 
 // describe('DAO Funds', function() {
 //     it('may be withdrawn', async function() {

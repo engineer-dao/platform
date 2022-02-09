@@ -337,6 +337,7 @@ contract Job is IJob, Ownable {
         ) = calculateSplitDisputeResolutionPayout(job.bounty, job.deposit, engineerAmountPct);
         sendSplitJobPayout(job, supplierPayoutAmount, engineerPayoutAmount, daoTakeAmount);
 
+        // TODO: should we add split % ?
         emit JobDisputeResolved(jobId, States.FinalDisputeResolvedWithSplit);
     }
 
