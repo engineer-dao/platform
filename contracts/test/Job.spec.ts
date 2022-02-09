@@ -595,7 +595,7 @@ describe("JobContract ", function() {
 
     describe('A closeable job', function() {
         it('may be closed', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
+            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.closeBySupplier(JobContract, testUtil.JOB_ID_1);
@@ -608,12 +608,12 @@ describe("JobContract ", function() {
             expect(jobOne.state).to.equal(testUtil.STATE_FinalMutualClose);
 
             // updates escrow
-            const escrowValue = await getBalanceOf(TestToken, JobContract.address);
-            expect(escrowValue).to.equal(0);
+            const jobValue = await getBalanceOf(TestToken, JobContract.address);
+            expect(jobValue).to.equal(0);
 
             // updates funds
-            const fundsValue = await getBalanceOf(TestToken, JobContract.address);
-            expect(fundsValue).to.equal(0);
+            const daoValue = await getBalanceOf(TestToken, DaoTreasury.address);
+            expect(daoValue).to.equal(0);
         });
 
         it('requires started state', async function() {
@@ -637,10 +637,13 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by engineer or supplier', async function() {
-
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
+
+            await expect(
+                testUtil.closeJob(JobContract, testUtil.JOB_ID_1, owner)
+            ).to.be.revertedWith('Method not available for this caller');
 
             await expect(
                 testUtil.closeJob(JobContract, testUtil.JOB_ID_1, addr1)
@@ -652,7 +655,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by supplier once', async function() {
-
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
@@ -664,7 +666,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by engineer once', async function() {
-
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
@@ -714,7 +715,6 @@ describe("JobContract ", function() {
         });
 
         it('refunds bounty and deposit when closed', async function() {
-
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
@@ -750,13 +750,16 @@ describe("JobContract ", function() {
 
     describe('A timed-out job', function() {
         it('may be finalized', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
+            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
+
+            const engineerInitialAmount = await getBalanceOf(TestToken, engineer.address);
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
 
             // time-out
-            await hre.timeAndMine.setTimeIncrease(432001);
+            const TIMEOUT_PERIOD = await JobContract.COMPLETED_TIMEOUT_SECONDS();
+            await hre.timeAndMine.setTimeIncrease(TIMEOUT_PERIOD);
 
             await testUtil.completeTimedOutJob(JobContract, testUtil.JOB_ID_1);
 
@@ -766,13 +769,18 @@ describe("JobContract ", function() {
             // check state
             expect(jobOne.state).to.equal(testUtil.STATE_FinalNoResponse);
 
-            // updates escrow
+            const { forEngineer, forDao } = await testUtil.getJobPayouts(JobContract, testUtil.JOB_ID_1);
+            // Job has 0 tokens
             const escrowValue = await getBalanceOf(TestToken, JobContract.address);
             expect(escrowValue).to.equal(0);
 
-            // updates funds
-            const fundsValue = await getBalanceOf(TestToken, JobContract.address);
-            expect(fundsValue).to.equal(testUtil.TEN_TOKENS);
+            // engineer received
+            const engineerAmount = await getBalanceOf(TestToken, engineer.address);
+            expect(engineerAmount.sub(engineerInitialAmount)).to.equal(forEngineer);
+
+            // daoTreasury received
+            const daoTreasuryAmount = await getBalanceOf(TestToken, DaoTreasury.address);
+            expect(daoTreasuryAmount).to.equal(forDao);
         });
 
         it('requires completed state', async function() {
@@ -809,7 +817,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by engineer', async function() {
-
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
@@ -817,6 +824,10 @@ describe("JobContract ", function() {
 
             // time-out
             await hre.timeAndMine.setTimeIncrease(432001);
+
+            await expect(
+                testUtil.completeTimedOutJob(JobContract, testUtil.JOB_ID_1, owner)
+            ).to.be.revertedWith('Method not available for this caller');
 
             await expect(
                 testUtil.completeTimedOutJob(JobContract, testUtil.JOB_ID_1, supplier)
@@ -835,7 +846,8 @@ describe("JobContract ", function() {
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
 
             // time-out
-            await hre.timeAndMine.setTimeIncrease(432001);
+            const TIMEOUT_PERIOD = await JobContract.COMPLETED_TIMEOUT_SECONDS();
+            await hre.timeAndMine.setTimeIncrease(TIMEOUT_PERIOD);
 
             const expectedPayoutAmount = testUtil.ONE_HUND_TOKENS;
             await expect(testUtil.completeTimedOutJob(JobContract, testUtil.JOB_ID_1))
@@ -844,14 +856,14 @@ describe("JobContract ", function() {
         });
 
         it('sends bounty and deposit to engineer', async function() {
-
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
 
             // time-out
-            await hre.timeAndMine.setTimeIncrease(432001);
+            const TIMEOUT_PERIOD = await JobContract.COMPLETED_TIMEOUT_SECONDS();
+            await hre.timeAndMine.setTimeIncrease(TIMEOUT_PERIOD);
 
             await testUtil.completeTimedOutJob(JobContract, testUtil.JOB_ID_1);
 
@@ -865,6 +877,30 @@ describe("JobContract ", function() {
             );
             expect(supplierBalance).to.equal(testUtil.toBigNum(900));
         });
+
+        it('sends DAO_FEE to treasury', async function() {
+            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
+            await testUtil.postSampleJob()(JobContract, TestToken);
+            await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
+            await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
+
+            // time-out
+            const TIMEOUT_PERIOD = await JobContract.COMPLETED_TIMEOUT_SECONDS();
+            await hre.timeAndMine.setTimeIncrease(TIMEOUT_PERIOD);
+
+            await testUtil.completeTimedOutJob(JobContract, testUtil.JOB_ID_1);
+
+            const DAO_FEE = await JobContract.DAO_FEE();
+
+            const job = await JobContract.jobs(testUtil.JOB_ID_1);
+            const expectedAmount = job.bounty.mul(DAO_FEE).div(10000);
+
+            const daoBalance = await getBalanceOf(TestToken,
+                DaoTreasury.address
+            );
+            expect(daoBalance).to.equal(expectedAmount);
+        });
+
     });
 
 ///////////////////////////////////////////////////////////////////////////////////
