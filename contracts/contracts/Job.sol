@@ -167,7 +167,7 @@ contract Job is Ownable {
         uint256 bountyValue,
         uint256 depositPct,
         string memory jobMetaData
-    ) public onlyWhitelisted(paymentToken) requiresApproval(paymentToken, bountyValue) {
+    ) external onlyWhitelisted(paymentToken) requiresApproval(paymentToken, bountyValue) {
         // TODO: add jobMetaData length check after ipfs integration is ready.
         require(bountyValue >= MINIMUM_BOUNTY, "Minimum payment not provided");
         require(depositPct < BASE_PERCENTAGE, "Deposit percent is too high");
@@ -198,7 +198,7 @@ contract Job is Ownable {
     }
 
     // engineer starts a posted job
-    function startJob(uint256 jobId, uint256 deposit) public requiresJobState(jobId, States.Available) {
+    function startJob(uint256 jobId, uint256 deposit) external requiresJobState(jobId, States.Available) {
         // require deposit payment
         uint256 minBuyIn = (jobs[jobId].bounty * jobs[jobId].depositPct) / BASE_PERCENTAGE;
         require(deposit >= minBuyIn, "Minimum payment not provided");
@@ -215,7 +215,7 @@ contract Job is Ownable {
     }
 
     // engineer marks a job as completed
-    function completeJob(uint256 jobId) public requiresJobState(jobId, States.Started) onlyEngineer(jobId) {
+    function completeJob(uint256 jobId) external requiresJobState(jobId, States.Started) onlyEngineer(jobId) {
         jobs[jobId].state = States.Completed;
         jobs[jobId].completedTime = block.timestamp;
 
@@ -223,7 +223,7 @@ contract Job is Ownable {
     }
 
     // job is approved by the supplier and paid out
-    function approveJob(uint256 jobId) public requiresJobState(jobId, States.Completed) onlySupplier(jobId) {
+    function approveJob(uint256 jobId) external requiresJobState(jobId, States.Completed) onlySupplier(jobId) {
         jobs[jobId].state = States.FinalApproved;
 
         (uint256 payoutAmount, uint256 daoTakeAmount) = calculatePayout(jobs[jobId].bounty, jobs[jobId].deposit);
@@ -245,7 +245,7 @@ contract Job is Ownable {
     }
 
     // @notice Job is closed if both supplier and engineer agree to cancel the job after it was started
-    function closeJob(uint256 jobId) public requiresJobState(jobId, States.Started) {
+    function closeJob(uint256 jobId) external requiresJobState(jobId, States.Started) {
         // must be supplier or engineer
         JobData memory job = jobs[jobId];
 
@@ -266,7 +266,7 @@ contract Job is Ownable {
         }
     }
 
-    function completeTimedOutJob(uint256 jobId) public requiresJobState(jobId, States.Completed) onlyEngineer(jobId) {
+    function completeTimedOutJob(uint256 jobId) external requiresJobState(jobId, States.Completed) onlyEngineer(jobId) {
         require(
             block.timestamp - jobs[jobId].completedTime >= COMPLETED_TIMEOUT_SECONDS,
             "Job still in approval time window"
@@ -281,7 +281,7 @@ contract Job is Ownable {
     }
 
     function disputeJob(uint256 jobId)
-    public
+    external
     requiresOneOfJobStates(jobId, States.Started, States.Completed)
     onlySupplier(jobId)
     {
@@ -290,7 +290,7 @@ contract Job is Ownable {
         emit JobDisputed(jobId);
     }
 
-    function resolveDisputeForSupplier(uint256 jobId) public onlyResolver requiresJobState(jobId, States.Disputed) {
+    function resolveDisputeForSupplier(uint256 jobId) external onlyResolver requiresJobState(jobId, States.Disputed) {
         jobs[jobId].state = States.FinalDisputeResolvedForSupplier;
 
         (uint256 payoutAmount, uint256 daoTakeAmount) = calculateFullDisputeResolutionPayout(
@@ -302,7 +302,7 @@ contract Job is Ownable {
         emit JobDisputeResolved(jobId, States.FinalDisputeResolvedForSupplier);
     }
 
-    function resolveDisputeForEngineer(uint256 jobId) public onlyResolver requiresJobState(jobId, States.Disputed) {
+    function resolveDisputeForEngineer(uint256 jobId) external onlyResolver requiresJobState(jobId, States.Disputed) {
         jobs[jobId].state = States.FinalDisputeResolvedForEngineer;
 
         (uint256 payoutAmount, uint256 daoTakeAmount) = calculateFullDisputeResolutionPayout(
@@ -315,7 +315,7 @@ contract Job is Ownable {
     }
 
     function resolveDisputeWithCustomSplit(uint256 jobId, uint256 engineerAmountPct)
-    public
+    external
     onlyResolver
     requiresJobState(jobId, States.Disputed)
     {
