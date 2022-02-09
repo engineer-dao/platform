@@ -10,6 +10,7 @@ import 'hardhat-gas-reporter';
 import 'solidity-coverage';
 import '@atixlabs/hardhat-time-n-mine';
 import 'hardhat-deploy';
+import 'solidity-coverage';
 
 dotenv.config();
 
