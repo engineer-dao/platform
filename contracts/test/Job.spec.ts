@@ -5,7 +5,7 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
 import * as testUtil from './lib/testUtil';
-import { Signer } from "ethers";
+import { Signer, BigNumber } from "ethers";
 import { SignerWithAddress } from "hardhat-deploy-ethers/signers";
 
 describe('A test ERC20 token', function() {
@@ -237,7 +237,7 @@ describe("JobContract ", function() {
 ///////////////////////////////////////////////////////////////////////////////////
 
     describe('A job to be started', function() {
-        it('can be started', async function() {
+        it('can be started with correct variables', async function() {
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
@@ -262,7 +262,37 @@ describe("JobContract ", function() {
             expect(jobData.state).to.equal(testUtil.STATE_Started);
         });
 
-        it('must have a 10% deposit', async function() {
+        it('can be started when given correct deposit', async function() {
+            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
+            const amount = testUtil.ONE_HUND_TOKENS;
+            const depositPct = 5000;
+
+            await testUtil.postSampleJob()(JobContract, TestToken, amount, depositPct);
+
+            const exactlyMinDeposit = BigNumber.from(amount).div(2).toString();
+            await testUtil.startJob(JobContract, testUtil.JOB_ID_1, exactlyMinDeposit);
+
+            // get jobData
+            const jobData = await JobContract.jobs(testUtil.JOB_ID_1);
+
+            // check engineer
+            expect(jobData.engineer).to.equal(engineer.address);
+
+            // check deposit
+            expect(jobData.deposit).to.equal(exactlyMinDeposit);
+
+            // check startTime
+            const blockTimestamp = (
+                await ethers.provider.getBlock(await ethers.provider.getBlockNumber())
+            ).timestamp;
+            expect(jobData.startTime).to.equal(blockTimestamp);
+
+            // check state
+            expect(jobData.state).to.equal(testUtil.STATE_Started);
+        });
+
+
+        it('requires more than Default deposit', async function() {
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
@@ -272,6 +302,29 @@ describe("JobContract ", function() {
 
             await expect(
                 testUtil.startJob(JobContract, testUtil.JOB_ID_1, '0')
+            ).to.be.revertedWith('Minimum payment not provided');
+        });
+
+        it('requires more than min deposit', async function() {
+            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
+
+            const amount = testUtil.ONE_HUND_TOKENS;
+            const depositPct = 5000;
+
+            await testUtil.postSampleJob()(JobContract, TestToken, amount, depositPct);
+
+            await expect(
+                testUtil.startJob(JobContract, testUtil.JOB_ID_1, testUtil.ONE_TOKEN)
+            ).to.be.revertedWith('Minimum payment not provided');
+
+            await expect(
+                testUtil.startJob(JobContract, testUtil.JOB_ID_1, '0')
+            ).to.be.revertedWith('Minimum payment not provided');
+
+            const oneLessThanExpected = BigNumber.from(amount).div(2).sub(1).toString();
+
+            await expect(
+                testUtil.startJob(JobContract, testUtil.JOB_ID_1, oneLessThanExpected)
             ).to.be.revertedWith('Minimum payment not provided');
         });
 
@@ -1068,7 +1121,6 @@ describe("JobContract ", function() {
         });
 
         it('sends funds and updates balances when resolved', async function() {
-
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
