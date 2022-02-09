@@ -13,12 +13,14 @@ const SingleContract: React.FC = () => {
   const jobData = useJob(id);
 
   // TODO: Replace mock
-  const contract = contracsMock.find((item) => item.id === id);
+  // const contract = contracsMock.find((item) => item.id === id);
 
-  return contract ? (
+  console.log('jobData', JSON.stringify(jobData, null, 2));
+
+  return jobData ? (
     <>
-      <SingleContractHeading contract={contract} />
-      <SingleContractData />
+      <SingleContractHeading contract={jobData} />
+      <SingleContractData contract={jobData} />
       <ActivityFeed />
     </>
   ) : null;
