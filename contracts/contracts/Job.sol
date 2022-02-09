@@ -1,11 +1,12 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./IJob.sol";
 
-contract Job is Ownable {
+contract Job is IJob, Ownable {
     using SafeERC20 for IERC20;
 
     /*************
@@ -39,6 +40,7 @@ contract Job is Ownable {
     address public disputeResolver;
 
     mapping(IERC20 => bool) public paymentTokens;
+    IERC20[] public tokensList;
 
     /***************
      * Job State *
@@ -338,7 +340,15 @@ contract Job is Ownable {
         emit JobDisputeResolved(jobId, States.FinalDisputeResolvedWithSplit);
     }
 
-    // TODO: Do we need any convenient getters ?
+    // TODO: Do we need any other convenient getters ?
+
+    function getAllPaymentTokens() external view returns (IERC20[] memory tokens){
+        uint l = tokensList.length;
+        tokens = new IERC20[](l);
+        for (uint i = 0; i < l; i++) {
+            tokens[i] = tokensList[i];
+        }
+    }
 
     /****************************
      * DAO Management Functions *
@@ -348,9 +358,14 @@ contract Job is Ownable {
     // TODO: function withdraw
 
 
-    function updatePaymentTokens(IERC20 token, bool value) external onlyOwner {
-        paymentTokens[token] = value;
-        emit PaymentTokensUpdated(token, value);
+    function updatePaymentTokens(IERC20 token, bool enable) external onlyOwner {
+        paymentTokens[token] = enable;
+        if (enable) {
+            tokensList.push(token);
+        } else {
+            removeToken(token);
+        }
+        emit PaymentTokensUpdated(token, enable);
     }
 
     // TODO: all these functions can either be with a Timelocker or with constrained values (see setJobTimeout).
@@ -489,6 +504,34 @@ contract Job is Ownable {
         uint256 amount
     ) internal {
         _paymentToken.safeTransfer(_to, amount);
+    }
+
+    // removes an item from the list & changes the length of the array
+    function removeToken(IERC20 tokenAddr) internal returns (bool){
+        uint l = tokensList.length;
+
+        if (l == 0) {
+            return false;
+        }
+
+        if (tokensList[l - 1] == tokenAddr) {
+            tokensList.pop();
+            return true;
+        }
+
+        bool found = false;
+        for (uint i = 0; i < l - 1; i++) {
+            if (tokensList[i] == tokenAddr) {
+                found = true;
+            }
+            if (found) {
+                tokensList[i] = tokensList[i + 1];
+            }
+        }
+        if (found) {
+            tokensList.pop();
+        }
+        return found;
     }
 
     receive() external payable {
