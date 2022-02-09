@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat';
 import * as ContractTypes from '../../typechain/index';
-import { Signer, Contract } from 'ethers';
+import { Signer, Contract, BigNumber } from 'ethers';
 import { ERC20 } from "../../typechain/index";
 
 export const T_SUFFIX = '000000000000000000';
@@ -111,7 +111,7 @@ export const setupJobAndTokenBalances = async () => {
     return { JobContract, TestToken, DaoTreasury };
 };
 
-export const getBalanceOf = async (TokenContract: ERC20, address: string) => {
+export const getBalanceOf = async (TokenContract: ERC20, address: string): Promise<BigNumber> => {
     return await TokenContract.balanceOf(address);
 }
 
@@ -312,6 +312,18 @@ export const resolveDisputeWithCustomSplit = async (
         .resolveDisputeWithCustomSplit(jobId, engineerAmountPct);
 
     return resolveDisputeWithCustomSplitTx;
+};
+
+export const getJobPayouts = async (
+    Job: ContractTypes.Job,
+    jobId: number,
+) => {
+    const [forEngineer, forEngineerNoDeposit, forDao] = await Job
+        .getJobPayouts(jobId);
+
+    return {
+        forEngineer, forEngineerNoDeposit, forDao
+    };
 };
 
 // export const withdrawDaoFunds = async (

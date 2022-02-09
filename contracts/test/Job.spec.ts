@@ -1,4 +1,4 @@
-import { getBalanceOf, signers, ONE_TOKEN, BASE_PERCENT } from "./lib/testUtil";
+import { getBalanceOf, signers, ONE_TOKEN, BASE_PERCENT, getJobPayouts } from "./lib/testUtil";
 
 const hre = require('hardhat');
 import { expect } from 'chai';
@@ -10,13 +10,13 @@ import { SignerWithAddress } from "hardhat-deploy-ethers/signers";
 
 describe('A test ERC20 token', function() {
     it('can be created', async function() {
-        const testToken = await testUtil.deployERC20Token();
+        const TestToken = await testUtil.deployERC20Token();
 
-        const supply = await testToken.totalSupply();
+        const supply = await TestToken.totalSupply();
         expect(supply).to.equal(testUtil.toBigNum(1000000));
 
         const ownerSigner = (await testUtil.signers()).owner;
-        const ownerBalance = await testToken.balanceOf(ownerSigner.address);
+        const ownerBalance = await getBalanceOf(TestToken, ownerSigner.address);
         expect(ownerBalance).to.equal(testUtil.toBigNum(1000000));
     });
 });
@@ -375,7 +375,7 @@ describe("JobContract ", function() {
             expect(escrowValue).to.equal(0);
 
             // supplier was refunded
-            expect(await TestToken.balanceOf(supplier.address)).to.equal(
+            expect(await getBalanceOf(TestToken, supplier.address)).to.equal(
                 testUtil.ONE_THOUS_TOKENS
             );
 
@@ -453,7 +453,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by engineer', async function() {
-
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
@@ -464,6 +463,10 @@ describe("JobContract ", function() {
 
             await expect(
                 testUtil.completeJob(JobContract, testUtil.JOB_ID_1, addr1)
+            ).to.be.revertedWith('Method not available for this caller');
+
+            await expect(
+                testUtil.completeJob(JobContract, testUtil.JOB_ID_1, owner)
             ).to.be.revertedWith('Method not available for this caller');
         });
 
@@ -483,25 +486,31 @@ describe("JobContract ", function() {
 
     describe('An approvable job', function() {
         it('may be approved', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
+            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
-            await testUtil.approveJob(JobContract, testUtil.JOB_ID_1);
 
+            const engineerInitialAmount = await getBalanceOf(TestToken, engineer.address);
+            await testUtil.approveJob(JobContract, testUtil.JOB_ID_1);
             // get the job
             const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
 
+            const { forEngineer, forDao } = await testUtil.getJobPayouts(JobContract, testUtil.JOB_ID_1);
             // check state
             expect(jobOne.state).to.equal(testUtil.STATE_FinalApproved);
 
-            // updates escrow
+            // Job has 0 tokens
             const escrowValue = await getBalanceOf(TestToken, JobContract.address);
             expect(escrowValue).to.equal(0);
 
-            // updates funds
-            const fundsValue = await getBalanceOf(TestToken, JobContract.address);
-            expect(fundsValue).to.equal(testUtil.TEN_TOKENS);
+            // engineer received
+            const engineerAmount = await getBalanceOf(TestToken, engineer.address);
+            expect(engineerAmount.sub(engineerInitialAmount)).to.equal(forEngineer);
+
+            // daoTreasury received
+            const daoTreasuryAmount = await getBalanceOf(TestToken, DaoTreasury.address);
+            expect(daoTreasuryAmount).to.equal(forDao);
         });
 
         it('requires completed state', async function() {
@@ -545,22 +554,39 @@ describe("JobContract ", function() {
         });
 
         it('sends bounty and deposit to engineer', async function() {
-
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.approveJob(JobContract, testUtil.JOB_ID_1);
 
-            const engineerBalance = await TestToken.balanceOf(
+            const engineerBalance = await getBalanceOf(TestToken,
                 engineer.address
             );
             expect(engineerBalance).to.equal(testUtil.toBigNum(1090));
 
-            const supplierBalance = await TestToken.balanceOf(
+            const supplierBalance = await getBalanceOf(TestToken,
                 supplier.address
             );
             expect(supplierBalance).to.equal(testUtil.toBigNum(900));
+        });
+
+        it('sends DAO_FEE to treasury', async function() {
+            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
+            await testUtil.postSampleJob()(JobContract, TestToken);
+            await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
+            await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
+            await testUtil.approveJob(JobContract, testUtil.JOB_ID_1);
+
+            const DAO_FEE = await JobContract.DAO_FEE();
+
+            const job = await JobContract.jobs(testUtil.JOB_ID_1);
+            const expectedAmount = job.bounty.mul(DAO_FEE).div(10000);
+
+            const daoBalance = await getBalanceOf(TestToken,
+                DaoTreasury.address
+            );
+            expect(daoBalance).to.equal(expectedAmount);
         });
     });
 
@@ -692,14 +718,14 @@ describe("JobContract ", function() {
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
-            const startingSupplierBalance = await TestToken.balanceOf(
+            const startingSupplierBalance = await getBalanceOf(TestToken,
                 supplier.address
             );
             expect(startingSupplierBalance).to.equal(testUtil.toBigNum(900));
 
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
-            const startingEngineerBalance = await TestToken.balanceOf(
+            const startingEngineerBalance = await getBalanceOf(TestToken,
                 engineer.address
             );
             expect(startingEngineerBalance).to.equal(testUtil.toBigNum(990));
@@ -707,12 +733,12 @@ describe("JobContract ", function() {
             await testUtil.closeBySupplier(JobContract, testUtil.JOB_ID_1);
             await testUtil.closeByEngineer(JobContract, testUtil.JOB_ID_1);
 
-            const engineerBalance = await TestToken.balanceOf(
+            const engineerBalance = await getBalanceOf(TestToken,
                 engineer.address
             );
             expect(engineerBalance).to.equal(testUtil.ONE_THOUS_TOKENS);
 
-            const supplierBalance = await TestToken.balanceOf(
+            const supplierBalance = await getBalanceOf(TestToken,
                 supplier.address
             );
             expect(supplierBalance).to.equal(testUtil.ONE_THOUS_TOKENS);
@@ -829,12 +855,12 @@ describe("JobContract ", function() {
 
             await testUtil.completeTimedOutJob(JobContract, testUtil.JOB_ID_1);
 
-            const engineerBalance = await TestToken.balanceOf(
+            const engineerBalance = await getBalanceOf(TestToken,
                 engineer.address
             );
             expect(engineerBalance).to.equal(testUtil.toBigNum(1090));
 
-            const supplierBalance = await TestToken.balanceOf(
+            const supplierBalance = await getBalanceOf(TestToken,
                 supplier.address
             );
             expect(supplierBalance).to.equal(testUtil.toBigNum(900));
@@ -1022,12 +1048,12 @@ describe("JobContract ", function() {
             expect(fundsValue).to.equal(testUtil.toBigNum(6.6));
 
             // sends funds to supplier
-            expect(await TestToken.balanceOf(supplier.address)).to.equal(
+            expect(await getBalanceOf(TestToken, supplier.address)).to.equal(
                 testUtil.toBigNum(1000 + 103.4 - 100)
             );
 
             // check engineer funds
-            expect(await TestToken.balanceOf(engineer.address)).to.equal(
+            expect(await getBalanceOf(TestToken, engineer.address)).to.equal(
                 testUtil.toBigNum(1000 - 10)
             );
         });
@@ -1139,12 +1165,12 @@ describe("JobContract ", function() {
             expect(fundsValue).to.equal(testUtil.toBigNum(6.6));
 
             // sends funds to engineer
-            expect(await TestToken.balanceOf(engineer.address)).to.equal(
+            expect(await getBalanceOf(TestToken, engineer.address)).to.equal(
                 testUtil.toBigNum(1000 - 10 + 103.4)
             );
 
             // check supplier funds
-            expect(await TestToken.balanceOf(supplier.address)).to.equal(
+            expect(await getBalanceOf(TestToken, supplier.address)).to.equal(
                 testUtil.toBigNum(1000 - 100)
             );
         });
@@ -1170,7 +1196,7 @@ describe("JobContract ", function() {
 //         );
 //
 //         // check other address balance
-//         expect(await TestToken.balanceOf(other.address)).to.equal(
+//         expect(await getBalanceOf(TestToken, other.address)).to.equal(
 //             testUtil.toBigNum(1000 + 10)
 //         );
 //     });
