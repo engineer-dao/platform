@@ -6,6 +6,7 @@ import { ethers } from 'hardhat';
 
 import * as testUtil from './lib/testUtil';
 import { Signer } from "ethers";
+import { SignerWithAddress } from "hardhat-deploy-ethers/signers";
 
 describe('A test ERC20 token', function() {
     it('can be created', async function() {
@@ -21,16 +22,21 @@ describe('A test ERC20 token', function() {
 });
 
 describe("JobContract ", function() {
+    let owner: SignerWithAddress,
+        supplier: SignerWithAddress,
+        engineer: SignerWithAddress,
+        addr1: SignerWithAddress,
+        addr2: SignerWithAddress,
+        addr3: SignerWithAddress;
+
+    before(async () => {
+        [owner, supplier, engineer, addr1, addr2, addr3] =
+            await hre.ethers.getSigners();
+    })
 ///////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
 
     describe('A new job', function() {
-        let owner, supplier, engineer, addr1, addr2, addr3: Signer
-        before(async () => {
-            [owner, supplier, engineer, addr1, addr2, addr3] =
-                await hre.ethers.getSigners();
-        })
-
         it('should have correct variables', async function() {
             // deploy the contract
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
@@ -48,8 +54,7 @@ describe("JobContract ", function() {
             const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
 
             // check supplier
-            const supplierSigner = (await testUtil.signers()).supplier;
-            expect(jobOne.supplier).to.equal(supplierSigner.address);
+            expect(jobOne.supplier).to.equal(supplier.address);
 
             // check bounty
             expect(jobOne.bounty).to.equal(amountSent);
@@ -88,9 +93,8 @@ describe("JobContract ", function() {
             const Job = await testUtil.deployJob(TestToken);
 
             // send balances
-            const _signers = await testUtil.signers();
             await TestToken.transfer(
-                _signers.supplier.address,
+                supplier.address,
                 testUtil.ONE_THOUS_TOKENS
             );
 
@@ -141,9 +145,8 @@ describe("JobContract ", function() {
             await testUtil.postSampleJob()(JobContract, TestToken, bountyAmount);
 
             // load the job from the blockchain
-            const supplierSigner = (await testUtil.signers()).supplier;
             const jobData = await JobContract.jobs(testUtil.JOB_ID_1);
-            expect(jobData.supplier).to.equal(supplierSigner.address);
+            expect(jobData.supplier).to.equal(supplier.address);
             expect(jobData.bounty).to.equal(bountyAmount);
         });
 
@@ -158,23 +161,20 @@ describe("JobContract ", function() {
         it('emits JobSupplied event when posted', async function() {
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
 
-            const supplierSigner = (await testUtil.signers()).supplier;
             await expect(testUtil.postSampleJob()(JobContract, TestToken))
                 .to.emit(JobContract, 'JobSupplied')
-                .withArgs(supplierSigner.address, testUtil.JOB_ID_1);
+                .withArgs(supplier.address, testUtil.JOB_ID_1);
         });
 
         it('can be posted multiple times', async function() {
             // get the senders
-            const _signers = await testUtil.signers();
-
             // deploy the contract
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
 
             // post three jobs
             await testUtil.postSampleJob()(JobContract, TestToken);
-            await testUtil.postSampleJob(_signers.addr2)(JobContract, TestToken);
-            await testUtil.postSampleJob(_signers.addr3)(JobContract, TestToken);
+            await testUtil.postSampleJob(addr2)(JobContract, TestToken);
+            await testUtil.postSampleJob(addr3)(JobContract, TestToken);
 
             // job id is now three
             expect(await JobContract.jobCount()).to.equal(3);
@@ -184,22 +184,21 @@ describe("JobContract ", function() {
             const jobTwo = await JobContract.jobs(testUtil.JOB_ID_2);
             const jobThree = await JobContract.jobs(testUtil.JOB_ID_3);
 
-            expect(jobOne.supplier).to.equal(_signers.supplier.address);
-            expect(jobTwo.supplier).to.equal(_signers.addr2.address);
-            expect(jobThree.supplier).to.equal(_signers.addr3.address);
+            expect(jobOne.supplier).to.equal(supplier.address);
+            expect(jobTwo.supplier).to.equal(addr2.address);
+            expect(jobThree.supplier).to.equal(addr3.address);
         });
 
         it('can be posted multiple times by same signer', async function() {
             // get the senders
-            const _signers = await testUtil.signers();
 
             // deploy the contract
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
 
             // post three jobs
-            await testUtil.postSampleJob(_signers.addr1)(JobContract, TestToken);
-            await testUtil.postSampleJob(_signers.addr1)(JobContract, TestToken);
-            await testUtil.postSampleJob(_signers.addr1)(JobContract, TestToken);
+            await testUtil.postSampleJob(addr1)(JobContract, TestToken);
+            await testUtil.postSampleJob(addr1)(JobContract, TestToken);
+            await testUtil.postSampleJob(addr1)(JobContract, TestToken);
 
             // job id is now three
             expect(await JobContract.jobCount()).to.equal(3);
@@ -209,9 +208,9 @@ describe("JobContract ", function() {
             const jobTwo = await JobContract.jobs(testUtil.JOB_ID_2);
             const jobThree = await JobContract.jobs(testUtil.JOB_ID_3);
 
-            expect(jobOne.supplier).to.equal(_signers.addr1.address);
-            expect(jobTwo.supplier).to.equal(_signers.addr1.address);
-            expect(jobThree.supplier).to.equal(_signers.addr1.address);
+            expect(jobOne.supplier).to.equal(addr1.address);
+            expect(jobTwo.supplier).to.equal(addr1.address);
+            expect(jobThree.supplier).to.equal(addr1.address);
         });
 
         it('should revert if posting with more than min deposit percent', async function() {
@@ -237,10 +236,8 @@ describe("JobContract ", function() {
 ///////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
 
-    describe('A job to be accepted', function() {
-        it('can be accepted', async function() {
-            const _signers = await testUtil.signers();
-
+    describe('A job to be started', function() {
+        it('can be started', async function() {
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
@@ -250,7 +247,7 @@ describe("JobContract ", function() {
             const jobData = await JobContract.jobs(testUtil.JOB_ID_1);
 
             // check engineer
-            expect(jobData.engineer).to.equal(_signers.engineer.address);
+            expect(jobData.engineer).to.equal(engineer.address);
 
             // check deposit
             expect(jobData.deposit).to.equal(testUtil.TEN_TOKENS);
@@ -296,9 +293,8 @@ describe("JobContract ", function() {
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             // supplier can't start job
-            const supplierSigner = (await testUtil.signers()).supplier;
             await expect(
-                testUtil.startJob(JobContract, testUtil.JOB_ID_1, null, supplierSigner)
+                testUtil.startJob(JobContract, testUtil.JOB_ID_1, null, supplier)
             ).to.be.revertedWith('Address may not be job poster');
         });
 
@@ -317,7 +313,6 @@ describe("JobContract ", function() {
 
     describe('A cancellable job', function() {
         it('may be canceled', async function() {
-            const _signers = await testUtil.signers();
 
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
@@ -331,7 +326,7 @@ describe("JobContract ", function() {
             expect(await TestToken.balanceOf(JobContract.address)).to.equal(0);
 
             // supplier was refunded
-            expect(await TestToken.balanceOf(_signers.supplier.address)).to.equal(
+            expect(await TestToken.balanceOf(supplier.address)).to.equal(
                 testUtil.ONE_THOUS_TOKENS
             );
 
@@ -359,14 +354,12 @@ describe("JobContract ", function() {
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             // trying to cancel by other address reverts
-            const otherSigner = (await testUtil.signers()).addr1;
             await expect(
-                testUtil.cancelJob(JobContract, testUtil.JOB_ID_1, otherSigner)
+                testUtil.cancelJob(JobContract, testUtil.JOB_ID_1, addr1)
             ).to.be.revertedWith('Method not available for this caller');
         });
 
         it('emits JobCanceled event when canceled', async function() {
-            const _signers = await testUtil.signers();
 
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
@@ -404,18 +397,17 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by engineer', async function() {
-            const _signers = await testUtil.signers();
 
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
             await expect(
-                testUtil.completeJob(JobContract, testUtil.JOB_ID_1, _signers.supplier)
+                testUtil.completeJob(JobContract, testUtil.JOB_ID_1, supplier)
             ).to.be.revertedWith('Method not available for this caller');
 
             await expect(
-                testUtil.completeJob(JobContract, testUtil.JOB_ID_1, _signers.addr1)
+                testUtil.completeJob(JobContract, testUtil.JOB_ID_1, addr1)
             ).to.be.revertedWith('Method not available for this caller');
         });
 
@@ -467,7 +459,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by supplier', async function() {
-            const _signers = await testUtil.signers();
 
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
@@ -475,11 +466,11 @@ describe("JobContract ", function() {
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
 
             await expect(
-                testUtil.approveJob(JobContract, testUtil.JOB_ID_1, _signers.engineer)
+                testUtil.approveJob(JobContract, testUtil.JOB_ID_1, engineer)
             ).to.be.revertedWith('Method not available for this caller');
 
             await expect(
-                testUtil.approveJob(JobContract, testUtil.JOB_ID_1, _signers.addr1)
+                testUtil.approveJob(JobContract, testUtil.JOB_ID_1, addr1)
             ).to.be.revertedWith('Method not available for this caller');
         });
 
@@ -498,7 +489,6 @@ describe("JobContract ", function() {
         });
 
         it('sends bounty and deposit to engineer', async function() {
-            const _signers = await testUtil.signers();
 
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
@@ -507,12 +497,12 @@ describe("JobContract ", function() {
             await testUtil.approveJob(JobContract, testUtil.JOB_ID_1);
 
             const engineerBalance = await TestToken.balanceOf(
-                _signers.engineer.address
+                engineer.address
             );
             expect(engineerBalance).to.equal(testUtil.toBigNum(1090));
 
             const supplierBalance = await TestToken.balanceOf(
-                _signers.supplier.address
+                supplier.address
             );
             expect(supplierBalance).to.equal(testUtil.toBigNum(900));
         });
@@ -565,23 +555,21 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by engineer or supplier', async function() {
-            const _signers = await testUtil.signers();
 
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
             await expect(
-                testUtil.closeJob(JobContract, testUtil.JOB_ID_1, _signers.addr1)
+                testUtil.closeJob(JobContract, testUtil.JOB_ID_1, addr1)
             ).to.be.revertedWith('Method not available for this caller');
 
             await expect(
-                testUtil.closeJob(JobContract, testUtil.JOB_ID_1, _signers.addr2)
+                testUtil.closeJob(JobContract, testUtil.JOB_ID_1, addr2)
             ).to.be.revertedWith('Method not available for this caller');
         });
 
         it('may only be called by supplier once', async function() {
-            const _signers = await testUtil.signers();
 
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
@@ -594,7 +582,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by engineer once', async function() {
-            const _signers = await testUtil.signers();
 
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
@@ -645,20 +632,19 @@ describe("JobContract ", function() {
         });
 
         it('refunds bounty and deposit when closed', async function() {
-            const _signers = await testUtil.signers();
 
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             const startingSupplierBalance = await TestToken.balanceOf(
-                _signers.supplier.address
+                supplier.address
             );
             expect(startingSupplierBalance).to.equal(testUtil.toBigNum(900));
 
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
             const startingEngineerBalance = await TestToken.balanceOf(
-                _signers.engineer.address
+                engineer.address
             );
             expect(startingEngineerBalance).to.equal(testUtil.toBigNum(990));
 
@@ -666,12 +652,12 @@ describe("JobContract ", function() {
             await testUtil.closeByEngineer(JobContract, testUtil.JOB_ID_1);
 
             const engineerBalance = await TestToken.balanceOf(
-                _signers.engineer.address
+                engineer.address
             );
             expect(engineerBalance).to.equal(testUtil.ONE_THOUS_TOKENS);
 
             const supplierBalance = await TestToken.balanceOf(
-                _signers.supplier.address
+                supplier.address
             );
             expect(supplierBalance).to.equal(testUtil.ONE_THOUS_TOKENS);
         });
@@ -741,7 +727,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by engineer', async function() {
-            const _signers = await testUtil.signers();
 
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
@@ -752,11 +737,11 @@ describe("JobContract ", function() {
             await hre.timeAndMine.setTimeIncrease(432001);
 
             await expect(
-                testUtil.completeTimedOutJob(JobContract, testUtil.JOB_ID_1, _signers.supplier)
+                testUtil.completeTimedOutJob(JobContract, testUtil.JOB_ID_1, supplier)
             ).to.be.revertedWith('Method not available for this caller');
 
             await expect(
-                testUtil.completeTimedOutJob(JobContract, testUtil.JOB_ID_1, _signers.addr1)
+                testUtil.completeTimedOutJob(JobContract, testUtil.JOB_ID_1, addr1)
             ).to.be.revertedWith('Method not available for this caller');
         });
 
@@ -777,7 +762,6 @@ describe("JobContract ", function() {
         });
 
         it('sends bounty and deposit to engineer', async function() {
-            const _signers = await testUtil.signers();
 
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
@@ -790,12 +774,12 @@ describe("JobContract ", function() {
             await testUtil.completeTimedOutJob(JobContract, testUtil.JOB_ID_1);
 
             const engineerBalance = await TestToken.balanceOf(
-                _signers.engineer.address
+                engineer.address
             );
             expect(engineerBalance).to.equal(testUtil.toBigNum(1090));
 
             const supplierBalance = await TestToken.balanceOf(
-                _signers.supplier.address
+                supplier.address
             );
             expect(supplierBalance).to.equal(testUtil.toBigNum(900));
         });
@@ -850,18 +834,17 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by supplier', async function() {
-            const _signers = await testUtil.signers();
 
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
             await expect(
-                testUtil.disputeJob(JobContract, testUtil.JOB_ID_1, _signers.engineer)
+                testUtil.disputeJob(JobContract, testUtil.JOB_ID_1, engineer)
             ).to.be.revertedWith('Method not available for this caller');
 
             await expect(
-                testUtil.disputeJob(JobContract, testUtil.JOB_ID_1, _signers.addr1)
+                testUtil.disputeJob(JobContract, testUtil.JOB_ID_1, addr1)
             ).to.be.revertedWith('Method not available for this caller');
         });
 
@@ -925,7 +908,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by owner', async function() {
-            const _signers = await testUtil.signers();
 
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
@@ -936,7 +918,7 @@ describe("JobContract ", function() {
                 testUtil.resolveDisputeForSupplier(
                     JobContract,
                     testUtil.JOB_ID_1,
-                    _signers.supplier
+                    supplier
                 )
             ).to.be.revertedWith('Method not available for this caller');
 
@@ -944,12 +926,12 @@ describe("JobContract ", function() {
                 testUtil.resolveDisputeForSupplier(
                     JobContract,
                     testUtil.JOB_ID_1,
-                    _signers.engineer
+                    engineer
                 )
             ).to.be.revertedWith('Method not available for this caller');
 
             await expect(
-                testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1, _signers.addr1)
+                testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1, addr1)
             ).to.be.revertedWith('Method not available for this caller');
         });
 
@@ -968,7 +950,6 @@ describe("JobContract ", function() {
         });
 
         it('sends funds and updates balances when resolved', async function() {
-            const _signers = await testUtil.signers();
 
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
@@ -985,12 +966,12 @@ describe("JobContract ", function() {
             expect(fundsValue).to.equal(testUtil.toBigNum(6.6));
 
             // sends funds to supplier
-            expect(await TestToken.balanceOf(_signers.supplier.address)).to.equal(
+            expect(await TestToken.balanceOf(supplier.address)).to.equal(
                 testUtil.toBigNum(1000 + 103.4 - 100)
             );
 
             // check engineer funds
-            expect(await TestToken.balanceOf(_signers.engineer.address)).to.equal(
+            expect(await TestToken.balanceOf(engineer.address)).to.equal(
                 testUtil.toBigNum(1000 - 10)
             );
         });
@@ -1045,7 +1026,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by owner', async function() {
-            const _signers = await testUtil.signers();
 
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
@@ -1056,7 +1036,7 @@ describe("JobContract ", function() {
                 testUtil.resolveDisputeForEngineer(
                     JobContract,
                     testUtil.JOB_ID_1,
-                    _signers.supplier
+                    supplier
                 )
             ).to.be.revertedWith('Method not available for this caller');
 
@@ -1064,12 +1044,12 @@ describe("JobContract ", function() {
                 testUtil.resolveDisputeForEngineer(
                     JobContract,
                     testUtil.JOB_ID_1,
-                    _signers.engineer
+                    engineer
                 )
             ).to.be.revertedWith('Method not available for this caller');
 
             await expect(
-                testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1, _signers.addr1)
+                testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1, addr1)
             ).to.be.revertedWith('Method not available for this caller');
         });
 
@@ -1088,7 +1068,6 @@ describe("JobContract ", function() {
         });
 
         it('sends funds and updates balances when resolved', async function() {
-            const _signers = await testUtil.signers();
 
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
@@ -1105,12 +1084,12 @@ describe("JobContract ", function() {
             expect(fundsValue).to.equal(testUtil.toBigNum(6.6));
 
             // sends funds to engineer
-            expect(await TestToken.balanceOf(_signers.engineer.address)).to.equal(
+            expect(await TestToken.balanceOf(engineer.address)).to.equal(
                 testUtil.toBigNum(1000 - 10 + 103.4)
             );
 
             // check supplier funds
-            expect(await TestToken.balanceOf(_signers.supplier.address)).to.equal(
+            expect(await TestToken.balanceOf(supplier.address)).to.equal(
                 testUtil.toBigNum(1000 - 100)
             );
         });
@@ -1131,12 +1110,12 @@ describe("JobContract ", function() {
 //
 //         await testUtil.withdrawDaoFunds(
 //             JobContract,
-//             _signers.other.address,
+//             other.address,
 //             testUtil.toBigNum(10)
 //         );
 //
 //         // check other address balance
-//         expect(await TestToken.balanceOf(_signers.other.address)).to.equal(
+//         expect(await TestToken.balanceOf(other.address)).to.equal(
 //             testUtil.toBigNum(1000 + 10)
 //         );
 //     });
@@ -1152,18 +1131,18 @@ describe("JobContract ", function() {
 //         await expect(
 //             testUtil.withdrawDaoFunds(
 //                 JobContract,
-//                 _signers.other.address,
+//                 other.address,
 //                 testUtil.toBigNum(10),
-//                 _signers.other
+//                 other
 //             )
 //         ).to.be.revertedWith('Method not available for this caller');
 //
 //         await expect(
 //             testUtil.withdrawDaoFunds(
 //                 JobContract,
-//                 _signers.other.address,
+//                 other.address,
 //                 testUtil.toBigNum(10),
-//                 _signers.supplier
+//                 supplier
 //             )
 //         ).to.be.revertedWith('Method not available for this caller');
 //     });
@@ -1179,7 +1158,7 @@ describe("JobContract ", function() {
 //         await expect(
 //             testUtil.withdrawDaoFunds(
 //                 JobContract,
-//                 _signers.other.address,
+//                 other.address,
 //                 testUtil.toBigNum(11)
 //             )
 //         ).to.be.revertedWith('Insufficient funds');
@@ -1194,7 +1173,7 @@ describe("JobContract ", function() {
 //         await testUtil.approveJob(JobContract, testUtil.JOB_ID_1);
 //         await testUtil.withdrawDaoFunds(
 //             JobContract,
-//             _signers.other.address,
+//             other.address,
 //             testUtil.toBigNum(8)
 //         );
 //         const fundsValue = await getBalanceOf(TestToken, JobContract.address);
