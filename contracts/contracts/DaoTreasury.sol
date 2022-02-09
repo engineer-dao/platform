@@ -46,8 +46,14 @@ contract DaoTreasury is Ownable {
 
     function swapAllToStable(uint slippage) external onlyOwner {
         IERC20[] memory tokens = JobContract.getAllPaymentTokens();
+        uint balance;
         for (uint i = 0; i < tokens.length; i++) {
-            swapToStable(tokens[i], tokens[i].balanceOf(address(this)), slippage);
+            balance = tokens[i].balanceOf(address(this));
+            if (balance > 0) {
+                tokens[i].approve(msg.sender, balance);
+                swapToStable(tokens[i], balance, slippage);
+            }
+
         }
     }
 
@@ -84,5 +90,9 @@ contract DaoTreasury is Ownable {
 
     function setRouter(IRouter routerAddr) external onlyOwner {
         Router = IRouter(routerAddr);
+    }
+
+    receive() external payable {
+        revert("Don't lock your MATIC !");
     }
 }
