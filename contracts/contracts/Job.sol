@@ -283,9 +283,9 @@ contract Job is IJob, Ownable {
     }
 
     function disputeJob(uint256 jobId)
-        external
-        requiresOneOfJobStates(jobId, States.Started, States.Completed)
-        onlySupplier(jobId)
+    external
+    requiresOneOfJobStates(jobId, States.Started, States.Completed)
+    onlySupplier(jobId)
     {
         jobs[jobId].state = States.Disputed;
 
@@ -317,9 +317,9 @@ contract Job is IJob, Ownable {
     }
 
     function resolveDisputeWithCustomSplit(uint256 jobId, uint256 engineerAmountPct)
-        external
-        onlyResolver
-        requiresJobState(jobId, States.Disputed)
+    external
+    onlyResolver
+    requiresJobState(jobId, States.Disputed)
     {
         require(engineerAmountPct >= MINIMUM_SPLIT_CHUNK_PERCENTAGE, "Percentage too low");
         require(engineerAmountPct <= BASE_PERCENTAGE - MINIMUM_SPLIT_CHUNK_PERCENTAGE, "Percentage too high");
@@ -329,9 +329,9 @@ contract Job is IJob, Ownable {
         JobData memory job = jobs[jobId];
 
         (
-            uint256 supplierPayoutAmount,
-            uint256 engineerPayoutAmount,
-            uint256 daoTakeAmount
+        uint256 supplierPayoutAmount,
+        uint256 engineerPayoutAmount,
+        uint256 daoTakeAmount
         ) = calculateSplitDisputeResolutionPayout(job.bounty, job.deposit, engineerAmountPct);
         sendSplitJobPayout(job, supplierPayoutAmount, engineerPayoutAmount, daoTakeAmount);
 
@@ -354,13 +354,13 @@ contract Job is IJob, Ownable {
      * @param jobId of the job.
      */
     function getJobPayouts(uint256 jobId)
-        external
-        view
-        returns (
-            uint256 forEngineer,
-            uint256 forEngineerNoDeposit,
-            uint256 forDao
-        )
+    external
+    view
+    returns (
+        uint256 forEngineer,
+        uint256 forEngineerNoDeposit,
+        uint256 forDao
+    )
     {
         (forEngineer, forDao) = calculatePayout(jobs[jobId].bounty, jobs[jobId].deposit);
         forEngineerNoDeposit = forEngineer - jobs[jobId].deposit;
@@ -382,6 +382,7 @@ contract Job is IJob, Ownable {
     // TODO: function withdraw
 
     function updatePaymentTokens(IERC20 token, bool enable) external onlyOwner {
+        require(!enable || paymentTokens[token] != true, "Already added !");
         paymentTokens[token] = enable;
         if (enable) {
             tokensList.push(token);
@@ -453,9 +454,9 @@ contract Job is IJob, Ownable {
     }
 
     function calculatePayout(uint256 bounty, uint256 deposit)
-        internal
-        view
-        returns (uint256 payoutAmount, uint256 daoTakeAmount)
+    internal
+    view
+    returns (uint256 payoutAmount, uint256 daoTakeAmount)
     {
         // Take X% from provider bounty
         daoTakeAmount = (bounty * DAO_FEE) / BASE_PERCENTAGE;
@@ -463,9 +464,9 @@ contract Job is IJob, Ownable {
     }
 
     function calculateFullDisputeResolutionPayout(uint256 bounty, uint256 deposit)
-        internal
-        view
-        returns (uint256 payoutAmount, uint256 daoTakeAmount)
+    internal
+    view
+    returns (uint256 payoutAmount, uint256 daoTakeAmount)
     {
         uint256 resolutionPayout = bounty + deposit;
 
@@ -488,13 +489,13 @@ contract Job is IJob, Ownable {
         uint256 deposit,
         uint256 engineerAmountPct
     )
-        internal
-        view
-        returns (
-            uint256 supplierPayoutAmount,
-            uint256 engineerPayoutAmount,
-            uint256 daoTakeAmount
-        )
+    internal
+    view
+    returns (
+        uint256 supplierPayoutAmount,
+        uint256 engineerPayoutAmount,
+        uint256 daoTakeAmount
+    )
     {
         uint256 resolutionPayout = bounty + deposit;
 
