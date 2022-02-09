@@ -28,6 +28,9 @@ export const STATE_FinalDisputeResolvedWithSplit = 11;
 
 export const DISPUTE_RESOLUTION_PCT = 0.06;
 
+export const DEFAULT_DEPOSIT_PCT = 1000;
+export const BASE_PERCENT = 10000;
+
 interface JobMetaData {
     ver?: string;
     name?: string;
@@ -68,9 +71,9 @@ export const setupJobAndTokenBalances = async () => {
     const _signers = await signers();
     await TestToken.transfer(_signers.supplier.address, ONE_THOUS_TOKENS);
     await TestToken.transfer(_signers.engineer.address, ONE_THOUS_TOKENS);
-    await TestToken.transfer(_signers.other.address, ONE_THOUS_TOKENS);
-    await TestToken.transfer(_signers.other2.address, ONE_THOUS_TOKENS);
-    await TestToken.transfer(_signers.other3.address, ONE_THOUS_TOKENS);
+    await TestToken.transfer(_signers.addr1.address, ONE_THOUS_TOKENS);
+    await TestToken.transfer(_signers.addr2.address, ONE_THOUS_TOKENS);
+    await TestToken.transfer(_signers.addr3.address, ONE_THOUS_TOKENS);
 
     // approve the job contract to spend on their behalf
     await TestToken
@@ -80,13 +83,13 @@ export const setupJobAndTokenBalances = async () => {
         .connect(_signers.engineer)
         .approve(JobContract.address, ONE_HUND_THOUS_TOKENS);
     await TestToken
-        .connect(_signers.other)
+        .connect(_signers.addr1)
         .approve(JobContract.address, ONE_HUND_THOUS_TOKENS);
     await TestToken
-        .connect(_signers.other2)
+        .connect(_signers.addr2)
         .approve(JobContract.address, ONE_HUND_THOUS_TOKENS);
     await TestToken
-        .connect(_signers.other3)
+        .connect(_signers.addr3)
         .approve(JobContract.address, ONE_HUND_THOUS_TOKENS);
 
     return { JobContract, TestToken };
@@ -313,17 +316,16 @@ export const resolveDisputeWithCustomSplit = async (
 // };
 
 ////////////////////////////////////////////////////////////////
-
 export const signers = async () => {
-    const [owner, supplier, engineer, other, other2, other3] =
+    const [owner, supplier, engineer, addr1, addr2, addr3] =
         await ethers.getSigners();
     return {
         owner,
         supplier,
         engineer,
-        other,
-        other2,
-        other3,
+        addr1,
+        addr2,
+        addr3,
     };
 };
 

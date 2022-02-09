@@ -169,7 +169,7 @@ contract Job is Ownable {
         string memory jobMetaData
     ) external onlyWhitelisted(paymentToken) requiresApproval(paymentToken, bountyValue) {
         // TODO: add jobMetaData length check after ipfs integration is ready.
-        require(bountyValue >= MINIMUM_BOUNTY, "Minimum payment not provided");
+        require(bountyValue >= MINIMUM_BOUNTY, "Minimum bounty not provided");
         require(depositPct < BASE_PERCENTAGE, "Deposit percent is too high");
 
         // receive funds
