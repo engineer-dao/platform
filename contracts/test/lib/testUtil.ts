@@ -79,12 +79,15 @@ export const setupJobAndTokenBalances = async () => {
     const DaoTreasury = await deployDaoTreasury();
     const JobContract = await deployJob(TestToken);
 
+    const _signers = await signers();
+
     await (await JobContract.setDaoTreasury(DaoTreasury.address)).wait();
+    await (await JobContract.setResolver(_signers.resolver.address)).wait();
+
     await (await DaoTreasury.setJobContract(JobContract.address)).wait();
     await (await DaoTreasury.setStableCoin(USDC_ADDRESS)).wait();
 
     // send balances
-    const _signers = await signers();
     await TestToken.transfer(_signers.supplier.address, ONE_THOUS_TOKENS);
     await TestToken.transfer(_signers.engineer.address, ONE_THOUS_TOKENS);
     await TestToken.transfer(_signers.addr1.address, ONE_THOUS_TOKENS);
@@ -326,6 +329,18 @@ export const getJobPayouts = async (
     };
 };
 
+export const getDisputePayouts = async (
+    Job: ContractTypes.Job,
+    jobId: number,
+) => {
+    const [forWinner, forDao] = await Job
+        .getDisputePayouts(jobId);
+
+    return {
+        forWinner, forDao
+    };
+};
+
 // export const withdrawDaoFunds = async (
 //     job: ContractTypes.Job,
 //     address: string,
@@ -345,10 +360,11 @@ export const getJobPayouts = async (
 
 ////////////////////////////////////////////////////////////////
 export const signers = async () => {
-    const [owner, supplier, engineer, addr1, addr2, addr3] =
+    const [owner, resolver, supplier, engineer, addr1, addr2, addr3] =
         await ethers.getSigners();
     return {
         owner,
+        resolver,
         supplier,
         engineer,
         addr1,

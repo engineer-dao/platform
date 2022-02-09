@@ -350,7 +350,6 @@ contract Job is IJob, Ownable {
         }
     }
 
-
     /**
      * Calculates the amounts that the engineer & dao will receive after job completion
      * @param jobId of the job.
@@ -358,6 +357,14 @@ contract Job is IJob, Ownable {
     function getJobPayouts(uint jobId) external view returns (uint forEngineer, uint forEngineerNoDeposit, uint forDao) {
         (forEngineer, forDao) = calculatePayout(jobs[jobId].bounty, jobs[jobId].deposit);
         forEngineerNoDeposit = forEngineer - jobs[jobId].deposit;
+    }
+
+    /**
+     * Calculates the amounts that the engineer & dao will receive after job completion
+     * @param jobId of the job.
+     */
+    function getDisputePayouts(uint jobId) external view returns (uint forWinner, uint forDao) {
+        (forWinner, forDao) = calculateFullDisputeResolutionPayout(jobs[jobId].bounty, jobs[jobId].deposit);
     }
 
     /****************************
@@ -451,6 +458,7 @@ contract Job is IJob, Ownable {
 
     function calculateFullDisputeResolutionPayout(uint256 bounty, uint256 deposit)
     internal
+    view
     returns (uint256 payoutAmount, uint256 daoTakeAmount)
     {
         uint256 resolutionPayout = bounty + deposit;
@@ -475,6 +483,7 @@ contract Job is IJob, Ownable {
         uint256 engineerAmountPct
     )
     internal
+    view
     returns (
         uint256 supplierPayoutAmount,
         uint256 engineerPayoutAmount,
