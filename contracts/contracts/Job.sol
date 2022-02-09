@@ -488,4 +488,8 @@ contract Job is Ownable {
     ) internal {
         _paymentToken.safeTransfer(_to, amount);
     }
+
+    receive() external payable {
+        revert("Don't lock your MATIC !");
+    }
 }
