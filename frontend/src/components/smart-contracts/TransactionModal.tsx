@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ContractTransaction } from 'ethers';
 import { Modal } from 'components/ui/Modal';
-import { ethers } from 'ethers';
+import { ContractReceipt } from 'ethers';
 
 export type CallContractCallback = () => Promise<ContractTransaction>;
 
@@ -12,9 +12,7 @@ enum TXStatus {
   Error = 'Error',
 }
 
-export type OnConfirmedCallback = (
-  receipt: ethers.providers.TransactionReceipt
-) => void;
+export type OnConfirmedCallback = (receipt: ContractReceipt) => void;
 
 export type TransactionError = {
   message: string;
@@ -32,7 +30,7 @@ export const TransactionModal = ({
   title: string;
   callContract: CallContractCallback;
   onConfirmed?: OnConfirmedCallback;
-  onFinish: () => void;
+  onFinish?: () => void;
   onError?: (arg0: string) => void;
 }) => {
   const [txStatus, setTxStatus] = useState<TXStatus>(TXStatus.Ready);
@@ -50,7 +48,7 @@ export const TransactionModal = ({
         callContract()
           .then((tx: ContractTransaction) => {
             tx.wait()
-              .then((receipt: ethers.providers.TransactionReceipt) => {
+              .then((receipt: ContractReceipt) => {
                 // completed the transaction - callback and set to finished
                 onConfirmed && onConfirmed(receipt);
                 setTxStatus(TXStatus.Finished);
@@ -59,14 +57,12 @@ export const TransactionModal = ({
                 // completed the transaction - callback and set to error state
                 const _errorMessage = e.message || 'Unknown error';
                 setErrorMessage(_errorMessage);
-                onError && onError(_errorMessage);
                 setTxStatus(TXStatus.Error);
               });
           })
           .catch((e: TransactionError) => {
             const _errorMessage = e.message || 'Unknown error';
             setErrorMessage(_errorMessage);
-            onError && onError(_errorMessage);
             setTxStatus(TXStatus.Error);
           });
 
@@ -89,7 +85,10 @@ export const TransactionModal = ({
       // if we are finished, then close the modal
       if (txStatus === TXStatus.Finished) {
         // don't show any modals
-        onFinish();
+        if (errorMessage && onError) {
+          onError && onError(errorMessage);
+        }
+        onFinish && onFinish();
         setShowModal(false);
         setShowErrorModal(false);
       }
@@ -111,6 +110,7 @@ export const TransactionModal = ({
     setShowErrorModal,
     txStatus,
     setTxStatus,
+    errorMessage,
     setErrorMessage,
   ]);
 
