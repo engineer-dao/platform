@@ -13,14 +13,17 @@ export const WalletConnectionStatus = () => {
   } = useWallet();
   const [walletBalance, setWalletBalance] = useState<string | undefined>();
 
-  const getBalance = async (account: string) => {
-    const _balance = await getWalletBalance(account);
-
-    setWalletBalance(_balance.substring(0, 9));
+  const updateBalance = async (account: string | null) => {
+    if (account) {
+      const _balance = await getWalletBalance(account);
+      setWalletBalance(_balance.substring(0, 9));
+    } else {
+      setWalletBalance(undefined);
+    }
   };
 
   useEffect(() => {
-    account && getBalance(account);
+    updateBalance(account);
   }, [account]);
 
   return (
@@ -42,7 +45,7 @@ export const WalletConnectionStatus = () => {
                 ></img>
               )}
               <div>
-                {shortenAddress(utils.getAddress(account || ''))}
+                {account ? shortenAddress(utils.getAddress(account)) : ''}
                 {walletBalance && <> | {walletBalance} ETH</>}
               </div>
             </div>

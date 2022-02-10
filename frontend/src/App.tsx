@@ -1,17 +1,17 @@
 import { BrowserRouter as Router } from 'react-router-dom';
 import { NotificationsProvider } from './components/notifications/NotificationsProvider';
-import { WalletProvider } from './components/wallet/WalletProvider';
+import { MoralisWalletProvider } from './components/wallet/MoralisWalletProvider';
 import Admin from './pages/Admin';
 
 function App() {
   return (
-    <WalletProvider>
+    <MoralisWalletProvider>
       <NotificationsProvider>
         <Router>
           <Admin />
         </Router>
       </NotificationsProvider>
-    </WalletProvider>
+    </MoralisWalletProvider>
   );
 }
 
