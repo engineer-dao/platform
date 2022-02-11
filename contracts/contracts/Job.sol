@@ -23,8 +23,6 @@ contract Job is IJob, Ownable {
     // 50 paymentTokens ($50)
     uint256 public MINIMUM_BOUNTY = 50e18;
 
-    // 10%
-    uint256 public DEFAULT_DEPOSIT_PERCENTAGE = 1000;
     // TODO: yet to be decided
     // 10%
     uint256 public DAO_FEE = 1000;
@@ -171,7 +169,7 @@ contract Job is IJob, Ownable {
     ) external onlyWhitelisted(paymentToken) requiresApproval(paymentToken, bountyValue) {
         // TODO: add jobMetaData length check after ipfs integration is ready.
         require(bountyValue >= MINIMUM_BOUNTY, "Minimum bounty not provided");
-        require(depositPct < BASE_PERCENTAGE, "Deposit percent is too high");
+        require(depositPct > 0 && depositPct < BASE_PERCENTAGE, "Deposit percent invalid");
 
         // receive funds
         receiveFunds(paymentToken, msg.sender, bountyValue);
@@ -185,11 +183,7 @@ contract Job is IJob, Ownable {
         jobs[newJobId].token = paymentToken;
         jobs[newJobId].bounty = bountyValue;
         jobs[newJobId].state = States.Available;
-        if (depositPct == 0) {
-            jobs[newJobId].depositPct = DEFAULT_DEPOSIT_PERCENTAGE;
-        } else {
-            jobs[newJobId].depositPct = depositPct;
-        }
+        jobs[newJobId].depositPct = depositPct;
 
         // save the job meta data
         emit JobPosted(newJobId, jobMetaData);
