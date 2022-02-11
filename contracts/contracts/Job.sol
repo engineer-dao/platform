@@ -410,10 +410,6 @@ contract Job is IJob, Ownable {
         MINIMUM_BOUNTY = newValue;
     }
 
-    function setDefaultDeposit(uint256 newValue) external onlyOwner {
-        DEFAULT_DEPOSIT_PERCENTAGE = newValue;
-    }
-
     function setDaoFee(uint256 newValue) external onlyOwner {
         DAO_FEE = newValue;
     }

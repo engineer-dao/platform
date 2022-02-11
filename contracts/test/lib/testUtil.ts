@@ -123,7 +123,7 @@ export const postSampleJob = (signer: undefined | Signer = undefined) => async (
     Job: ContractTypes.Job,
     token: ERC20,
     bounty: undefined | string = undefined,
-    depositPct: undefined | number = 0,
+    depositPct: undefined | number = DEFAULT_DEPOSIT_PCT,
     jobMetaData: undefined | JobMetaData = undefined,
 ) => {
     if (!signer) {

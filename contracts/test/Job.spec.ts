@@ -222,7 +222,7 @@ describe("JobContract ", function() {
             expect(jobThree.supplier).to.equal(addr1.address);
         });
 
-        it('should revert if posting with more than min deposit percent', async function() {
+        it('should revert if posting with invalid deposit percent', async function() {
             // deploy the contract
             const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
 
@@ -233,7 +233,11 @@ describe("JobContract ", function() {
 
             await expect(
                 testUtil.postSampleJob()(JobContract, TestToken, amountSent, BASE_PERCENT + 1)
-            ).to.be.revertedWith('Deposit percent is too high');
+            ).to.be.revertedWith('Deposit percent invalid');
+
+            await expect(
+                testUtil.postSampleJob()(JobContract, TestToken, amountSent, 0)
+            ).to.be.revertedWith('Deposit percent invalid');
         });
 
         it('should revert if jobMetaData is not a valid ipfs hash', async function() {
