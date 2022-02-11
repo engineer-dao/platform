@@ -114,7 +114,7 @@ const CreateContractForm = () => {
               </div>
               <div className="col-span-2">
                 <Currency
-                  id="buy-in"
+                  id="buyIn"
                   placeholder="0.3"
                   label="Buy-In"
                   tokenName={tokenName}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSmartContracts } from 'components/smart-contracts/useSmartContracts';
+import { SmartContractAddresses } from 'components/smart-contracts/SmartContractAddresses';
 import { TransactionModal } from 'components/smart-contracts/TransactionModal';
 import { ethers, ContractReceipt } from 'ethers';
 import { CreateFormValues } from 'components/forms/types';
@@ -24,7 +25,14 @@ export const PostJobModal = ({
     const { bounty, ...formDataToSerialize } = formData;
     const bountyWei = ethers.utils.parseUnits(formData.bounty.toString());
     const jobMetaData = JSON.stringify(formDataToSerialize);
-    return contracts.Job.postJob(bountyWei, jobMetaData);
+
+    const depositPct = 1000; // TODO - hook this up to the form value
+    return contracts.Job.postJob(
+      SmartContractAddresses.PaymentToken,
+      bountyWei,
+      depositPct,
+      jobMetaData
+    );
   };
 
   // what to do when the transaction is confirmed on the blockchain
