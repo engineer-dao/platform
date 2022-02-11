@@ -5,7 +5,11 @@ import {
     BASE_PERCENT,
     getJobPayouts,
     ONE_HUND_TOKENS,
-    resolveDisputeWithCustomSplit, STATE_FinalDisputeResolvedWithSplit, STATE_DoesntExist
+    resolveDisputeWithCustomSplit,
+    STATE_FinalDisputeResolvedWithSplit,
+    STATE_DoesntExist,
+    deployERC20Token,
+    deployDaoTreasury, deployJob
 } from "./lib/testUtil";
 
 const hre = require('hardhat');
@@ -13,8 +17,9 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
 import * as testUtil from './lib/testUtil';
-import { Signer, BigNumber } from "ethers";
+import { BigNumber } from "ethers";
 import { SignerWithAddress } from "hardhat-deploy-ethers/signers";
+import { Job, TestERC20, DaoTreasury } from "../typechain";
 
 describe('A test ERC20 token', function() {
     it('can be created', async function() {
@@ -38,17 +43,29 @@ describe("JobContract ", function() {
         addr2: SignerWithAddress,
         addr3: SignerWithAddress;
 
+    let JobContract: Job;
+    let TestToken: TestERC20;
+    let DaoTreasury: DaoTreasury;
+
     before(async () => {
         [owner, resolver, supplier, engineer, addr1, addr2, addr3] =
             await hre.ethers.getSigners();
     })
+
+    beforeEach(async () => {
+        // deploy the contract
+        const contracts = await testUtil.setupJobAndTokenBalances();
+
+        JobContract = contracts.JobContract;
+        TestToken = contracts.TestToken;
+        DaoTreasury = contracts.DaoTreasury;
+    });
+
     ///////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////
 
     describe('A new job', function() {
         it('should have correct variables', async function() {
-            // deploy the contract
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
 
             // jobId 0
             expect(await JobContract.jobCount()).to.equal(0);
@@ -76,8 +93,6 @@ describe("JobContract ", function() {
         });
 
         it('should have correct depositPct', async function() {
-            // deploy the contract
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
 
             // jobId 0
             expect(await JobContract.jobCount()).to.equal(0);
@@ -97,9 +112,8 @@ describe("JobContract ", function() {
         });
 
         it('requires payment approval', async function() {
-            // deploy the contracts
-            const TestToken = await testUtil.deployERC20Token();
-            const Job = await testUtil.deployJob(TestToken);
+            TestToken = await deployERC20Token();
+            JobContract = await deployJob(TestToken);
 
             // send balances
             await TestToken.transfer(
@@ -108,14 +122,12 @@ describe("JobContract ", function() {
             );
 
             // should revert with no approval
-            await expect(testUtil.postSampleJob()(Job, TestToken)).to.be.revertedWith(
+            await expect(testUtil.postSampleJob()(JobContract, TestToken)).to.be.revertedWith(
                 'Spending approval is required'
             );
         });
 
         it('requires a payment', async function() {
-            // deploy the contract
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
 
             // post the job from the supplier address with 0 payment
             // should revert
@@ -137,7 +149,6 @@ describe("JobContract ", function() {
             const bounty2Amount = testUtil.toBigNum(220); // $220
             const totalExpectedEscrow = testUtil.toBigNum(330); // $330
 
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
 
             await testUtil.postSampleJob()(JobContract, TestToken, bounty1Amount);
             const escrowValue = await getBalanceOf(TestToken, JobContract.address);
@@ -150,7 +161,6 @@ describe("JobContract ", function() {
 
         it('can be loaded', async function() {
             const bountyAmount = testUtil.toBigNum(190); // $190
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken, bountyAmount);
 
             // load the job from the blockchain
@@ -160,7 +170,6 @@ describe("JobContract ", function() {
         });
 
         it('emits JobPosted event when posted', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
 
             await expect(testUtil.postSampleJob()(JobContract, TestToken))
                 .to.emit(JobContract, 'JobPosted')
@@ -168,7 +177,6 @@ describe("JobContract ", function() {
         });
 
         it('emits JobSupplied event when posted', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
 
             await expect(testUtil.postSampleJob()(JobContract, TestToken))
                 .to.emit(JobContract, 'JobSupplied')
@@ -176,10 +184,6 @@ describe("JobContract ", function() {
         });
 
         it('can be posted multiple times', async function() {
-            // get the senders
-            // deploy the contract
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
-
             // post three jobs
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.postSampleJob(addr2)(JobContract, TestToken);
@@ -199,11 +203,6 @@ describe("JobContract ", function() {
         });
 
         it('can be posted multiple times by same signer', async function() {
-            // get the senders
-
-            // deploy the contract
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
-
             // post three jobs
             await testUtil.postSampleJob(addr1)(JobContract, TestToken);
             await testUtil.postSampleJob(addr1)(JobContract, TestToken);
@@ -223,9 +222,6 @@ describe("JobContract ", function() {
         });
 
         it('should revert if posting with invalid deposit percent', async function() {
-            // deploy the contract
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
-
             // jobId 0
             expect(await JobContract.jobCount()).to.equal(0);
 
@@ -251,7 +247,6 @@ describe("JobContract ", function() {
 
     describe('A job to be started', function() {
         it('can be started with correct variables', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
@@ -276,7 +271,6 @@ describe("JobContract ", function() {
         });
 
         it('can be started when given correct deposit', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             const amount = testUtil.ONE_HUND_TOKENS;
             const depositPct = 5000;
 
@@ -306,7 +300,6 @@ describe("JobContract ", function() {
 
 
         it('requires more than Default deposit', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             await expect(
@@ -319,7 +312,6 @@ describe("JobContract ", function() {
         });
 
         it('requires more than min deposit', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
 
             const amount = testUtil.ONE_HUND_TOKENS;
             const depositPct = 5000;
@@ -342,7 +334,6 @@ describe("JobContract ", function() {
         });
 
         it('must be in Available state', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             // start job once successfully
@@ -355,7 +346,6 @@ describe("JobContract ", function() {
         });
 
         it('must have an engineer that is not the supplier', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             // supplier can't start job
@@ -365,7 +355,6 @@ describe("JobContract ", function() {
         });
 
         it('increases dao escrow when accepting the job', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
@@ -379,7 +368,6 @@ describe("JobContract ", function() {
 
     describe('A cancellable job', function() {
         it('may be canceled', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.cancelJob(JobContract, testUtil.JOB_ID_1);
 
@@ -400,7 +388,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be canceled when in the available state', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
@@ -412,7 +399,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be canceled by the supplier', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             // trying to cancel by other address reverts
@@ -430,7 +416,6 @@ describe("JobContract ", function() {
         });
 
         it('emits JobCanceled event when canceled', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             await expect(testUtil.cancelJob(JobContract, testUtil.JOB_ID_1))
@@ -444,7 +429,6 @@ describe("JobContract ", function() {
 
     describe('A completable job', function() {
         it('may be completed', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
@@ -457,7 +441,6 @@ describe("JobContract ", function() {
         });
 
         it('requires started state', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             await expect(
@@ -466,7 +449,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by engineer', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
@@ -484,7 +466,6 @@ describe("JobContract ", function() {
         });
 
         it('emits JobCompleted event when completed', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
@@ -499,7 +480,6 @@ describe("JobContract ", function() {
 
     describe('An approvable job', function() {
         it('may be approved', async function() {
-            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
@@ -527,7 +507,6 @@ describe("JobContract ", function() {
         });
 
         it('requires completed state', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
@@ -538,7 +517,6 @@ describe("JobContract ", function() {
 
         it('may only be called by supplier', async function() {
 
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
@@ -553,7 +531,6 @@ describe("JobContract ", function() {
         });
 
         it('emits JobApproved event when approved', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
@@ -567,7 +544,6 @@ describe("JobContract ", function() {
         });
 
         it('sends bounty and deposit to engineer', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
@@ -585,7 +561,6 @@ describe("JobContract ", function() {
         });
 
         it('sends DAO_FEE to treasury', async function() {
-            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
@@ -608,7 +583,6 @@ describe("JobContract ", function() {
 
     describe('A closeable job', function() {
         it('may be closed', async function() {
-            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.closeBySupplier(JobContract, testUtil.JOB_ID_1);
@@ -630,7 +604,6 @@ describe("JobContract ", function() {
         });
 
         it('requires started state', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             await expect(
@@ -650,7 +623,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by engineer or supplier', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
@@ -668,7 +640,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by supplier once', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.closeBySupplier(JobContract, testUtil.JOB_ID_1);
@@ -679,7 +650,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by engineer once', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.closeByEngineer(JobContract, testUtil.JOB_ID_1);
@@ -690,7 +660,6 @@ describe("JobContract ", function() {
         });
 
         it('emits JobClosed event when closed by engineer', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
@@ -702,7 +671,6 @@ describe("JobContract ", function() {
         });
 
         it('emits JobClosedBySupplier and JobClosedByEngineer events when closed', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
@@ -716,7 +684,6 @@ describe("JobContract ", function() {
         });
 
         it('emits JobClosed event when closed by supplier', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
@@ -728,7 +695,6 @@ describe("JobContract ", function() {
         });
 
         it('refunds bounty and deposit when closed', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             const startingSupplierBalance = await getBalanceOf(TestToken,
@@ -763,7 +729,6 @@ describe("JobContract ", function() {
 
     describe('A timed-out job', function() {
         it('may be finalized', async function() {
-            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
@@ -797,7 +762,6 @@ describe("JobContract ", function() {
         });
 
         it('requires completed state', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             await expect(
@@ -819,7 +783,6 @@ describe("JobContract ", function() {
         });
 
         it('requires time to pass', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
@@ -830,7 +793,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by engineer', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
@@ -852,7 +814,6 @@ describe("JobContract ", function() {
         });
 
         it('emits JobTimeoutPayout event when timed out', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
@@ -869,7 +830,6 @@ describe("JobContract ", function() {
         });
 
         it('sends bounty and deposit to engineer', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
@@ -892,7 +852,6 @@ describe("JobContract ", function() {
         });
 
         it('sends DAO_FEE to treasury', async function() {
-            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
@@ -921,7 +880,6 @@ describe("JobContract ", function() {
 
     describe('A disputable job', function() {
         it('may be disputed when started', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
@@ -934,7 +892,6 @@ describe("JobContract ", function() {
         });
 
         it('may be disputed when completed', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
@@ -948,7 +905,6 @@ describe("JobContract ", function() {
         });
 
         it('requires started or completed state', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             await expect(
@@ -965,7 +921,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by supplier', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
@@ -983,7 +938,6 @@ describe("JobContract ", function() {
         });
 
         it('emits JobDisputed event when disputed', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
@@ -998,7 +952,6 @@ describe("JobContract ", function() {
 
     describe('A disputed job that will be resolved for the supplier', function() {
         it('may be resolved for supplier', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
@@ -1014,7 +967,6 @@ describe("JobContract ", function() {
         });
 
         it('requires disputed state', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             await expect(
@@ -1042,7 +994,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by resolver', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
@@ -1069,7 +1020,6 @@ describe("JobContract ", function() {
         });
 
         it('emits JobDisputeResolved event when resolved', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
@@ -1083,7 +1033,6 @@ describe("JobContract ", function() {
         });
 
         it('sends funds and updates balances when resolved', async function() {
-            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
@@ -1109,7 +1058,6 @@ describe("JobContract ", function() {
         });
 
         it('sends funds and updates balances when resolved (with getter)', async function() {
-            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             const engineerInitialAmount = await getBalanceOf(TestToken, engineer.address);
@@ -1145,7 +1093,6 @@ describe("JobContract ", function() {
 
     describe('A disputed job that will be resolved for the engineer', function() {
         it('may be resolved for engineer', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
@@ -1161,7 +1108,6 @@ describe("JobContract ", function() {
         });
 
         it('requires disputed state', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             await expect(
@@ -1189,7 +1135,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by resolver', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
@@ -1216,7 +1161,6 @@ describe("JobContract ", function() {
         });
 
         it('emits JobDisputeResolved event when resolved', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
@@ -1230,7 +1174,6 @@ describe("JobContract ", function() {
         });
 
         it('sends funds and updates balances when resolved', async function() {
-            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
@@ -1257,7 +1200,6 @@ describe("JobContract ", function() {
         });
 
         it('sends funds and updates balances when resolved (with getter)', async function() {
-            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
             const supplierInitialAmount = await getBalanceOf(TestToken, supplier.address);
 
             await testUtil.postSampleJob()(JobContract, TestToken);
@@ -1292,7 +1234,6 @@ describe("JobContract ", function() {
 
     describe('A disputed job that will be resolved with custom split', function() {
         it('may be resolved', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
@@ -1308,7 +1249,6 @@ describe("JobContract ", function() {
         });
 
         it('requires disputed state', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             await expect(
@@ -1336,7 +1276,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by resolver', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
@@ -1365,7 +1304,6 @@ describe("JobContract ", function() {
         });
 
         it('emits JobDisputeResolved event when resolved', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
@@ -1379,7 +1317,6 @@ describe("JobContract ", function() {
         });
 
         it('sends funds and updates balances when resolved 50%', async function() {
-            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
@@ -1406,7 +1343,6 @@ describe("JobContract ", function() {
         });
 
         it('sends funds and updates balances when resolved (with getter) 50%', async function() {
-            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
             const supplierInitialAmount = await getBalanceOf(TestToken, supplier.address);
 
             await testUtil.postSampleJob()(JobContract, TestToken);
@@ -1438,7 +1374,6 @@ describe("JobContract ", function() {
 
     describe('A delistable job', function() {
         it('can be delisted', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.delistJob(JobContract, testUtil.JOB_ID_1)
             // get the job
@@ -1452,7 +1387,6 @@ describe("JobContract ", function() {
 
 
         it('can be delisted in Dispute state', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
@@ -1468,7 +1402,6 @@ describe("JobContract ", function() {
         });
 
         it('may only be called by owner', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             await expect(
@@ -1493,7 +1426,6 @@ describe("JobContract ", function() {
         });
 
         it('emits JobDelisted event', async function() {
-            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             await expect(testUtil.delistJob(JobContract, testUtil.JOB_ID_1))
@@ -1505,7 +1437,6 @@ describe("JobContract ", function() {
         });
 
         it('sends funds and updates balances when delisted (with getter)', async function() {
-            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
@@ -1535,7 +1466,6 @@ describe("JobContract ", function() {
         });
 
         it('sends funds and updates balances when delisted & not started (with getter)', async function() {
-            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             const engineerInitialAmount = await getBalanceOf(TestToken, engineer.address);
@@ -1569,7 +1499,6 @@ describe("JobContract ", function() {
 //     it('may be withdrawn', async function() {
 //         const _signers = await testUtil.signers();
 //
-//         const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
 //         await testUtil.postSampleJob()(JobContract, TestToken);
 //         await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 //         await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
@@ -1589,7 +1518,6 @@ describe("JobContract ", function() {
 //     it('may only by be withdrawn by owner', async function() {
 //         const _signers = await testUtil.signers();
 //
-//         const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
 //         await testUtil.postSampleJob()(JobContract, TestToken);
 //         await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 //         await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
@@ -1616,7 +1544,6 @@ describe("JobContract ", function() {
 //     it('may not overdraw', async function() {
 //         const _signers = await testUtil.signers();
 //
-//         const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
 //         await testUtil.postSampleJob()(JobContract, TestToken);
 //         await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 //         await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
@@ -1633,7 +1560,6 @@ describe("JobContract ", function() {
 //     it('updates balance when withdrawn', async function() {
 //         const _signers = await testUtil.signers();
 //
-//         const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
 //         await testUtil.postSampleJob()(JobContract, TestToken);
 //         await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 //         await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
