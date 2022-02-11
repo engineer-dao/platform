@@ -4,8 +4,8 @@
     "main": "index.js",
     "license": "MIT",
     "scripts": {
-        "start": "yarn compile && hardhat copy-compiled && hardhat node",
-        "build": "hardhat compile --show-stack-traces && hardhat copy-compiled",
+        "start": "yarn build && hardhat node",
+        "build": "yarn compile && hardhat copy-compiled",
         "compile": "hardhat compile --show-stack-traces",
         "clean": "rm -rf ./dist ./artifacts ./cache ./typechain",
         "test": "hardhat compile --show-stack-traces && hardhat test --show-stack-traces",
