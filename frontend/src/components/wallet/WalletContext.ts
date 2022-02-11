@@ -11,7 +11,6 @@ export interface WalletState {
 }
 
 export interface IWalletContext extends WalletState {
-  setWalletConnection: (arg0: WalletState) => void;
   disconnectWallet: () => void;
   connectToWallet: () => void;
 }
