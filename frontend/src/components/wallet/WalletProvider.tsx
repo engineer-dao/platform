@@ -54,7 +54,7 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
           console.error(`Metamask returned error: ${error.message}`);
         });
     }
-  }, [window.ethereum]);
+  }, [enableWeb3]);
 
   const connectToWallet = () => {
     enableWeb3({ provider: undefined });
