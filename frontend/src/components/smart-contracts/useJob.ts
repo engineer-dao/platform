@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSmartContracts } from 'components/smart-contracts/useSmartContracts';
 import { useWallet } from 'components/wallet/useWallet';
 import { BigNumber, ethers } from 'ethers';
+import { useMoralisQuery } from 'react-moralis';
 import {
   IJobData,
   IJobSmartContractData,
@@ -47,29 +48,34 @@ export const useJob = (jobId: string) => {
   const { contracts } = useSmartContracts();
   const { account } = useWallet();
   const [jobData, setJobData] = useState<undefined | any>();
+  const { data, error, isLoading } = useMoralisQuery(
+    'JobPostedEvents',
+    (query) => {
+      return query.equalTo('jobId', jobId);
+    }
+  );
 
   useEffect(() => {
     const fetchJob = async () => {
       const job = await contracts.Job.jobs(jobId);
+      console.log('found job', job.supplier);
 
-      // load job meta data from log...
-      const filter = contracts.Job.filters.JobPosted(BigNumber.from(jobId));
-      const results = await contracts.Job.queryFilter(filter);
+      const foundJobResult = data[0];
+      const jobMetaDataJSON = foundJobResult.get('jobMetaData');
+      // TODO: validate meta data with a schema
+      const unsafeJobMetaData = JSON.parse(jobMetaDataJSON);
+      console.log(
+        'unsafeJobMetaData',
+        JSON.stringify(unsafeJobMetaData, null, 2)
+      );
 
-      results.forEach((event) => {
-        const jobMetaDataJSON = event.args.jobMetaData;
-
-        // TODO: validate meta data with a schema
-        const unsafeJobMetaData = JSON.parse(jobMetaDataJSON);
-
-        setJobData(assembleJob(jobId, job, unsafeJobMetaData));
-      });
+      setJobData(assembleJob(jobId, job, unsafeJobMetaData));
     };
 
-    if (jobId && account) {
+    if (jobId && account && !isLoading && data.length > 0) {
       fetchJob();
     }
-  }, [jobId, account, contracts]);
+  }, [jobId, account, isLoading, data]);
 
   return jobData;
 };
