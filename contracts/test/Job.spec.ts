@@ -5,7 +5,7 @@ import {
     BASE_PERCENT,
     getJobPayouts,
     ONE_HUND_TOKENS,
-    resolveDisputeWithCustomSplit, STATE_FinalDisputeResolvedWithSplit
+    resolveDisputeWithCustomSplit, STATE_FinalDisputeResolvedWithSplit, STATE_DoesntExist
 } from "./lib/testUtil";
 
 const hre = require('hardhat');
@@ -1429,6 +1429,134 @@ describe("JobContract ", function() {
             // check Dao funds
             const daoValue = await getBalanceOf(TestToken, DaoTreasury.address);
             expect(daoValue).to.equal(forDao);
+        });
+    });
+
+    describe('A delistable job', function() {
+        it('can be delisted', async function() {
+            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
+            await testUtil.postSampleJob()(JobContract, TestToken);
+            await testUtil.delistJob(JobContract, testUtil.JOB_ID_1)
+            // get the job
+            const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
+
+            // check state
+            expect(jobOne.state).to.equal(
+                testUtil.STATE_DoesntExist
+            );
+        });
+
+
+        it('can be delisted in Dispute state', async function() {
+            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
+            await testUtil.postSampleJob()(JobContract, TestToken);
+            await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
+            await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
+            await testUtil.delistJob(JobContract, testUtil.JOB_ID_1)
+
+            // get the job
+            const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
+
+            // check state
+            expect(jobOne.state).to.equal(
+                testUtil.STATE_DoesntExist
+            );
+        });
+
+        it('may only be called by owner', async function() {
+            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
+            await testUtil.postSampleJob()(JobContract, TestToken);
+
+            await expect(
+                testUtil.delistJob(
+                    JobContract,
+                    testUtil.JOB_ID_1,
+                    supplier
+                )
+            ).to.be.revertedWith('Ownable: caller is not the owner');
+
+            await expect(
+                testUtil.delistJob(
+                    JobContract,
+                    testUtil.JOB_ID_1,
+                    engineer
+                )
+            ).to.be.revertedWith('Ownable: caller is not the owner');
+
+            await expect(
+                testUtil.delistJob(JobContract, testUtil.JOB_ID_1, addr1)
+            ).to.be.revertedWith('Ownable: caller is not the owner');
+        });
+
+        it('emits JobDelisted event', async function() {
+            const { JobContract, TestToken } = await testUtil.setupJobAndTokenBalances();
+            await testUtil.postSampleJob()(JobContract, TestToken);
+
+            await expect(testUtil.delistJob(JobContract, testUtil.JOB_ID_1))
+                .to.emit(JobContract, 'JobDelisted')
+                .withArgs(
+                    testUtil.JOB_ID_1,
+                    ""
+                );
+        });
+
+        it('sends funds and updates balances when delisted (with getter)', async function() {
+            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
+            await testUtil.postSampleJob()(JobContract, TestToken);
+            await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
+
+            const engineerInitialAmount = await getBalanceOf(TestToken, engineer.address);
+            const supplierInitialAmount = await getBalanceOf(TestToken, supplier.address);
+
+            // get the job
+            const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
+
+            await testUtil.delistJob(JobContract, testUtil.JOB_ID_1);
+
+            // check contract
+            const jobValue = await getBalanceOf(TestToken, JobContract.address);
+            expect(jobValue).to.equal(0);
+
+            // check supplier (+bounty)
+            const supplierAmount = await getBalanceOf(TestToken, supplier.address);
+            expect(supplierAmount).to.equal(supplierInitialAmount.add(jobOne.bounty));
+
+            // check engineer (+deposit)
+            expect(await getBalanceOf(TestToken, engineer.address))
+                .to.equal(engineerInitialAmount.add(jobOne.deposit));
+
+            // check Dao funds
+            const fundsValue = await getBalanceOf(TestToken, DaoTreasury.address);
+            expect(fundsValue).to.equal(0);
+        });
+
+        it('sends funds and updates balances when delisted & not started (with getter)', async function() {
+            const { JobContract, TestToken, DaoTreasury } = await testUtil.setupJobAndTokenBalances();
+            await testUtil.postSampleJob()(JobContract, TestToken);
+
+            const engineerInitialAmount = await getBalanceOf(TestToken, engineer.address);
+            const supplierInitialAmount = await getBalanceOf(TestToken, supplier.address);
+
+            // get the job
+            const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
+
+            await testUtil.delistJob(JobContract, testUtil.JOB_ID_1);
+
+            // check contract
+            const jobValue = await getBalanceOf(TestToken, JobContract.address);
+            expect(jobValue).to.equal(0);
+
+            // check supplier (+bounty)
+            const supplierAmount = await getBalanceOf(TestToken, supplier.address);
+            expect(supplierAmount).to.equal(supplierInitialAmount.add(jobOne.bounty));
+
+            // check engineer (+deposit)
+            expect(await getBalanceOf(TestToken, engineer.address))
+                .to.equal(engineerInitialAmount);
+
+            // check Dao funds
+            const fundsValue = await getBalanceOf(TestToken, DaoTreasury.address);
+            expect(fundsValue).to.equal(0);
         });
     });
 

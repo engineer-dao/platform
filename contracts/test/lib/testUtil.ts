@@ -14,6 +14,7 @@ export const JOB_ID_1 = 1;
 export const JOB_ID_2 = 2;
 export const JOB_ID_3 = 3;
 
+export const STATE_DoesntExist = 0;
 export const STATE_Available = 1;
 export const STATE_Started = 2;
 export const STATE_Completed = 3;
@@ -66,10 +67,10 @@ export const deployERC20Token = async () => {
     return testToken;
 };
 
-export const deployJob = async (testToken: ContractTypes.TestERC20) => {
+export const deployJob = async (TestToken: ContractTypes.TestERC20) => {
     // deploy the contract
     const Job = await ethers.getContractFactory('Job');
-    const job = await Job.deploy(testToken.address);
+    const job = await Job.deploy(TestToken.address);
     await job.deployed();
     return job;
 };
@@ -119,7 +120,7 @@ export const getBalanceOf = async (TokenContract: ERC20, address: string): Promi
 }
 
 export const postSampleJob = (signer: undefined | Signer = undefined) => async (
-    job: ContractTypes.Job,
+    Job: ContractTypes.Job,
     token: ERC20,
     bounty: undefined | string = undefined,
     depositPct: undefined | number = 0,
@@ -145,7 +146,7 @@ export const postSampleJob = (signer: undefined | Signer = undefined) => async (
         bounty = ONE_HUND_TOKENS;
     }
 
-    const postJobTx = await job
+    const postJobTx = await Job
         .connect(signer)
         .postJob(token.address, bounty, depositPct, JSON.stringify(jobMetaData));
 
@@ -153,7 +154,7 @@ export const postSampleJob = (signer: undefined | Signer = undefined) => async (
 };
 
 export const startJob = async (
-    job: ContractTypes.Job,
+    Job: ContractTypes.Job,
     jobId: number,
     deposit: null | string = null,
     signer: Signer | null = null
@@ -165,13 +166,13 @@ export const startJob = async (
     if (deposit === null) {
         deposit = TEN_TOKENS; // $10
     }
-    const startJobTx = await job.connect(signer).startJob(jobId, deposit);
+    const startJobTx = await Job.connect(signer).startJob(jobId, deposit);
 
     return startJobTx;
 };
 
 export const completeJob = async (
-    job: ContractTypes.Job,
+    Job: ContractTypes.Job,
     jobId: number,
     signer: Signer | null = null
 ) => {
@@ -179,13 +180,13 @@ export const completeJob = async (
         signer = (await signers()).engineer;
     }
 
-    const completeJobTx = await job.connect(signer).completeJob(jobId);
+    const completeJobTx = await Job.connect(signer).completeJob(jobId);
 
     return completeJobTx;
 };
 
 export const approveJob = async (
-    job: ContractTypes.Job,
+    Job: ContractTypes.Job,
     jobId: number,
     signer: Signer | null = null
 ) => {
@@ -193,13 +194,13 @@ export const approveJob = async (
         signer = (await signers()).supplier;
     }
 
-    const approveJobTx = await job.connect(signer).approveJob(jobId);
+    const approveJobTx = await Job.connect(signer).approveJob(jobId);
 
     return approveJobTx;
 };
 
 export const cancelJob = async (
-    job: ContractTypes.Job,
+    Job: ContractTypes.Job,
     jobId: number,
     signer: Signer | null = null
 ) => {
@@ -207,41 +208,41 @@ export const cancelJob = async (
         signer = (await signers()).supplier;
     }
 
-    const cancelJobTx = await job.connect(signer).cancelJob(jobId);
+    const cancelJobTx = await Job.connect(signer).cancelJob(jobId);
 
     return cancelJobTx;
 };
 
 export const closeBySupplier = async (
-    job: ContractTypes.Job,
+    Job: ContractTypes.Job,
     jobId: number
 ) => {
     const signer = (await signers()).supplier;
 
-    return await closeJob(job, jobId, signer);
+    return await closeJob(Job, jobId, signer);
 };
 
 export const closeByEngineer = async (
-    job: ContractTypes.Job,
+    Job: ContractTypes.Job,
     jobId: number
 ) => {
     const signer = (await signers()).engineer;
 
-    return await closeJob(job, jobId, signer);
+    return await closeJob(Job, jobId, signer);
 };
 
 export const closeJob = async (
-    job: ContractTypes.Job,
+    Job: ContractTypes.Job,
     jobId: number,
     signer: Signer
 ) => {
-    const closeJobTx = await job.connect(signer).closeJob(jobId);
+    const closeJobTx = await Job.connect(signer).closeJob(jobId);
 
     return closeJobTx;
 };
 
 export const completeTimedOutJob = async (
-    job: ContractTypes.Job,
+    Job: ContractTypes.Job,
     jobId: number,
     signer: Signer | null = null
 ) => {
@@ -249,13 +250,13 @@ export const completeTimedOutJob = async (
         signer = (await signers()).engineer;
     }
 
-    const closeJobTx = await job.connect(signer).completeTimedOutJob(jobId);
+    const closeJobTx = await Job.connect(signer).completeTimedOutJob(jobId);
 
     return closeJobTx;
 };
 
 export const disputeJob = async (
-    job: ContractTypes.Job,
+    Job: ContractTypes.Job,
     jobId: number,
     signer: Signer | null = null
 ) => {
@@ -263,13 +264,13 @@ export const disputeJob = async (
         signer = (await signers()).supplier;
     }
 
-    const disputeJobTx = await job.connect(signer).disputeJob(jobId);
+    const disputeJobTx = await Job.connect(signer).disputeJob(jobId);
 
     return disputeJobTx;
 };
 
-export const resolveDisputeForSupplier = async (
-    job: ContractTypes.Job,
+export const delistJob = async (
+    Job: ContractTypes.Job,
     jobId: number,
     signer: Signer | null = null
 ) => {
@@ -277,7 +278,21 @@ export const resolveDisputeForSupplier = async (
         signer = (await signers()).owner;
     }
 
-    const resolveDisputeForSupplierTx = await job
+    const delistJobTx = await Job.connect(signer).delistJob(jobId, "");
+
+    return delistJobTx;
+};
+
+export const resolveDisputeForSupplier = async (
+    Job: ContractTypes.Job,
+    jobId: number,
+    signer: Signer | null = null
+) => {
+    if (signer === null) {
+        signer = (await signers()).owner;
+    }
+
+    const resolveDisputeForSupplierTx = await Job
         .connect(signer)
         .resolveDisputeForSupplier(jobId);
 
@@ -285,7 +300,7 @@ export const resolveDisputeForSupplier = async (
 };
 
 export const resolveDisputeForEngineer = async (
-    job: ContractTypes.Job,
+    Job: ContractTypes.Job,
     jobId: number,
     signer: Signer | null = null
 ) => {
@@ -293,7 +308,7 @@ export const resolveDisputeForEngineer = async (
         signer = (await signers()).owner;
     }
 
-    const resolveDisputeForEngineerTx = await job
+    const resolveDisputeForEngineerTx = await Job
         .connect(signer)
         .resolveDisputeForEngineer(jobId);
 
@@ -301,7 +316,7 @@ export const resolveDisputeForEngineer = async (
 };
 
 export const resolveDisputeWithCustomSplit = async (
-    job: ContractTypes.Job,
+    Job: ContractTypes.Job,
     jobId: number,
     engineerAmountPct: number,
     signer: Signer | null = null
@@ -310,7 +325,7 @@ export const resolveDisputeWithCustomSplit = async (
         signer = (await signers()).owner;
     }
 
-    const resolveDisputeWithCustomSplitTx = await job
+    const resolveDisputeWithCustomSplitTx = await Job
         .connect(signer)
         .resolveDisputeWithCustomSplit(jobId, engineerAmountPct);
 
