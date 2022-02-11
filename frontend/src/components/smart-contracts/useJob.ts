@@ -58,16 +58,11 @@ export const useJob = (jobId: string) => {
   useEffect(() => {
     const fetchJob = async () => {
       const job = await contracts.Job.jobs(jobId);
-      console.log('found job', job.supplier);
 
       const foundJobResult = data[0];
       const jobMetaDataJSON = foundJobResult.get('jobMetaData');
       // TODO: validate meta data with a schema
       const unsafeJobMetaData = JSON.parse(jobMetaDataJSON);
-      console.log(
-        'unsafeJobMetaData',
-        JSON.stringify(unsafeJobMetaData, null, 2)
-      );
 
       setJobData(assembleJob(jobId, job, unsafeJobMetaData));
     };

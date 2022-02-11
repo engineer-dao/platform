@@ -15,7 +15,7 @@ const SingleContract: React.FC = () => {
   // TODO: Replace mock
   // const contract = contracsMock.find((item) => item.id === id);
 
-  console.log('jobData', JSON.stringify(jobData, null, 2));
+  // console.log('jobData', JSON.stringify(jobData, null, 2));
 
   return jobData ? (
     <>
