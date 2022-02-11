@@ -7,7 +7,6 @@ import {
   IJobData,
   IJobSmartContractData,
   IJobMetaData,
-  IJobState,
 } from 'interfaces/IJobData';
 
 const assembleJob = (
@@ -48,12 +47,9 @@ export const useJob = (jobId: string) => {
   const { contracts } = useSmartContracts();
   const { account } = useWallet();
   const [jobData, setJobData] = useState<undefined | any>();
-  const { data, error, isLoading } = useMoralisQuery(
-    'JobPostedEvents',
-    (query) => {
-      return query.equalTo('jobId', jobId);
-    }
-  );
+  const { data, isLoading } = useMoralisQuery('JobPostedEvents', (query) => {
+    return query.equalTo('jobId', jobId);
+  });
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -70,7 +66,7 @@ export const useJob = (jobId: string) => {
     if (jobId && account && !isLoading && data.length > 0) {
       fetchJob();
     }
-  }, [jobId, account, isLoading, data]);
+  }, [jobId, account, isLoading, data, contracts]);
 
   return jobData;
 };

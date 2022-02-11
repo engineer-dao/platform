@@ -1,4 +1,4 @@
-import { IContract } from '../../interfaces/IContract';
+// import { IContract } from '../../interfaces/IContract';
 import StatusChip from './StatusChip';
 import { IJobData } from 'interfaces/IJobData';
 
