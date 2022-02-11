@@ -1,5 +1,5 @@
 import DataTableItemChips from './row-types/DataTableItemChips';
-import DataTableItemCurrency from './row-types/DataTableItemCurrency';
+// import DataTableItemCurrency from './row-types/DataTableItemCurrency';
 import DataTableItemFiles from './row-types/DataTableItemFiles';
 import DataTableItemText from './row-types/DataTableItemText';
 import { IJobData } from 'interfaces/IJobData';
@@ -14,12 +14,12 @@ interface IAttachment {
   link: string;
 }
 
-interface ICurrency {
-  crypto_value: number;
-  crypto_suffix: string;
-  fiat_value?: number;
-  fiat_suffix?: string;
-}
+// interface ICurrency {
+//   crypto_value: number;
+//   crypto_suffix: string;
+//   fiat_value?: number;
+//   fiat_suffix?: string;
+// }
 
 const DataTable: React.FC<IDataTableProps> = (props) => {
   const { contract } = props;

@@ -6,7 +6,6 @@ import {
   IJobData,
   IJobSmartContractData,
   IJobMetaData,
-  IJobState,
 } from 'interfaces/IJobData';
 
 const assembleJob = (
