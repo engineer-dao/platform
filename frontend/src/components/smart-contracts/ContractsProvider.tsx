@@ -4,8 +4,12 @@ import {
   SmartContractContext,
   SmartContractState,
   buildSmartContractState,
-  useERC20ApprovalEventsFilter,
 } from 'components/smart-contracts/SmartContractContext';
+
+import {
+  useERC20Approval,
+  useERC20ApprovalEventsFilter,
+} from 'components/smart-contracts/useERC20Events';
 
 export const ContractsProvider = ({
   children,
@@ -14,14 +18,19 @@ export const ContractsProvider = ({
 }) => {
   const [isERC20Approved, setIsERC20Approved] = useState(false);
 
-  // connect the the contracts using the wallet when the wallet state changes
+  // connect the contracts using the wallet when the wallet state changes
   const wallet = useWallet();
   const contracts: SmartContractState = buildSmartContractState(
     wallet,
     isERC20Approved
   );
 
-  // update ERC20 token status when the blockchain changes
+  // load the initial approval status from the token contract
+  useERC20Approval(wallet, contracts, (isApproved) => {
+    setIsERC20Approved(isApproved);
+  });
+
+  // listen to ERC20 token approval status when the blockchain changes
   useERC20ApprovalEventsFilter(wallet, contracts, (isApproved) => {
     setIsERC20Approved(isApproved);
   });

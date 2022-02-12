@@ -2,9 +2,7 @@ import { ERC20__factory, ERC20, Job__factory, Job } from 'contracts-typechain';
 import { SmartContractAddresses } from 'components/smart-contracts/SmartContractAddresses';
 import { createContext } from 'react';
 import { WalletState } from 'components/wallet/WalletContext';
-import { Listener } from '@ethersproject/providers';
-import { ethers, BigNumber } from 'ethers';
-import { useBlockchainEventFilter } from 'components/wallet/useWallet';
+import { ethers } from 'ethers';
 
 export type ISmartContractContext = {
   contracts: SmartContractState;
@@ -36,32 +34,6 @@ export const buildSmartContractState = (
   };
 
   return contracts;
-};
-
-export const useERC20ApprovalEventsFilter = (
-  wallet: WalletState,
-  contracts: SmartContractState,
-  onApprovalChange: (arg0: boolean) => void
-) => {
-  // update ERC20 token status when the blockchain changes
-  const onApprovalEventHandler: Listener = (owner, spender, approvalAmount) => {
-    onApprovalChange(BigNumber.from(approvalAmount).gt(0));
-  };
-
-  // listen for events
-  useBlockchainEventFilter(
-    contracts,
-    contracts.ERC20,
-    () => {
-      if (wallet.account) {
-        return contracts.ERC20.filters.Approval(
-          wallet.account,
-          SmartContractAddresses.Job
-        );
-      }
-    },
-    onApprovalEventHandler
-  );
 };
 
 const initialWalletState: WalletState = {
