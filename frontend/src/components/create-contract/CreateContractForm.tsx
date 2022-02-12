@@ -18,7 +18,7 @@ const CreateContractForm = () => {
   const initialValues: CreateFormValues = {
     title: '',
     description: '',
-    'acceptance-criteria': '',
+    acceptanceCriteria: '',
     bounty: '',
   };
 
@@ -80,7 +80,7 @@ const CreateContractForm = () => {
               </div>
               <div className="col-span-6">
                 <TextArea
-                  id="acceptance-criteria"
+                  id="acceptanceCriteria"
                   label="Acceptance Criteria"
                   rows={5}
                 />
@@ -114,7 +114,7 @@ const CreateContractForm = () => {
               </div>
               <div className="col-span-2">
                 <Currency
-                  id="buy-in"
+                  id="buyIn"
                   placeholder="0.3"
                   label="Buy-In"
                   tokenName={tokenName}

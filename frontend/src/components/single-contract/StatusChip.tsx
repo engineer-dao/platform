@@ -1,9 +1,9 @@
 import classNames from 'classnames';
 import React from 'react';
-import { ContractStatus } from '../../enums/ContractStatus';
+import { IJobState } from 'interfaces/IJobData';
 
 interface IStatusChipProps {
-  status: keyof typeof ContractStatus;
+  status: IJobState;
   color?: string;
   size?: 'large' | 'small';
 }
@@ -14,26 +14,26 @@ const StatusChip: React.FC<IStatusChipProps> = (props) => {
   let _color = color;
 
   switch (status) {
-    case 'available':
+    case IJobState.Available:
       _color = 'bg-green-200 text-green-800';
       break;
-    case 'active':
+    case IJobState.Started:
       _color = 'bg-blue-600 text-white';
       break;
-    case 'awaiting_payment':
+    case IJobState.Completed:
       _color = 'bg-orange-300 text-white';
       break;
-    case 'completed':
+    case IJobState.FinalApproved:
       _color = 'bg-gray-400 text-white';
       break;
-    case 'disputed':
+    case IJobState.Disputed:
       _color = 'bg-red-400 text-white';
       break;
-    case 'close_requested':
-      _color = 'bg-red-300 text-white';
-      break;
-    case 'closed':
+    case IJobState.FinalNoResponse:
       _color = 'bg-red-100 text-red-800';
+      break;
+    case IJobState.FinalMutualClose:
+      _color = 'bg-red-300 text-white';
       break;
   }
 
@@ -46,7 +46,7 @@ const StatusChip: React.FC<IStatusChipProps> = (props) => {
         _color
       )}
     >
-      {ContractStatus[status]}
+      {IJobState[status]}
     </span>
   );
 };
