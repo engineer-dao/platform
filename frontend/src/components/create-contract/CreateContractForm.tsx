@@ -1,7 +1,6 @@
 import Currency from '../forms/inputs/Currency';
 import Dropzone from '../forms/inputs/Dropzone';
 import Input from '../forms/inputs/Input';
-import TextArea from '../forms/inputs/TextArea';
 import { ListBox } from '../ListBox';
 import { acceptanceTestsItems, identityItems, labelItems } from './labels';
 import OptionsSummary from './OptionsSummary';
@@ -73,15 +72,25 @@ const CreateContractForm = () => {
           <div className="bg-white px-4 py-5 sm:p-6">
             <div className="grid grid-cols-6 gap-6">
               <div className="col-span-6">
-                <Input id="title" label="Title" />
+                <Input id="title" label="Title" name="title" required={true} />
               </div>
               <div className="col-span-6">
-                <TextArea id="description" rows={10} label="Description" />
+                <Input
+                  id="description"
+                  name="description"
+                  required
+                  component="textarea"
+                  rows={10}
+                  label="Description"
+                />
               </div>
               <div className="col-span-6">
-                <TextArea
+                <Input
                   id="acceptance-criteria"
+                  name="acceptance-criteria"
+                  component="textarea"
                   label="Acceptance Criteria"
+                  required
                   rows={5}
                 />
               </div>
