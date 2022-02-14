@@ -1,22 +1,17 @@
-import { ERC20__factory, ERC20, Job__factory, Job } from 'contracts-typechain';
+import { ERC20__factory, Job__factory } from 'contracts-typechain';
 import { SmartContractAddresses } from 'components/smart-contracts/SmartContractAddresses';
 import { createContext } from 'react';
-import { WalletState } from 'components/wallet/WalletContext';
 import { ethers } from 'ethers';
+import { ISmartContractState } from 'interfaces/ISmartContractState';
+import { IWalletState } from 'interfaces/IWalletState';
 
-export type ISmartContractContext = {
-  contracts: SmartContractState;
+interface ISmartContractContext {
+  contracts: ISmartContractState;
   updateERC20Approval: (isERC20Approved: boolean) => void;
-};
-
-export interface SmartContractState {
-  isERC20Approved: boolean;
-  Job: Job;
-  ERC20: ERC20;
 }
 
 export const buildSmartContractState = (
-  wallet: WalletState,
+  wallet: IWalletState,
   isERC20Approved: boolean
 ) => {
   const walletProvider =
@@ -24,7 +19,7 @@ export const buildSmartContractState = (
       ? wallet.provider.getSigner()
       : new ethers.providers.BaseProvider('any');
 
-  const contracts: SmartContractState = {
+  const contracts: ISmartContractState = {
     isERC20Approved: isERC20Approved,
     ERC20: ERC20__factory.connect(
       SmartContractAddresses.PaymentToken,
@@ -36,7 +31,7 @@ export const buildSmartContractState = (
   return contracts;
 };
 
-const initialWalletState: WalletState = {
+const initialWalletState: IWalletState = {
   account: null,
   connected: false,
   provider: null,

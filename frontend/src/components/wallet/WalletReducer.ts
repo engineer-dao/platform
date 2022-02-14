@@ -1,9 +1,14 @@
-import { WalletState } from './WalletContext';
+import { IWalletState } from 'interfaces/IWalletState';
+
+type WalletAction = {
+  type: 'set_wallet_connection';
+  payload: IWalletState;
+};
 
 export const walletReducer = (
-  state: WalletState,
+  state: IWalletState,
   action: WalletAction
-): WalletState => {
+): IWalletState => {
   switch (action.type) {
     case 'set_wallet_connection': {
       const { account, connected, provider, providerInfo } = action?.payload;
@@ -20,9 +25,4 @@ export const walletReducer = (
       return state;
     }
   }
-};
-
-export type WalletAction = {
-  type: 'set_wallet_connection';
-  payload: WalletState;
 };

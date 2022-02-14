@@ -4,10 +4,11 @@ import EventEmitter from 'events';
 import { ethers } from 'ethers';
 import Web3Modal, { getInjectedProvider, IProviderInfo } from 'web3modal';
 import Fortmatic from 'fortmatic';
-import { WalletContext, WalletState } from 'components/wallet/WalletContext';
+import { WalletContext } from 'components/wallet/WalletContext';
 import { walletReducer } from './WalletReducer';
+import { IWalletState } from 'interfaces/IWalletState';
 
-const initialState: WalletState = {
+const initialState: IWalletState = {
   account: null,
   connected: false,
   provider: null,
@@ -138,7 +139,7 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     connection.removeListener('connect', onConnected);
   };
 
-  const setWalletConnection = (payload: WalletState) => {
+  const setWalletConnection = (payload: IWalletState) => {
     dispatch({
       type: 'set_wallet_connection',
       payload,

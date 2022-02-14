@@ -7,7 +7,7 @@ import {
   IJobSmartContractData,
   IJobMetaData,
 } from 'interfaces/IJobData';
-import { SmartContractState } from 'components/smart-contracts/SmartContractContext';
+import { ISmartContractState } from 'interfaces/ISmartContractState';
 
 const assembleJob = (
   jobId: string,
@@ -45,7 +45,7 @@ const assembleJob = (
 
 const loadJobFromJobId = async (
   jobId: string,
-  contracts: SmartContractState
+  contracts: ISmartContractState
 ) => {
   // get the job data from the contract
   const job = await contracts.Job.jobs(jobId);

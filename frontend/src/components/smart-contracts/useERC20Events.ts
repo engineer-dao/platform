@@ -2,12 +2,12 @@ import { useBlockchainEventFilter } from 'components/wallet/useWallet';
 import { SmartContractAddresses } from 'components/smart-contracts/SmartContractAddresses';
 import { BigNumber } from 'ethers';
 import { Listener } from '@ethersproject/providers';
-import { WalletState } from 'components/wallet/WalletContext';
-import { SmartContractState } from 'components/smart-contracts/SmartContractContext';
+import { IWalletState } from 'interfaces/IWalletState';
+import { ISmartContractState } from 'interfaces/ISmartContractState';
 
 export const useERC20ApprovalEventsFilter = (
-  wallet: WalletState,
-  contracts: SmartContractState,
+  wallet: IWalletState,
+  contracts: ISmartContractState,
   onApprovalChange: (arg0: boolean) => void
 ) => {
   // update ERC20 token status when the blockchain changes
@@ -32,8 +32,8 @@ export const useERC20ApprovalEventsFilter = (
 };
 
 export const useERC20Approval = (
-  wallet: WalletState,
-  contracts: SmartContractState,
+  wallet: IWalletState,
+  contracts: ISmartContractState,
   onApprovalFound: (arg0: boolean) => void
 ) => {
   // query the blockchain contract to see if we have approval
