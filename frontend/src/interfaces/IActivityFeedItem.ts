@@ -1,4 +1,4 @@
-import { ContractStatus } from 'enums/ContractStatus';
+import { IJobState } from 'interfaces/IJobData';
 
 export interface IActivityFeedItem {
   id: string;
@@ -7,7 +7,7 @@ export interface IActivityFeedItem {
     name?: string;
     href?: string;
   };
-  status?: keyof typeof ContractStatus;
+  status?: IJobState;
   imageUrl?: string;
   message?: string;
   date?: string;

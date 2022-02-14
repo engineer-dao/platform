@@ -1,15 +1,16 @@
-import { IContract } from '../../interfaces/IContract';
+// import { IContract } from '../../interfaces/IContract';
 import StatusChip from './StatusChip';
+import { IJobData } from 'interfaces/IJobData';
 
 interface ISingleContractHeadingProps {
-  contract: IContract;
+  contract: IJobData;
 }
 
 const SingleContractHeading: React.FC<ISingleContractHeadingProps> = (
   props
 ) => {
   const { contract } = props;
-  const { title, status } = contract;
+  const { title, state } = contract;
 
   return (
     <div className="pb-5">
@@ -20,7 +21,7 @@ const SingleContractHeading: React.FC<ISingleContractHeadingProps> = (
           </h3>
         </div>
         <div className="mt-4 flex items-center justify-between sm:mt-0 sm:ml-6 sm:flex-shrink-0 sm:justify-start">
-          <StatusChip status={status} />
+          <StatusChip status={state} />
         </div>
       </div>
     </div>

@@ -1,8 +1,13 @@
-import { contractData } from '../../mocks/contractData';
 import DataTable from '../data-table/DataTable';
+import { IJobData } from 'interfaces/IJobData';
 
-const SingleContractData = () => {
-  return <DataTable data={contractData} />;
+interface ISingleContractDataProps {
+  contract: IJobData;
+}
+
+const SingleContractData: React.FC<ISingleContractDataProps> = (props) => {
+  const { contract } = props;
+  return <DataTable contract={contract} />;
 };
 
 export default SingleContractData;

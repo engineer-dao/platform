@@ -7,8 +7,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployer } = await getNamedAccounts();
 
   let erc20ContractAddress: string;
-  if (network.name == 'localhost' || network.name == 'hardhat') {
-    // use the test erc 20 token for testing on localhost
+  if (network.live === false) {
+    // use the test erc 20 token for testing on test networks
     const testERC20Deployment = await deployments.get('TestERC20');
     erc20ContractAddress = testERC20Deployment.address;
   } else {

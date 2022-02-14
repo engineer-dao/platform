@@ -5,4 +5,6 @@ export const useSmartContracts = () => {
   return useContext(SmartContractContext);
 };
 
+export const getEventLogEntry = async () => {};
+
 export { SmartContractAddresses } from 'components/smart-contracts/SmartContractAddresses';
