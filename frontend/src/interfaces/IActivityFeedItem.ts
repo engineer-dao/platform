@@ -1,4 +1,4 @@
-import { IJobState } from 'interfaces/IJobData';
+import { JobState } from 'enums/JobState';
 
 export interface IActivityFeedItem {
   id: string;
@@ -7,7 +7,7 @@ export interface IActivityFeedItem {
     name?: string;
     href?: string;
   };
-  status?: IJobState;
+  status?: JobState;
   imageUrl?: string;
   message?: string;
   date?: string;

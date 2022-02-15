@@ -8,9 +8,9 @@ import OptionsSummary from './OptionsSummary';
 import PaymentSummary from './PaymentSummary';
 import { Formik, Form } from 'formik';
 import React, { useState } from 'react';
-import { useSmartContracts } from 'components/smart-contracts/useSmartContracts';
-import { ApproveERC20Modal } from 'components/smart-contracts/ApproveERC20Modal';
-import { PostJobModal } from 'components/smart-contracts/PostJobModal';
+import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
+import { ApproveERC20Modal } from 'components/smart-contracts/modals/ApproveERC20Modal';
+import { PostJobModal } from 'components/smart-contracts/modals/PostJobModal';
 import { CreateFormValues } from 'components/forms/types';
 import { useHistory } from 'react-router-dom';
 

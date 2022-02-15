@@ -1,20 +1,15 @@
-import React from 'react';
+import { TransactionModal } from 'components/smart-contracts/modals/TransactionModal';
 import {
-  useSmartContracts,
   SmartContractAddresses,
-} from 'components/smart-contracts/useSmartContracts';
-import { TransactionModal } from 'components/smart-contracts/TransactionModal';
+  useSmartContracts,
+} from 'components/smart-contracts/hooks/useSmartContracts';
 import { constants, ContractReceipt } from 'ethers';
+import { ITransactionModalProps } from 'interfaces/ITransactionModalProps';
+import React from 'react';
 
-export const ApproveERC20Modal = ({
-  show,
-  onFinish,
-  onError,
-}: {
-  show: boolean;
-  onFinish: () => void;
-  onError?: (arg0: string) => void;
-}) => {
+export const ApproveERC20Modal = (props: ITransactionModalProps) => {
+  const { show, onFinish, onError } = props;
+
   const { contracts, updateERC20Approval } = useSmartContracts();
 
   // the logic called to initiate the transaction

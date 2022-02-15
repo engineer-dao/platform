@@ -1,23 +1,18 @@
-import React from 'react';
-import { useSmartContracts } from 'components/smart-contracts/useSmartContracts';
-import { SmartContractAddresses } from 'components/smart-contracts/SmartContractAddresses';
-import { TransactionModal } from 'components/smart-contracts/TransactionModal';
-import { ethers, ContractReceipt } from 'ethers';
 import { CreateFormValues } from 'components/forms/types';
+import { SmartContractAddresses } from 'components/smart-contracts/SmartContractAddresses';
+import { TransactionModal } from 'components/smart-contracts/modals/TransactionModal';
+import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
+import { ContractReceipt, ethers } from 'ethers';
+import { ITransactionModalProps } from 'interfaces/ITransactionModalProps';
+import React from 'react';
 
-export const PostJobModal = ({
-  formData,
-  show,
-  onFinish,
-  onConfirmed,
-  onError,
-}: {
+interface IProps extends ITransactionModalProps {
   formData: CreateFormValues;
-  show: boolean;
-  onFinish?: () => void;
-  onConfirmed: (arg0: string) => void;
-  onError?: (arg0: string) => void;
-}) => {
+}
+
+export const PostJobModal = (props: IProps) => {
+  const { formData, show, onFinish, onConfirmed, onError } = props;
+
   const { contracts } = useSmartContracts();
 
   // the logic called to initiate the transaction
@@ -48,7 +43,7 @@ export const PostJobModal = ({
       }
     }
 
-    onConfirmed(jobId);
+    onConfirmed && onConfirmed(jobId);
   };
 
   // render the transaction modal
