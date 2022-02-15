@@ -5,9 +5,9 @@ import {
 } from 'components/smart-contracts/SmartContractContext';
 import { ISmartContractState } from 'interfaces/ISmartContractState';
 import { useWallet } from 'components/wallet/useWallet';
-import { useERC20Approval } from 'components/smart-contracts/useERC20Events';
+import { useERC20Approval } from 'components/smart-contracts/hooks/useERC20Events';
 
-export const ContractsProvider = ({
+export const SmartContractsProvider = ({
   children,
 }: {
   children: React.ReactNode;

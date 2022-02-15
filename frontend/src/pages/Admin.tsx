@@ -11,7 +11,7 @@ import Content from '../components/Content';
 import { useLocation } from 'react-router-dom';
 import { SectionPath } from '../enums/admin/Sections';
 import MobileSidebar from '../components/MobileSidebar';
-import { ContractsProvider } from 'components/smart-contracts/ContractsProvider';
+import { SmartContractsProvider } from 'components/smart-contracts/SmartContractsProvider';
 import { useNotifications } from '../components/notifications/useNotifications';
 import { Notification } from '../components/notifications/Notification';
 import { isTestingEnvironment } from '../utils/testing';
@@ -61,7 +61,7 @@ export default function Admin() {
   }
 
   return (
-    <ContractsProvider>
+    <SmartContractsProvider>
       <div className="flex h-screen overflow-hidden bg-gray-100">
         <MobileSidebar
           sidebarOpen={sidebarOpen}
@@ -74,6 +74,6 @@ export default function Admin() {
           <Notification notification={notification} />
         ))}
       </div>
-    </ContractsProvider>
+    </SmartContractsProvider>
   );
 }

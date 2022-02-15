@@ -1,10 +1,10 @@
 import { useNotifications } from '../components/notifications/useNotifications';
 
 import { useState } from 'react';
-import { useSmartContracts } from 'components/smart-contracts/useSmartContracts';
+import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
 
-import { ApproveERC20Modal } from 'components/smart-contracts/ApproveERC20Modal';
-import { RevokeERC20Modal } from 'components/smart-contracts/RevokeERC20Modal';
+import { ApproveERC20Modal } from 'components/smart-contracts/modals/ApproveERC20Modal';
+import { RevokeERC20Modal } from 'components/smart-contracts/modals/RevokeERC20Modal';
 
 const Dashboard = () => {
   const { pushNotification } = useNotifications();

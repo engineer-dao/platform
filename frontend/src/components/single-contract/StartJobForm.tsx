@@ -1,8 +1,8 @@
 import { Formik, Form } from 'formik';
 import React, { useState } from 'react';
-import { useSmartContracts } from 'components/smart-contracts/useSmartContracts';
-import { ApproveERC20Modal } from 'components/smart-contracts/ApproveERC20Modal';
-import { StartJobModal } from 'components/smart-contracts/StartJobModal';
+import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
+import { ApproveERC20Modal } from 'components/smart-contracts/modals/ApproveERC20Modal';
+import { StartJobModal } from 'components/smart-contracts/modals/StartJobModal';
 import { useHistory } from 'react-router-dom';
 import { IJobData } from 'interfaces/IJobData';
 
