@@ -1823,11 +1823,13 @@ describe("JobContract ", function() {
         })
 
         it("should not be able to add the same token twice", async function() {
+            const startingTokensCount = (await testUtil.getAllowedTokens(JobContract)).length;
+
             const Token = await deployERC20Token();
             await updatePaymentTokens(JobContract, Token.address, true);
 
             const tokens = await testUtil.getAllowedTokens(JobContract);
-            expect(tokens.length).to.equal(2);
+            expect(tokens.length).to.equal(startingTokensCount + 1);
             expect(tokens).to.contain(Token.address);
 
             await expect(updatePaymentTokens(JobContract, Token.address, true)).to.be.revertedWith("Already added !");
