@@ -22,8 +22,6 @@ export const CompleteJobForm: React.FC<ICompleteJobFormProps> = (props) => {
 
   const [showCompleteJobModal, setShowCompleteJobModal] = useState(false);
 
-  const tokenName = process.env.REACT_APP_PAYMENT_TOKEN_NAME;
-
   return (
     <Formik
       initialValues={{}}

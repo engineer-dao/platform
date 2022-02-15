@@ -1,6 +1,6 @@
-import { TransactionModal } from 'components/smart-contracts/modals/TransactionModal';
 import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
-import { ContractReceipt, ethers } from 'ethers';
+import { TransactionModal } from 'components/smart-contracts/modals/TransactionModal';
+import { ContractReceipt } from 'ethers';
 import { ITransactionModalProps } from 'interfaces/ITransactionModalProps';
 import React from 'react';
 

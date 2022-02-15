@@ -22,8 +22,6 @@ export const ApproveJobForm: React.FC<IApproveJobFormProps> = (props) => {
 
   const [showApproveJobModal, setShowApproveJobModal] = useState(false);
 
-  const tokenName = process.env.REACT_APP_PAYMENT_TOKEN_NAME;
-
   return (
     <Formik
       initialValues={{}}
