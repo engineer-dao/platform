@@ -5,8 +5,8 @@ import SingleContractData from 'components/single-contract/SingleContractData';
 import SingleContractHeading from 'components/single-contract/SingleContractHeading';
 import { StartJobForm } from 'components/single-contract/StartJobForm';
 import { ISingleContractRouteParams } from '../interfaces/routes/ISingleContractRouteParams';
-import { IJobState } from 'interfaces/IJobData';
-import { useJob } from 'components/smart-contracts/useJob';
+import { JobState } from 'enums/JobState';
+import { useJob } from 'components/smart-contracts/hooks/useJob';
 
 const SingleContract: React.FC = () => {
   const { id } = useParams<ISingleContractRouteParams>();
@@ -17,7 +17,7 @@ const SingleContract: React.FC = () => {
     <>
       <SingleContractHeading contract={jobData} />
       <SingleContractData contract={jobData} />
-      {jobData.state === IJobState.Available && <StartJobForm job={jobData} />}
+      {jobData.state === JobState.Available && <StartJobForm job={jobData} />}
       <ActivityFeed />
     </>
   ) : null;

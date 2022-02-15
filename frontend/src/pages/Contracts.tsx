@@ -1,6 +1,6 @@
 import ContractsContainer from '../components/contracts/ContractsContainer';
 import SortFilterHeading from '../components/SortFilterHeading';
-import { useFindJobs } from 'components/smart-contracts/useJob';
+import { useFindJobs } from 'components/smart-contracts/hooks/useJob';
 
 const Contracts = () => {
   const { jobs, isLoading } = useFindJobs();

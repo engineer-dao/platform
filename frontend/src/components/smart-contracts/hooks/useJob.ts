@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSmartContracts } from 'components/smart-contracts/useSmartContracts';
+import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
 import { useWallet } from 'components/wallet/useWallet';
 import { BigNumber, ethers } from 'ethers';
 import {

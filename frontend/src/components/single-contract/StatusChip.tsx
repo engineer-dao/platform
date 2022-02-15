@@ -1,9 +1,9 @@
 import classNames from 'classnames';
 import React from 'react';
-import { IJobState } from 'interfaces/IJobData';
+import { JobState } from 'enums/JobState';
 
 interface IStatusChipProps {
-  status: IJobState;
+  status: JobState;
   color?: string;
   size?: 'large' | 'small';
 }
@@ -14,25 +14,25 @@ const StatusChip: React.FC<IStatusChipProps> = (props) => {
   let _color = color;
 
   switch (status) {
-    case IJobState.Available:
+    case JobState.Available:
       _color = 'bg-green-200 text-green-800';
       break;
-    case IJobState.Started:
+    case JobState.Started:
       _color = 'bg-blue-600 text-white';
       break;
-    case IJobState.Completed:
+    case JobState.Completed:
       _color = 'bg-orange-300 text-white';
       break;
-    case IJobState.FinalApproved:
+    case JobState.FinalApproved:
       _color = 'bg-gray-400 text-white';
       break;
-    case IJobState.Disputed:
+    case JobState.Disputed:
       _color = 'bg-red-400 text-white';
       break;
-    case IJobState.FinalNoResponse:
+    case JobState.FinalNoResponse:
       _color = 'bg-red-100 text-red-800';
       break;
-    case IJobState.FinalMutualClose:
+    case JobState.FinalMutualClose:
       _color = 'bg-red-300 text-white';
       break;
   }
@@ -46,7 +46,7 @@ const StatusChip: React.FC<IStatusChipProps> = (props) => {
         _color
       )}
     >
-      {IJobState[status]}
+      {JobState[status]}
     </span>
   );
 };

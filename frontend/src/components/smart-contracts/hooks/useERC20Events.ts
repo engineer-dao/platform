@@ -1,6 +1,6 @@
 import { ERC20 } from 'contracts-typechain';
 import { useState, useMemo } from 'react';
-import { useBlockchainEventFilter } from 'components/smart-contracts/useBlockchainEvents';
+import { useBlockchainEventFilter } from 'components/smart-contracts/hooks/useBlockchainEvents';
 import { SmartContractAddresses } from 'components/smart-contracts/SmartContractAddresses';
 import { BigNumber } from 'ethers';
 import { Listener } from '@ethersproject/providers';

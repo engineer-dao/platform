@@ -1,19 +1,5 @@
-// import { ContractStatus } from '../enums/ContractStatus';
+import { JobState } from 'enums/JobState';
 import { BigNumber } from 'ethers';
-
-export enum IJobState {
-  Available = 1,
-  Started = 2,
-  Completed = 3,
-  Disputed = 4,
-  FinalApproved = 5,
-  FinalCanceledBySupplier = 6,
-  FinalMutualClose = 7,
-  FinalNoResponse = 8,
-  FinalDisputeResolvedForSupplier = 9,
-  FinalDisputeResolvedForEngineer = 10,
-  FinalDisputeResolvedWithSplit = 11,
-}
 
 export const JobStateLabels = {
   1: 'Available',
@@ -66,5 +52,5 @@ export interface IJobData extends IJobMetaData {
   completedTime?: number;
   closedBySupplier: boolean;
   closedByEngineer: boolean;
-  state: IJobState;
+  state: JobState;
 }
