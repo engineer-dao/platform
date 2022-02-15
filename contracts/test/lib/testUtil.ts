@@ -2,6 +2,9 @@ import { ethers } from 'hardhat';
 import * as ContractTypes from '../../typechain/index';
 import { Signer, Contract, BigNumber } from 'ethers';
 import { ERC20 } from "../../typechain/index";
+import { SignerWithAddress } from "hardhat-deploy-ethers/signers";
+import { extractAbi } from "typechain";
+import { ABI_ERC20 } from "./abis";
 
 export const T_SUFFIX = '000000000000000000';
 export const ONE_TOKEN = '1' + T_SUFFIX;
@@ -30,6 +33,10 @@ export const DISPUTE_RESOLUTION_PCT = 0.06;
 
 export const DEFAULT_DEPOSIT_PCT = 1000;
 export const BASE_PERCENT = 10000;
+
+export const DEFAULT_REPORT_META = "Illegal Activity";
+export const DEFAULT_REPORT_RESOLVE_REASON = "Default Reason";
+export const ZERO_ADDRESS = ethers.constants.AddressZero;
 
 // TODO: can be moved to env & env.testnet and called "DAO_STABLE_COIN_ADDRESS"
 // polygon mainnet
@@ -67,10 +74,10 @@ export const deployERC20Token = async () => {
     return testToken;
 };
 
-export const deployJob = async (TestToken: ContractTypes.TestERC20) => {
+export const deployJob = async (TestToken: ContractTypes.TestERC20, DaoTreasury: ContractTypes.DaoTreasury, resolver: string) => {
     // deploy the contract
     const Job = await ethers.getContractFactory('Job');
-    const job = await Job.deploy(TestToken.address);
+    const job = await Job.deploy(TestToken.address, DaoTreasury.address, resolver);
     await job.deployed();
     return job;
 };
@@ -78,9 +85,10 @@ export const deployJob = async (TestToken: ContractTypes.TestERC20) => {
 export const setupJobAndTokenBalances = async () => {
     const TestToken = await deployERC20Token();
     const DaoTreasury = await deployDaoTreasury();
-    const JobContract = await deployJob(TestToken);
 
     const _signers = await signers();
+
+    const JobContract = await deployJob(TestToken, DaoTreasury, _signers.resolver.address);
 
     await (await JobContract.setDaoTreasury(DaoTreasury.address)).wait();
     await (await JobContract.setResolver(_signers.resolver.address)).wait();
@@ -93,7 +101,7 @@ export const setupJobAndTokenBalances = async () => {
     await TestToken.transfer(_signers.engineer.address, ONE_THOUS_TOKENS);
     await TestToken.transfer(_signers.addr1.address, ONE_THOUS_TOKENS);
     await TestToken.transfer(_signers.addr2.address, ONE_THOUS_TOKENS);
-    await TestToken.transfer(_signers.addr3.address, ONE_THOUS_TOKENS);
+    await TestToken.transfer(_signers.reporter.address, ONE_THOUS_TOKENS);
 
     // approve the job contract to spend on their behalf
     await TestToken
@@ -109,13 +117,17 @@ export const setupJobAndTokenBalances = async () => {
         .connect(_signers.addr2)
         .approve(JobContract.address, ONE_HUND_THOUS_TOKENS);
     await TestToken
-        .connect(_signers.addr3)
+        .connect(_signers.reporter)
         .approve(JobContract.address, ONE_HUND_THOUS_TOKENS);
 
     return { JobContract, TestToken, DaoTreasury };
 };
 
-export const getBalanceOf = async (TokenContract: ERC20, address: string): Promise<BigNumber> => {
+export const getBalanceOf = async (TokenContract: ERC20 | string, address: string): Promise<BigNumber> => {
+    if (typeof TokenContract === "string") {
+        const _signers = await signers();
+        TokenContract = new Contract(TokenContract, ABI_ERC20, _signers.owner) as ERC20;
+    }
     return await TokenContract.balanceOf(address);
 }
 
@@ -269,18 +281,46 @@ export const disputeJob = async (
     return disputeJobTx;
 };
 
-export const delistJob = async (
+export const reportJob = async (
     Job: ContractTypes.Job,
     jobId: number,
     signer: Signer | null = null
 ) => {
     if (signer === null) {
-        signer = (await signers()).owner;
+        signer = (await signers()).reporter;
     }
 
-    const delistJobTx = await Job.connect(signer).delistJob(jobId, "");
+    const reportJobTx = await Job.connect(signer).reportJob(jobId, DEFAULT_REPORT_META);
 
-    return delistJobTx;
+    return reportJobTx;
+};
+
+export const acceptReport = async (
+    Job: ContractTypes.Job,
+    jobId: number,
+    signer: Signer | null = null
+) => {
+    if (signer === null) {
+        signer = (await signers()).resolver;
+    }
+
+    const acceptReportTx = await Job.connect(signer).acceptReport(jobId, DEFAULT_REPORT_RESOLVE_REASON);
+
+    return acceptReportTx;
+};
+
+export const declineReport = async (
+    Job: ContractTypes.Job,
+    jobId: number,
+    signer: Signer | null = null
+) => {
+    if (signer === null) {
+        signer = (await signers()).resolver;
+    }
+
+    const declineReportTx = await Job.connect(signer).declineReport(jobId, DEFAULT_REPORT_RESOLVE_REASON);
+
+    return declineReportTx;
 };
 
 export const resolveDisputeForSupplier = async (
@@ -289,7 +329,7 @@ export const resolveDisputeForSupplier = async (
     signer: Signer | null = null
 ) => {
     if (signer === null) {
-        signer = (await signers()).owner;
+        signer = (await signers()).resolver;
     }
 
     const resolveDisputeForSupplierTx = await Job
@@ -305,7 +345,7 @@ export const resolveDisputeForEngineer = async (
     signer: Signer | null = null
 ) => {
     if (signer === null) {
-        signer = (await signers()).owner;
+        signer = (await signers()).resolver;
     }
 
     const resolveDisputeForEngineerTx = await Job
@@ -322,7 +362,7 @@ export const resolveDisputeWithCustomSplit = async (
     signer: Signer | null = null
 ) => {
     if (signer === null) {
-        signer = (await signers()).owner;
+        signer = (await signers()).resolver;
     }
 
     const resolveDisputeWithCustomSplitTx = await Job
@@ -375,16 +415,16 @@ export const getDisputePayouts = async (
 
 ////////////////////////////////////////////////////////////////
 export const signers = async () => {
-    const [owner, resolver, supplier, engineer, addr1, addr2, addr3] =
+    const [owner, resolver, supplier, engineer, reporter, addr1, addr2] =
         await ethers.getSigners();
     return {
         owner,
         resolver,
         supplier,
         engineer,
+        reporter,
         addr1,
         addr2,
-        addr3,
     };
 };
 

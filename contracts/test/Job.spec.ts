@@ -39,16 +39,16 @@ describe("JobContract ", function() {
         resolver: SignerWithAddress,
         supplier: SignerWithAddress,
         engineer: SignerWithAddress,
+        reporter: SignerWithAddress,
         addr1: SignerWithAddress,
-        addr2: SignerWithAddress,
-        addr3: SignerWithAddress;
+        addr2: SignerWithAddress;
 
     let JobContract: Job;
     let TestToken: TestERC20;
     let DaoTreasury: DaoTreasury;
 
     before(async () => {
-        [owner, resolver, supplier, engineer, addr1, addr2, addr3] =
+        [owner, resolver, supplier, engineer, reporter, addr1, addr2] =
             await hre.ethers.getSigners();
     })
 
@@ -113,7 +113,9 @@ describe("JobContract ", function() {
 
         it('requires payment approval', async function() {
             TestToken = await deployERC20Token();
-            JobContract = await deployJob(TestToken);
+            DaoTreasury = await deployDaoTreasury();
+
+            JobContract = await deployJob(TestToken, DaoTreasury, resolver.address);
 
             // send balances
             await TestToken.transfer(
@@ -186,8 +188,8 @@ describe("JobContract ", function() {
         it('can be posted multiple times', async function() {
             // post three jobs
             await testUtil.postSampleJob()(JobContract, TestToken);
+            await testUtil.postSampleJob(addr1)(JobContract, TestToken);
             await testUtil.postSampleJob(addr2)(JobContract, TestToken);
-            await testUtil.postSampleJob(addr3)(JobContract, TestToken);
 
             // job id is now three
             expect(await JobContract.jobCount()).to.equal(3);
@@ -198,8 +200,8 @@ describe("JobContract ", function() {
             const jobThree = await JobContract.jobs(testUtil.JOB_ID_3);
 
             expect(jobOne.supplier).to.equal(supplier.address);
-            expect(jobTwo.supplier).to.equal(addr2.address);
-            expect(jobThree.supplier).to.equal(addr3.address);
+            expect(jobTwo.supplier).to.equal(addr1.address);
+            expect(jobThree.supplier).to.equal(addr2.address);
         });
 
         it('can be posted multiple times by same signer', async function() {
@@ -955,7 +957,7 @@ describe("JobContract ", function() {
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
-            await testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1, resolver);
+            await testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1);
 
             // get the job
             const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
@@ -970,26 +972,26 @@ describe("JobContract ", function() {
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             await expect(
-                testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1, resolver)
+                testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1)
             ).to.be.revertedWith('Method not available for job state');
 
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
             await expect(
-                testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1, resolver)
+                testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1)
             ).to.be.revertedWith('Method not available for job state');
 
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
 
             await expect(
-                testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1, resolver)
+                testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1)
             ).to.be.revertedWith('Method not available for job state');
 
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
-            await testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1, resolver);
+            await testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1);
 
             await expect(
-                testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1, resolver)
+                testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1)
             ).to.be.revertedWith('Method not available for job state');
         });
 
@@ -1024,7 +1026,7 @@ describe("JobContract ", function() {
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
 
-            await expect(testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1, resolver))
+            await expect(testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1))
                 .to.emit(JobContract, 'JobDisputeResolved')
                 .withArgs(
                     testUtil.JOB_ID_1,
@@ -1036,7 +1038,7 @@ describe("JobContract ", function() {
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
-            await testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1, resolver);
+            await testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1);
 
             // check contract
             const jobValue = await getBalanceOf(TestToken, JobContract.address);
@@ -1065,7 +1067,7 @@ describe("JobContract ", function() {
 
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
-            await testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1, resolver);
+            await testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1);
 
             const { forWinner, forDao } = await testUtil.getDisputePayouts(JobContract, testUtil.JOB_ID_1);
 
@@ -1096,7 +1098,7 @@ describe("JobContract ", function() {
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
-            await testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1, resolver);
+            await testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1);
 
             // get the job
             const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
@@ -1111,26 +1113,26 @@ describe("JobContract ", function() {
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             await expect(
-                testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1, resolver)
+                testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1)
             ).to.be.revertedWith('Method not available for job state');
 
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
             await expect(
-                testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1, resolver)
+                testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1)
             ).to.be.revertedWith('Method not available for job state');
 
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
 
             await expect(
-                testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1, resolver)
+                testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1)
             ).to.be.revertedWith('Method not available for job state');
 
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
-            await testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1, resolver);
+            await testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1);
 
             await expect(
-                testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1, resolver)
+                testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1)
             ).to.be.revertedWith('Method not available for job state');
         });
 
@@ -1138,6 +1140,15 @@ describe("JobContract ", function() {
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
+
+            await expect(
+                testUtil.resolveDisputeForEngineer(
+                    JobContract,
+                    testUtil.JOB_ID_1,
+                    owner
+                )
+            ).to.be.revertedWith('Not Authorized !');
+
 
             await expect(
                 testUtil.resolveDisputeForEngineer(
@@ -1165,7 +1176,7 @@ describe("JobContract ", function() {
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
 
-            await expect(testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1, resolver))
+            await expect(testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1))
                 .to.emit(JobContract, 'JobDisputeResolved')
                 .withArgs(
                     testUtil.JOB_ID_1,
@@ -1178,7 +1189,7 @@ describe("JobContract ", function() {
 
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
-            await testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1, resolver);
+            await testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1);
 
             // JobContract 0
             const contractValue = await getBalanceOf(TestToken, JobContract.address);
@@ -1208,7 +1219,7 @@ describe("JobContract ", function() {
 
             const engineerInitialAmount = await getBalanceOf(TestToken, engineer.address);
 
-            await testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1, resolver);
+            await testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1);
 
             const { forWinner, forDao } = await testUtil.getDisputePayouts(JobContract, testUtil.JOB_ID_1);
 
@@ -1237,7 +1248,7 @@ describe("JobContract ", function() {
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
-            await testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 5000, resolver);
+            await testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 5000);
 
             // get the job
             const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
@@ -1252,26 +1263,26 @@ describe("JobContract ", function() {
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             await expect(
-                testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 1000, resolver)
+                testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 1000)
             ).to.be.revertedWith('Method not available for job state');
 
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
             await expect(
-                testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 2000, resolver)
+                testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 2000)
             ).to.be.revertedWith('Method not available for job state');
 
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
 
             await expect(
-                testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 3000, resolver)
+                testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 3000)
             ).to.be.revertedWith('Method not available for job state');
 
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
-            await testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 4000, resolver);
+            await testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 4000);
 
             await expect(
-                testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 10000, resolver)
+                testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 10000)
             ).to.be.revertedWith('Method not available for job state');
         });
 
@@ -1279,6 +1290,15 @@ describe("JobContract ", function() {
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
+
+            await expect(
+                testUtil.resolveDisputeWithCustomSplit(
+                    JobContract,
+                    testUtil.JOB_ID_1,
+                    200,
+                    owner
+                )
+            ).to.be.revertedWith('Not Authorized !');
 
             await expect(
                 testUtil.resolveDisputeWithCustomSplit(
@@ -1308,7 +1328,7 @@ describe("JobContract ", function() {
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
 
-            await expect(testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 2000, resolver))
+            await expect(testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 2000))
                 .to.emit(JobContract, 'JobDisputeResolved')
                 .withArgs(
                     testUtil.JOB_ID_1,
@@ -1321,7 +1341,7 @@ describe("JobContract ", function() {
 
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
-            await testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 5000, resolver);
+            await testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 5000);
 
             // JobContract 0
             const contractValue = await getBalanceOf(TestToken, JobContract.address);
@@ -1351,7 +1371,7 @@ describe("JobContract ", function() {
 
             const engineerInitialAmount = await getBalanceOf(TestToken, engineer.address);
 
-            await testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 5000, resolver);
+            await testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 5000);
 
             const { forWinner, forDao } = await testUtil.getDisputePayouts(JobContract, testUtil.JOB_ID_1);
 
@@ -1372,125 +1392,399 @@ describe("JobContract ", function() {
         });
     });
 
-    describe('A delistable job', function() {
-        it('can be delisted', async function() {
+    ///////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////
+
+    describe('A reportable job', function() {
+        it('can be reported', async function() {
             await testUtil.postSampleJob()(JobContract, TestToken);
-            await testUtil.delistJob(JobContract, testUtil.JOB_ID_1)
-            // get the job
+            await testUtil.reportJob(JobContract, testUtil.JOB_ID_1, addr1)
+
+            // get the job & report
             const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
+            const reportOne = await JobContract.reports(testUtil.JOB_ID_1);
 
             // check state
             expect(jobOne.state).to.equal(
-                testUtil.STATE_DoesntExist
+                testUtil.STATE_Available
             );
+            expect(jobOne.isReported).to.equal(true);
+
+            expect(reportOne.reporter).to.equal(addr1.address);
+            expect(reportOne.metadata).to.equal(testUtil.DEFAULT_REPORT_META);
         });
 
-
-        it('can be delisted in Dispute state', async function() {
+        it('may not reported in Disputed state', async function() {
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
-            await testUtil.delistJob(JobContract, testUtil.JOB_ID_1)
 
-            // get the job
+            await expect(
+                testUtil.reportJob(JobContract, testUtil.JOB_ID_1)
+            ).to.be.revertedWith('Method not available for job state');
+
+            await testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1);
+
+            await expect(
+                testUtil.reportJob(JobContract, testUtil.JOB_ID_1)
+            ).to.be.revertedWith('Method not available for job state');
+        });
+
+        it('may not be reported in Final state', async function() {
+            await testUtil.postSampleJob()(JobContract, TestToken);
+            await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
+            await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
+
+            await expect(
+                testUtil.reportJob(JobContract, testUtil.JOB_ID_1)
+            ).to.be.revertedWith('Method not available for job state');
+        });
+
+        it('emits JobReported event', async function() {
+            await testUtil.postSampleJob()(JobContract, TestToken);
+
+            await expect(testUtil.reportJob(JobContract, testUtil.JOB_ID_1, addr1))
+                .to.emit(JobContract, 'JobReported')
+                .withArgs(
+                    testUtil.JOB_ID_1,
+                    addr1.address,
+                    testUtil.DEFAULT_REPORT_META
+                );
+        });
+
+        it('sends deposit', async function() {
+            await testUtil.postSampleJob()(JobContract, TestToken);
+            await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
+
+            const depositAmount = await JobContract.REPORT_DEPOSIT();
+            const depositToken = await JobContract.REPORT_TOKEN();
+            const reporterInitialBalance = await getBalanceOf(depositToken, reporter.address);
+            const contractInitialBalance = await getBalanceOf(depositToken, JobContract.address);
+
+            await testUtil.reportJob(JobContract, testUtil.JOB_ID_1);
+
+            // Check reporter
+            const reporterBalance = await getBalanceOf(depositToken, reporter.address);
+            expect(reporterBalance).to.equal(reporterInitialBalance.sub(depositAmount));
+
+            // Check contract
+            const contractBalance = await getBalanceOf(depositToken, JobContract.address);
+            expect(contractBalance).to.equal(contractInitialBalance.add(depositAmount));
+        });
+    });
+
+    ///////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////
+
+    describe('A reportable job that will have the report accepted', function() {
+        it('can be accepted', async function() {
+            await testUtil.postSampleJob()(JobContract, TestToken);
+
+            await testUtil.reportJob(JobContract, testUtil.JOB_ID_1, addr1)
+            await testUtil.acceptReport(JobContract, testUtil.JOB_ID_1)
+
+            // get the job & report
             const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
+            const reportOne = await JobContract.reports(testUtil.JOB_ID_1);
 
             // check state
             expect(jobOne.state).to.equal(
                 testUtil.STATE_DoesntExist
             );
+
+            expect(reportOne.reporter).to.equal(testUtil.ZERO_ADDRESS);
         });
 
-        it('may only be called by owner', async function() {
+        it('may only be called in Reported state', async function() {
             await testUtil.postSampleJob()(JobContract, TestToken);
 
             await expect(
-                testUtil.delistJob(
+                testUtil.acceptReport(
                     JobContract,
                     testUtil.JOB_ID_1,
-                    supplier
                 )
-            ).to.be.revertedWith('Ownable: caller is not the owner');
+            ).to.be.revertedWith('Method not available for job state');
+
+            await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
             await expect(
-                testUtil.delistJob(
+                testUtil.acceptReport(
+                    JobContract,
+                    testUtil.JOB_ID_1,
+                )
+            ).to.be.revertedWith('Method not available for job state');
+
+            await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
+
+            await expect(
+                testUtil.acceptReport(
+                    JobContract,
+                    testUtil.JOB_ID_1,
+                )
+            ).to.be.revertedWith('Method not available for job state');
+
+            await testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1)
+
+            await expect(
+                testUtil.acceptReport(
+                    JobContract,
+                    testUtil.JOB_ID_1,
+                )
+            ).to.be.revertedWith('Method not available for job state');
+        });
+
+        it('may only be called by resolver', async function() {
+            await testUtil.postSampleJob()(JobContract, TestToken);
+
+            await expect(
+                testUtil.acceptReport(
+                    JobContract,
+                    testUtil.JOB_ID_1,
+                    owner
+                )
+            ).to.be.revertedWith('Not Authorized !');
+
+            await expect(
+                testUtil.acceptReport(
                     JobContract,
                     testUtil.JOB_ID_1,
                     engineer
                 )
-            ).to.be.revertedWith('Ownable: caller is not the owner');
+            ).to.be.revertedWith('Not Authorized !');
 
             await expect(
-                testUtil.delistJob(JobContract, testUtil.JOB_ID_1, addr1)
-            ).to.be.revertedWith('Ownable: caller is not the owner');
+                testUtil.acceptReport(JobContract, testUtil.JOB_ID_1, addr1)
+            ).to.be.revertedWith('Not Authorized !');
+
+            await expect(
+                testUtil.acceptReport(JobContract, testUtil.JOB_ID_1, supplier)
+            ).to.be.revertedWith('Not Authorized !');
         });
 
         it('emits JobDelisted event', async function() {
             await testUtil.postSampleJob()(JobContract, TestToken);
+            await testUtil.reportJob(JobContract, testUtil.JOB_ID_1)
 
-            await expect(testUtil.delistJob(JobContract, testUtil.JOB_ID_1))
+            await expect(testUtil.acceptReport(JobContract, testUtil.JOB_ID_1))
                 .to.emit(JobContract, 'JobDelisted')
                 .withArgs(
                     testUtil.JOB_ID_1,
-                    ""
+                    reporter.address,
+                    testUtil.DEFAULT_REPORT_RESOLVE_REASON
                 );
         });
 
-        it('sends funds and updates balances when delisted (with getter)', async function() {
+        it('sends funds and updates balances when accepted', async function() {
+            const depositAmount = await JobContract.REPORT_DEPOSIT();
+            const depositToken = await JobContract.REPORT_TOKEN();
+            const rewardPecent = await JobContract.REPORT_REWARD_PERCENT();
+
+            const daoInitialBalance = await getBalanceOf(depositToken, DaoTreasury.address);
+            const contractInitialBalance = await getBalanceOf(depositToken, JobContract.address);
+
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
-            const engineerInitialAmount = await getBalanceOf(TestToken, engineer.address);
-            const supplierInitialAmount = await getBalanceOf(TestToken, supplier.address);
+            // === REPORT ===
+            await testUtil.reportJob(JobContract, testUtil.JOB_ID_1);
 
             // get the job
             const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
 
-            await testUtil.delistJob(JobContract, testUtil.JOB_ID_1);
+            const engineerInitialAmount = await getBalanceOf(TestToken, engineer.address);
+            const supplierInitialAmount = await getBalanceOf(TestToken, supplier.address);
+            const reporterInitialAmount = await getBalanceOf(TestToken, reporter.address);
 
-            // check contract
-            const jobValue = await getBalanceOf(TestToken, JobContract.address);
-            expect(jobValue).to.equal(0);
+            // === ACCEPT ===
+            await testUtil.acceptReport(JobContract, testUtil.JOB_ID_1);
 
-            // check supplier (+bounty)
+            // check contract (no change "")
+            const contractBalance = await getBalanceOf(depositToken, JobContract.address);
+            expect(contractBalance).to.equal(contractInitialBalance);
+
+            // check Dao funds (+ deposit)
+            const daoBalance = await getBalanceOf(depositToken, DaoTreasury.address);
+            expect(daoBalance).to.equal(daoInitialBalance.add(depositAmount));
+
+            const reward = jobOne.bounty.mul(rewardPecent).div(10000);
+            const refund = jobOne.bounty.sub(reward);
+
+            // check reporter (+reward)
+            expect(await getBalanceOf(TestToken, reporter.address))
+                .to.equal(reporterInitialAmount.add(reward));
+
+            // check supplier (+bounty - reward)
             const supplierAmount = await getBalanceOf(TestToken, supplier.address);
-            expect(supplierAmount).to.equal(supplierInitialAmount.add(jobOne.bounty));
+            expect(supplierAmount).to.equal(supplierInitialAmount.add(refund));
 
             // check engineer (+deposit)
             expect(await getBalanceOf(TestToken, engineer.address))
                 .to.equal(engineerInitialAmount.add(jobOne.deposit));
-
-            // check Dao funds
-            const fundsValue = await getBalanceOf(TestToken, DaoTreasury.address);
-            expect(fundsValue).to.equal(0);
         });
 
-        it('sends funds and updates balances when delisted & not started (with getter)', async function() {
+        it('sends funds and updates balances when accepted & not started', async function() {
+            const depositAmount = await JobContract.REPORT_DEPOSIT();
+            const depositToken = await JobContract.REPORT_TOKEN();
+            const rewardPecent = await JobContract.REPORT_REWARD_PERCENT();
+
+            const daoInitialBalance = await getBalanceOf(depositToken, DaoTreasury.address);
+            const contractInitialBalance = await getBalanceOf(depositToken, JobContract.address);
+
             await testUtil.postSampleJob()(JobContract, TestToken);
 
-            const engineerInitialAmount = await getBalanceOf(TestToken, engineer.address);
-            const supplierInitialAmount = await getBalanceOf(TestToken, supplier.address);
+            // === REPORT ===
+            await testUtil.reportJob(JobContract, testUtil.JOB_ID_1);
 
             // get the job
             const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
 
-            await testUtil.delistJob(JobContract, testUtil.JOB_ID_1);
+            const engineerInitialAmount = await getBalanceOf(TestToken, engineer.address);
+            const supplierInitialAmount = await getBalanceOf(TestToken, supplier.address);
+            const reporterInitialAmount = await getBalanceOf(TestToken, reporter.address);
 
-            // check contract
-            const jobValue = await getBalanceOf(TestToken, JobContract.address);
-            expect(jobValue).to.equal(0);
+            // === ACCEPT ===
+            await testUtil.acceptReport(JobContract, testUtil.JOB_ID_1);
 
-            // check supplier (+bounty)
+            // check contract (no change "")
+            const contractBalance = await getBalanceOf(depositToken, JobContract.address);
+            expect(contractBalance).to.equal(contractInitialBalance);
+
+            // check Dao funds (+ deposit)
+            const daoBalance = await getBalanceOf(depositToken, DaoTreasury.address);
+            expect(daoBalance).to.equal(daoInitialBalance.add(depositAmount));
+
+            const reward = jobOne.bounty.mul(rewardPecent).div(10000);
+            const refund = jobOne.bounty.sub(reward);
+
+            // check reporter (+reward)
+            expect(await getBalanceOf(TestToken, reporter.address))
+                .to.equal(reporterInitialAmount.add(reward));
+
+            // check supplier (+bounty - reward)
             const supplierAmount = await getBalanceOf(TestToken, supplier.address);
-            expect(supplierAmount).to.equal(supplierInitialAmount.add(jobOne.bounty));
+            expect(supplierAmount).to.equal(supplierInitialAmount.add(refund));
 
             // check engineer (+deposit)
             expect(await getBalanceOf(TestToken, engineer.address))
                 .to.equal(engineerInitialAmount);
+        });
+    });
 
-            // check Dao funds
-            const fundsValue = await getBalanceOf(TestToken, DaoTreasury.address);
-            expect(fundsValue).to.equal(0);
+    ///////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////
+
+    describe('A reportable job that will have the report declined', function() {
+        it('can be declined', async function() {
+            await testUtil.postSampleJob()(JobContract, TestToken);
+
+            await testUtil.reportJob(JobContract, testUtil.JOB_ID_1, addr1)
+            await testUtil.declineReport(JobContract, testUtil.JOB_ID_1)
+
+            // get the job & report
+            const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
+            const reportOne = await JobContract.reports(testUtil.JOB_ID_1);
+
+            // check state
+            expect(jobOne.state).to.equal(
+                testUtil.STATE_Available
+            );
+
+            expect(reportOne.reporter).to.equal(testUtil.ZERO_ADDRESS);
+        });
+
+        it('may only be called in Reported state', async function() {
+            await testUtil.postSampleJob()(JobContract, TestToken);
+
+            await expect(
+                testUtil.declineReport(
+                    JobContract,
+                    testUtil.JOB_ID_1,
+                )
+            ).to.be.revertedWith('Method not available for job state');
+
+            await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
+
+            await expect(
+                testUtil.declineReport(
+                    JobContract,
+                    testUtil.JOB_ID_1,
+                )
+            ).to.be.revertedWith('Method not available for job state');
+
+            await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
+
+            await expect(
+                testUtil.declineReport(
+                    JobContract,
+                    testUtil.JOB_ID_1,
+                )
+            ).to.be.revertedWith('Method not available for job state');
+
+            await testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1)
+
+            await expect(
+                testUtil.declineReport(
+                    JobContract,
+                    testUtil.JOB_ID_1,
+                )
+            ).to.be.revertedWith('Method not available for job state');
+        });
+
+        it('may only be called by resolver', async function() {
+            await testUtil.postSampleJob()(JobContract, TestToken);
+
+            await expect(
+                testUtil.declineReport(
+                    JobContract,
+                    testUtil.JOB_ID_1,
+                    owner
+                )
+            ).to.be.revertedWith('Not Authorized !');
+
+            await expect(
+                testUtil.declineReport(
+                    JobContract,
+                    testUtil.JOB_ID_1,
+                    engineer
+                )
+            ).to.be.revertedWith('Not Authorized !');
+
+            await expect(
+                testUtil.declineReport(JobContract, testUtil.JOB_ID_1, addr1)
+            ).to.be.revertedWith('Not Authorized !');
+
+            await expect(
+                testUtil.declineReport(JobContract, testUtil.JOB_ID_1, supplier)
+            ).to.be.revertedWith('Not Authorized !');
+        });
+
+        it('emits JobReportDeclined event', async function() {
+            await testUtil.postSampleJob()(JobContract, TestToken);
+            await testUtil.reportJob(JobContract, testUtil.JOB_ID_1)
+
+            await expect(testUtil.declineReport(JobContract, testUtil.JOB_ID_1))
+                .to.emit(JobContract, 'JobReportDeclined')
+                .withArgs(
+                    testUtil.JOB_ID_1,
+                    reporter.address,
+                    testUtil.DEFAULT_REPORT_RESOLVE_REASON
+                );
+        });
+
+        it('sends deposit to Dao', async function() {
+            await testUtil.postSampleJob()(JobContract, TestToken);
+            await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
+
+            const depositAmount = await JobContract.REPORT_DEPOSIT();
+            const depositToken = await JobContract.REPORT_TOKEN();
+            const daoInitialBalance = await getBalanceOf(depositToken, DaoTreasury.address);
+
+            await testUtil.reportJob(JobContract, testUtil.JOB_ID_1);
+            await testUtil.declineReport(JobContract, testUtil.JOB_ID_1);
+
+            // Check Dao (+deposit)
+            const daoBalance = await getBalanceOf(depositToken, DaoTreasury.address);
+            expect(daoBalance).to.equal(daoInitialBalance.add(depositAmount));
         });
     });
 
