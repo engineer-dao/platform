@@ -1,17 +1,17 @@
-import { IContract } from '../../interfaces/IContract';
+import { IJobData } from 'interfaces/IJobData';
 import ContractItem from './ContractItem';
 
 interface IContractsContainer {
-  contracts: IContract[];
+  jobs: IJobData[];
 }
 
 const ContractsContainer: React.FC<IContractsContainer> = (props) => {
-  const { contracts } = props;
+  const { jobs } = props;
 
   return (
     <ul className="grid grid-cols-1 gap-6">
-      {contracts.map((item) => (
-        <ContractItem key={item.id} contract={item} />
+      {jobs.map((item) => (
+        <ContractItem key={item.id} job={item} />
       ))}
     </ul>
   );

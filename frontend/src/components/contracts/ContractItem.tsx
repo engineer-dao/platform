@@ -3,17 +3,18 @@ import {
   CashIcon as OutlineCashIcon,
   ChevronRightIcon,
 } from '@heroicons/react/outline';
-import { IContract } from '../../interfaces/IContract';
+import { IJobData } from 'interfaces/IJobData';
 import { Link } from 'react-router-dom';
 import ContractStatusLabel from './ContractStatusLabel';
 
-interface IContractItemProps {
-  contract: IContract;
+interface IJobDataItemProps {
+  job: IJobData;
 }
 
-const ContractItem: React.FC<IContractItemProps> = ({ contract }) => {
-  const { id, title, bounty, bounty_suffix, buy_in, buy_in_suffix, status } =
-    contract;
+const tokenName = process.env.REACT_APP_PAYMENT_TOKEN_NAME || '';
+
+const ContractItem: React.FC<IJobDataItemProps> = ({ job }) => {
+  const { id, title, bounty, buyIn, state } = job;
 
   return (
     <li
@@ -34,14 +35,14 @@ const ContractItem: React.FC<IContractItemProps> = ({ contract }) => {
                     className="mr-2 h-5 w-5 text-green-500"
                     aria-hidden="true"
                   />
-                  {bounty} {bounty_suffix} Bounty
+                  {bounty} {tokenName} Bounty
                 </p>
                 <p className="text-md mt-1 flex items-center truncate font-bold text-gray-700">
                   <OutlineCashIcon
                     className="mr-2 h-5 w-5 text-green-500"
                     aria-hidden="true"
                   />
-                  {buy_in} {buy_in_suffix} Buy-In
+                  {buyIn || '0'} {tokenName} Buy-In
                 </p>
               </div>
             </div>
@@ -49,7 +50,7 @@ const ContractItem: React.FC<IContractItemProps> = ({ contract }) => {
 
           {/* Right section */}
           <div className="flex-0 truncate">
-            <ContractStatusLabel status={status} />
+            <ContractStatusLabel status={state} />
           </div>
           <div className="ml-5 flex-shrink-0">
             <ChevronRightIcon

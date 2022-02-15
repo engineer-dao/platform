@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, useRef } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 
 import { IModalProps } from 'interfaces/IModalProps';
@@ -45,6 +45,8 @@ export const MyComponent: React.FunctionComponent = () => {
 export const Modal: React.FunctionComponent<IModalProps> = (
   props: IModalProps
 ) => {
+  const focusRef = useRef(null);
+
   const onClose = () => {
     props.onRequestClose && props.onRequestClose();
   };
@@ -52,6 +54,7 @@ export const Modal: React.FunctionComponent<IModalProps> = (
   return (
     <Transition.Root show={props.isOpen} as={Fragment}>
       <Dialog
+        initialFocus={focusRef}
         as="div"
         className="fixed inset-0 z-10 overflow-y-auto"
         onClose={onClose}
@@ -106,9 +109,10 @@ export const Modal: React.FunctionComponent<IModalProps> = (
                   </div>
                 </div>
               </div>
-              {props.closeButton && (
+              {props.closeButton ? (
                 <div className="mt-5 sm:mt-6">
                   <button
+                    ref={focusRef}
                     type="button"
                     className="focus:outline-none inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:text-sm"
                     onClick={() => onClose()}
@@ -116,6 +120,9 @@ export const Modal: React.FunctionComponent<IModalProps> = (
                     {props.closeButton}
                   </button>
                 </div>
+              ) : (
+                /* trap focus */
+                <button ref={focusRef} className="hidden"></button>
               )}
             </div>
           </Transition.Child>

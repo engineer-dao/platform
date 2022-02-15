@@ -1,6 +1,6 @@
 import { WalletContext } from 'components/wallet/WalletContext';
 import { useEffect, useContext } from 'react';
-import { SmartContractState } from 'components/smart-contracts/SmartContractContext';
+import { ISmartContractState } from 'interfaces/ISmartContractState';
 import { BaseContract, EventFilter } from 'ethers';
 import { Listener } from '@ethersproject/providers';
 
@@ -13,7 +13,7 @@ export const useWallet = () => {
 };
 
 export const useBlockchainEventFilter = (
-  contracts: SmartContractState,
+  contracts: ISmartContractState,
   contract: BaseContract,
   buildFilter: () => EventFilter | undefined,
   handlerCallback: Listener

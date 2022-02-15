@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { useWallet } from 'components/wallet/useWallet';
 import {
   SmartContractContext,
-  SmartContractState,
   buildSmartContractState,
 } from 'components/smart-contracts/SmartContractContext';
+import { ISmartContractState } from 'interfaces/ISmartContractState';
 
 import {
   useERC20Approval,
@@ -20,7 +20,7 @@ export const ContractsProvider = ({
 
   // connect the contracts using the wallet when the wallet state changes
   const wallet = useWallet();
-  const contracts: SmartContractState = buildSmartContractState(
+  const contracts: ISmartContractState = buildSmartContractState(
     wallet,
     isERC20Approved
   );

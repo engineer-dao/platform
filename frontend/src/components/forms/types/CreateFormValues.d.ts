@@ -3,4 +3,5 @@ export type CreateFormValues = {
   description: string;
   acceptanceCriteria: string;
   bounty: string;
+  buyIn: string;
 };

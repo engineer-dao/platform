@@ -7,6 +7,7 @@ import {
   IJobSmartContractData,
   IJobMetaData,
 } from 'interfaces/IJobData';
+import { ISmartContractState } from 'interfaces/ISmartContractState';
 
 const assembleJob = (
   jobId: string,
@@ -42,27 +43,34 @@ const assembleJob = (
   return job;
 };
 
+const loadJobFromJobId = async (
+  jobId: string,
+  contracts: ISmartContractState
+) => {
+  // get the job data from the contract
+  const job = await contracts.Job.jobs(jobId);
+
+  // load job meta data from log...
+  const filter = contracts.Job.filters.JobPosted(BigNumber.from(jobId));
+  const results = await contracts.Job.queryFilter(filter);
+
+  const event = results[0];
+
+  const jobMetaDataJSON = event.args.jobMetaData;
+  // TODO: validate meta data with a schema
+  const unsafeJobMetaData = JSON.parse(jobMetaDataJSON);
+
+  return assembleJob(jobId, job, unsafeJobMetaData);
+};
+
 export const useJob = (jobId: string) => {
   const { contracts } = useSmartContracts();
   const { account } = useWallet();
-  const [jobData, setJobData] = useState<undefined | any>();
+  const [jobData, setJobData] = useState<undefined | IJobData>();
 
   useEffect(() => {
     const fetchJob = async () => {
-      const job = await contracts.Job.jobs(jobId);
-
-      // load job meta data from log...
-      const filter = contracts.Job.filters.JobPosted(BigNumber.from(jobId));
-      const results = await contracts.Job.queryFilter(filter);
-
-      results.forEach((event) => {
-        const jobMetaDataJSON = event.args.jobMetaData;
-
-        // TODO: validate meta data with a schema
-        const unsafeJobMetaData = JSON.parse(jobMetaDataJSON);
-
-        setJobData(assembleJob(jobId, job, unsafeJobMetaData));
-      });
+      setJobData(await loadJobFromJobId(jobId, contracts));
     };
 
     if (jobId && account) {
@@ -71,4 +79,41 @@ export const useJob = (jobId: string) => {
   }, [jobId, account, contracts]);
 
   return jobData;
+};
+
+export const useFindJobs = () => {
+  const { contracts } = useSmartContracts();
+  const { account } = useWallet();
+  const [jobs, setJobs] = useState<IJobData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      // load all jobs
+      const highestJobCount = (await contracts.Job.jobCount()).toNumber();
+
+      const allJobs = [] as IJobData[];
+      for (
+        let jobIdInteger = 1;
+        jobIdInteger <= highestJobCount;
+        ++jobIdInteger
+      ) {
+        // load
+        const jobData = await loadJobFromJobId(String(jobIdInteger), contracts);
+        allJobs.push(jobData);
+      }
+
+      setJobs(allJobs);
+      setIsLoading(false);
+    };
+
+    if (account) {
+      fetchJobs();
+    }
+  }, [account, contracts]);
+
+  return {
+    jobs,
+    isLoading,
+  };
 };

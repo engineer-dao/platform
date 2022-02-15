@@ -3,7 +3,7 @@ import { ContractTransaction } from 'ethers';
 import { Modal } from 'components/ui/Modal';
 import { ContractReceipt } from 'ethers';
 
-export type CallContractCallback = () => Promise<ContractTransaction>;
+type CallContractCallback = () => Promise<ContractTransaction>;
 
 enum TXStatus {
   Ready = 'Ready',
@@ -12,9 +12,9 @@ enum TXStatus {
   Error = 'Error',
 }
 
-export type OnConfirmedCallback = (receipt: ContractReceipt) => void;
+type OnConfirmedCallback = (receipt: ContractReceipt) => void;
 
-export type TransactionError = {
+type TransactionError = {
   message: string;
 };
 

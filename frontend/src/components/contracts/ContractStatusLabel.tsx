@@ -1,8 +1,9 @@
 import classNames from 'classnames';
-import { ContractStatus } from '../../enums/ContractStatus';
+// import { ContractStatus } from '../../enums/ContractStatus';
+import { IJobState } from 'interfaces/IJobData';
 
 interface IContractStatusLabelProps {
-  status: keyof typeof ContractStatus;
+  status: IJobState;
 }
 
 const ContractStatusLabel: React.FC<IContractStatusLabelProps> = (props) => {
@@ -11,32 +12,32 @@ const ContractStatusLabel: React.FC<IContractStatusLabelProps> = (props) => {
   let _color;
 
   switch (status) {
-    case 'available':
+    case IJobState.Available:
       _color = 'text-green-600';
       break;
-    case 'active':
+    case IJobState.Started:
       _color = 'text-blue-600';
       break;
-    case 'awaiting_payment':
+    case IJobState.Completed:
       _color = 'text-orange-600';
       break;
-    case 'completed':
+    case IJobState.FinalApproved:
       _color = 'text-gray-600';
       break;
-    case 'disputed':
+    case IJobState.Disputed:
       _color = 'text-red-600';
       break;
-    case 'close_requested':
+    case IJobState.FinalNoResponse:
       _color = 'text-red-400';
       break;
-    case 'closed':
+    case IJobState.FinalMutualClose:
       _color = 'text-gray-400';
       break;
   }
 
   return (
     <h3 className={classNames('text-md truncate font-medium', _color)}>
-      {ContractStatus[status]}
+      {IJobState[status]}
     </h3>
   );
 };
