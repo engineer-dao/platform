@@ -12,6 +12,8 @@ import '@atixlabs/hardhat-time-n-mine';
 import 'hardhat-deploy';
 import 'solidity-coverage';
 
+import "./tasks/test-tokens";
+
 dotenv.config();
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -42,7 +44,15 @@ task(
 // Go to https://hardhat.org/config/ to learn more
 
 const config: HardhatUserConfig = {
-    solidity: '0.8.9',
+    solidity: {
+        version: '0.8.9',
+        settings: {
+            optimizer: {
+                enabled: true,
+                runs: 1000,
+            }
+        }
+    },
     namedAccounts: {
         deployer: 0,
     },

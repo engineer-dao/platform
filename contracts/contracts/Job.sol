@@ -33,6 +33,10 @@ contract Job is IJob, Ownable {
     // Number of seconds after job is completed before job is awarded to engineer
     uint256 public COMPLETED_TIMEOUT_SECONDS = 7 days;
 
+    uint256 public REPORT_DEPOSIT = 50e18;
+    IERC20 public REPORT_TOKEN;
+    uint256 public REPORT_REWARD_PERCENT = 1000;
+
     // @notice DAO_FEE send to this address
     address public daoTreasury;
     address public disputeResolver;
@@ -57,6 +61,12 @@ contract Job is IJob, Ownable {
         uint256 bounty;
         uint256 startTime;
         uint256 completedTime;
+        bool isReported;
+    }
+
+    struct Report {
+        address reporter;
+        string metadata;
     }
 
     enum States {
@@ -76,6 +86,7 @@ contract Job is IJob, Ownable {
 
     uint256 public jobCount;
     mapping(uint256 => JobData) public jobs;
+    mapping(uint256 => Report) public reports;
 
     /**********
      * Events *
@@ -94,14 +105,25 @@ contract Job is IJob, Ownable {
     event JobDisputed(uint256 indexed jobId);
     event JobDisputeResolved(uint256 indexed jobId, States finalState);
     event PaymentTokensUpdated(IERC20 indexed token, bool indexed value);
-    event JobDelisted(uint256 indexed jobId, string reason);
+
+    event JobReported(uint256 indexed jobId, address reporter, string metadata);
+    event JobReportDeclined(uint256 indexed jobId, address reporter, string reason);
+    event JobDelisted(uint256 indexed jobId, address reporter, string reason);
 
     /***************
      * Constructor *
      ***************/
 
-    constructor(IERC20 _initialPaymentToken) {
-        paymentTokens[_initialPaymentToken] = true;
+    constructor(
+        IERC20 _initialToken,
+        address _daoTreasury,
+        address _resolver
+    ) {
+        paymentTokens[_initialToken] = true;
+        tokensList.push(_initialToken);
+        REPORT_TOKEN = _initialToken;
+        daoTreasury = _daoTreasury;
+        disputeResolver = _resolver;
     }
 
     /**********************
@@ -335,6 +357,59 @@ contract Job is IJob, Ownable {
         emit JobDisputeResolved(jobId, States.FinalDisputeResolvedWithSplit);
     }
 
+    // Used to prevent illegal activity
+    function reportJob(uint256 jobId, string memory metadata) external {
+        JobData memory job = jobs[jobId];
+
+        // TODO: Should we also allow Disputed state ?
+        require(job.state == States.Available || job.state == States.Started, "Method not available for job state");
+
+        jobs[jobId].isReported = true;
+        reports[jobId].reporter = msg.sender;
+        reports[jobId].metadata = metadata;
+
+        receiveFunds(REPORT_TOKEN, msg.sender, REPORT_DEPOSIT);
+
+        emit JobReported(jobId, msg.sender, metadata);
+    }
+
+    function declineReport(uint256 jobId, string memory reason) external onlyResolver {
+        require(jobs[jobId].isReported, "Method not available for job state");
+
+        address reporter = reports[jobId].reporter;
+
+        delete jobs[jobId].isReported;
+        delete reports[jobId];
+
+        sendFunds(REPORT_TOKEN, daoTreasury, REPORT_DEPOSIT);
+        emit JobReportDeclined(jobId, reporter, reason);
+    }
+
+    function acceptReport(uint256 jobId, string memory reason) external onlyResolver {
+        JobData memory job = jobs[jobId];
+
+        require(job.isReported, "Method not available for job state");
+
+        address reporter = reports[jobId].reporter;
+
+        delete jobs[jobId];
+        delete reports[jobId];
+
+        uint256 rewardAmount = (job.bounty * REPORT_REWARD_PERCENT) / BASE_PERCENTAGE;
+        uint256 refundAmount = job.bounty - rewardAmount;
+
+        sendFunds(job.token, reporter, rewardAmount);
+        sendFunds(job.token, job.supplier, refundAmount);
+
+        if (job.deposit > 0) {
+            sendFunds(job.token, job.engineer, job.deposit);
+        }
+
+        sendFunds(REPORT_TOKEN, daoTreasury, REPORT_DEPOSIT);
+
+        emit JobDelisted(jobId, reporter, reason);
+    }
+
     // TODO: Do we need any other convenient getters ?
 
     function getAllPaymentTokens() external view returns (IERC20[] memory tokens) {
@@ -373,23 +448,6 @@ contract Job is IJob, Ownable {
     /****************************
      * DAO Management Functions *
      ****************************/
-
-    // Used to prevent illegal activity
-    function delistJob(uint256 jobId, string memory reason) external onlyOwner {
-        require(
-            jobs[jobId].state == States.Available ||
-                jobs[jobId].state == States.Started ||
-                jobs[jobId].state == States.Disputed,
-            "Method not available for job state"
-        );
-        JobData memory job = jobs[jobId];
-
-        delete jobs[jobId];
-
-        emit JobDelisted(jobId, reason);
-        sendJobRefund(job);
-    }
-
     // TODO: what if someone sends a token by mistake to this contract ?
     // TODO: function withdraw
 
@@ -433,6 +491,18 @@ contract Job is IJob, Ownable {
 
     function setResolver(address addr) external onlyOwner {
         disputeResolver = addr;
+    }
+
+    function setReportDeposit(uint256 newValue) external onlyOwner {
+        REPORT_DEPOSIT = newValue;
+    }
+
+    function setReportToken(IERC20 newToken) external onlyOwner {
+        REPORT_TOKEN = newToken;
+    }
+
+    function setReportReward(uint256 newPercent) external onlyOwner {
+        REPORT_REWARD_PERCENT = newPercent;
     }
 
     /**********************
