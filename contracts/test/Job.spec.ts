@@ -270,6 +270,14 @@ describe("JobContract ", function() {
             expect(jobData.state).to.equal(testUtil.STATE_Started);
         });
 
+        it('emits JobStarted event when started', async function() {
+            await testUtil.postSampleJob()(JobContract, TestToken);
+
+            await expect(testUtil.startJob(JobContract, testUtil.JOB_ID_1))
+                .to.emit(JobContract, 'JobStarted')
+                .withArgs(engineer.address, testUtil.JOB_ID_1);
+        });
+
         it('can be started when given correct deposit', async function() {
             const amount = testUtil.ONE_HUND_TOKENS;
             const depositPct = 5000;
