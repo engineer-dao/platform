@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React from 'react';
-import { JobState } from 'enums/JobState';
+import { JobState, JobStateLabels } from 'enums/JobState';
 
 interface IStatusChipProps {
   status: JobState;
@@ -21,10 +21,10 @@ const StatusChip: React.FC<IStatusChipProps> = (props) => {
       _color = 'bg-blue-600 text-white';
       break;
     case JobState.Completed:
-      _color = 'bg-orange-300 text-white';
+      _color = 'bg-yellow-600 text-white';
       break;
     case JobState.FinalApproved:
-      _color = 'bg-gray-400 text-white';
+      _color = 'bg-gray-600 text-white';
       break;
     case JobState.Disputed:
       _color = 'bg-red-400 text-white';
@@ -46,7 +46,7 @@ const StatusChip: React.FC<IStatusChipProps> = (props) => {
         _color
       )}
     >
-      {JobState[status]}
+      {JobStateLabels[status]}
     </span>
   );
 };
