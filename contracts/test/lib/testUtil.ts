@@ -5,6 +5,8 @@ import { ERC20 } from "../../typechain/index";
 import { SignerWithAddress } from "hardhat-deploy-ethers/signers";
 import { extractAbi } from "typechain";
 import { ABI_ERC20 } from "./abis";
+import fs from "fs-extra";
+import path from "path";
 
 export const T_SUFFIX = '000000000000000000';
 export const ONE_TOKEN = '1' + T_SUFFIX;
@@ -41,6 +43,7 @@ export const ZERO_ADDRESS = ethers.constants.AddressZero;
 // TODO: can be moved to env & env.testnet and called "DAO_STABLE_COIN_ADDRESS"
 // polygon mainnet
 export const USDC_ADDRESS = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174";
+let erc20TokenSetupInstructions: string[];
 
 interface JobMetaData {
     ver?: string;
@@ -66,7 +69,7 @@ export const deployDaoTreasury = async () => {
     return DaoTreasury;
 };
 
-export const deployERC20Token = async () => {
+export const deployERC20Token = async (): Promise<ERC20> => {
     const testToken = await (
         await ethers.getContractFactory('TestERC20')
     ).deploy();
@@ -82,13 +85,78 @@ export const deployJob = async (TestToken: ContractTypes.TestERC20, DaoTreasury:
     return job;
 };
 
-export const setupJobAndTokenBalances = async () => {
-    const TestToken = await deployERC20Token();
-    const DaoTreasury = await deployDaoTreasury();
+export const readTokensConfig = async (): Promise<string[]> => {
+    return new Promise((resolve) => {
+        fs.readFile(path.join(__dirname, './tokenInstructions.json'), 'utf8', (err, data) => {
+            if (err) {
+                return resolve([]);
+            }
 
+            const content = JSON.parse(data);
+
+            resolve(content);
+        });
+    });
+}
+
+export const setup = async () => {
+    const instructions = await readTokensConfig();
+    if (instructions && instructions.length > 0) {
+        erc20TokenSetupInstructions = instructions;
+    }
+}
+
+export const executeERC20TokenInstructions = async (JobContract: ContractTypes.Job): Promise<ERC20> => {
+    const idToToken: { [id: string]: ERC20 } = {};
+
+    await erc20TokenSetupInstructions.reduce(async (chain, operation) => {
+        return chain.then(async () => {
+            const [type, id] = operation.split(" ");
+            switch (type) {
+                case "add":
+                    if (idToToken[id]) {
+                        await updatePaymentTokens(JobContract, idToToken[id].address, true);
+                    } else {
+                        const Token = await deployERC20Token();
+                        idToToken[id] = Token;
+                        await updatePaymentTokens(JobContract, Token.address, true);
+                    }
+                    break;
+                case "remove":
+                    await updatePaymentTokens(JobContract, idToToken[id].address, false);
+                    break;
+            }
+        })
+    }, Promise.resolve());
+
+    const [type, idToUse] = erc20TokenSetupInstructions[erc20TokenSetupInstructions.length - 1].split(" ");
+    if (type !== "use") {
+        throw Error("Last instruction must be 'use'");
+    }
+
+    const TestToken = idToToken[idToUse];
+    if (!TestToken) {
+        throw Error("Wrong 'use' ... no such token " + idToToken);
+    }
+    return TestToken;
+}
+
+export const setupJobAndTokenBalances = async () => {
     const _signers = await signers();
 
-    const JobContract = await deployJob(TestToken, DaoTreasury, _signers.resolver.address);
+    let InitialToken = await deployERC20Token();
+    const DaoTreasury = await deployDaoTreasury();
+    const JobContract = await deployJob(InitialToken, DaoTreasury, _signers.resolver.address);
+
+    let TestToken;
+    if (!erc20TokenSetupInstructions) {
+        TestToken = InitialToken
+    } else {
+        TestToken = await executeERC20TokenInstructions(JobContract);
+
+        // so that we don't distribute InitialToken balanced as well
+        await JobContract.setReportToken(TestToken.address);
+    }
 
     await (await JobContract.setDaoTreasury(DaoTreasury.address)).wait();
     await (await JobContract.setResolver(_signers.resolver.address)).wait();
@@ -122,6 +190,28 @@ export const setupJobAndTokenBalances = async () => {
 
     return { JobContract, TestToken, DaoTreasury };
 };
+
+export const updatePaymentTokens = async (JobContract: ContractTypes.Job, addr: string, enable: boolean): Promise<void> => {
+    await JobContract.updatePaymentTokens(addr, enable);
+}
+
+export const getAllowedTokens = async (JobContract: ContractTypes.Job): Promise<string[]> => {
+    return await JobContract.getAllPaymentTokens();
+}
+
+export const getERC20Contract = (addr: string, signer: Signer): ERC20 => {
+    return new Contract(addr, ABI_ERC20, signer) as ERC20;
+}
+
+export const getERC20Contracts = async (addresses: string[]): Promise<ERC20[]> => {
+    const _signers = await signers();
+
+    const contracts: ERC20[] = addresses.map((addr) => {
+        return getERC20Contract(addr, _signers.owner);
+    })
+
+    return contracts;
+}
 
 export const getBalanceOf = async (TokenContract: ERC20 | string, address: string): Promise<BigNumber> => {
     if (typeof TokenContract === "string") {

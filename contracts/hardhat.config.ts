@@ -12,6 +12,8 @@ import '@atixlabs/hardhat-time-n-mine';
 import 'hardhat-deploy';
 import 'solidity-coverage';
 
+import "./tasks/test-tokens";
+
 dotenv.config();
 
 // This is a sample Hardhat task. To learn how to create your own go to

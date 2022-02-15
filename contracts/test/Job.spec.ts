@@ -9,7 +9,7 @@ import {
     STATE_FinalDisputeResolvedWithSplit,
     STATE_DoesntExist,
     deployERC20Token,
-    deployDaoTreasury, deployJob
+    deployDaoTreasury, deployJob, updatePaymentTokens, getAllowedTokens
 } from "./lib/testUtil";
 
 const hre = require('hardhat');
@@ -48,6 +48,8 @@ describe("JobContract ", function() {
     let DaoTreasury: DaoTreasury;
 
     before(async () => {
+        await testUtil.setup();
+
         [owner, resolver, supplier, engineer, reporter, addr1, addr2] =
             await hre.ethers.getSigners();
     })
@@ -1789,83 +1791,43 @@ describe("JobContract ", function() {
     });
 
 
-// describe('DAO Funds', function() {
-//     it('may be withdrawn', async function() {
-//         const _signers = await testUtil.signers();
-//
-//         await testUtil.postSampleJob()(JobContract, TestToken);
-//         await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
-//         await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
-//         await testUtil.approveJob(JobContract, testUtil.JOB_ID_1);
-//
-//         await testUtil.withdrawDaoFunds(
-//             JobContract,
-//             other.address,
-//             testUtil.toBigNum(10)
-//         );
-//
-//         // check other address balance
-//         expect(await getBalanceOf(TestToken, other.address)).to.equal(
-//             testUtil.toBigNum(1000 + 10)
-//         );
-//     });
-//     it('may only by be withdrawn by owner', async function() {
-//         const _signers = await testUtil.signers();
-//
-//         await testUtil.postSampleJob()(JobContract, TestToken);
-//         await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
-//         await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
-//         await testUtil.approveJob(JobContract, testUtil.JOB_ID_1);
-//
-//         await expect(
-//             testUtil.withdrawDaoFunds(
-//                 JobContract,
-//                 other.address,
-//                 testUtil.toBigNum(10),
-//                 other
-//             )
-//         ).to.be.revertedWith('Method not available for this caller');
-//
-//         await expect(
-//             testUtil.withdrawDaoFunds(
-//                 JobContract,
-//                 other.address,
-//                 testUtil.toBigNum(10),
-//                 supplier
-//             )
-//         ).to.be.revertedWith('Method not available for this caller');
-//     });
-//     it('may not overdraw', async function() {
-//         const _signers = await testUtil.signers();
-//
-//         await testUtil.postSampleJob()(JobContract, TestToken);
-//         await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
-//         await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
-//         await testUtil.approveJob(JobContract, testUtil.JOB_ID_1);
-//
-//         await expect(
-//             testUtil.withdrawDaoFunds(
-//                 JobContract,
-//                 other.address,
-//                 testUtil.toBigNum(11)
-//             )
-//         ).to.be.revertedWith('Insufficient funds');
-//     });
-//     it('updates balance when withdrawn', async function() {
-//         const _signers = await testUtil.signers();
-//
-//         await testUtil.postSampleJob()(JobContract, TestToken);
-//         await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
-//         await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
-//         await testUtil.approveJob(JobContract, testUtil.JOB_ID_1);
-//         await testUtil.withdrawDaoFunds(
-//             JobContract,
-//             other.address,
-//             testUtil.toBigNum(8)
-//         );
-//         const fundsValue = await getBalanceOf(TestToken, JobContract.address);
-//         expect(fundsValue).to.equal(testUtil.toBigNum(2));
-//     });
-// });
+    describe("The multiple ERC20 token support", function() {
+        it("should be able to add tokens", async function() {
+            const Token = await deployERC20Token();
+            await updatePaymentTokens(JobContract, Token.address, true);
+
+            const tokens = await testUtil.getAllowedTokens(JobContract);
+
+            expect(tokens).to.contain(Token.address);
+        })
+
+        it("should be able to remove tokens", async function() {
+            const Token = await deployERC20Token();
+            await updatePaymentTokens(JobContract, Token.address, true);
+
+            const tokens = await testUtil.getAllowedTokens(JobContract);
+            expect(tokens).to.contain(Token.address);
+
+            await updatePaymentTokens(JobContract, Token.address, false);
+
+            const tokensAfter = await testUtil.getAllowedTokens(JobContract);
+            expect(tokensAfter).to.not.contain(Token.address);
+        })
+
+        it("should not be able to add the same token twice", async function() {
+            const Token = await deployERC20Token();
+            await updatePaymentTokens(JobContract, Token.address, true);
+
+            const tokens = await testUtil.getAllowedTokens(JobContract);
+            expect(tokens.length).to.equal(2);
+            expect(tokens).to.contain(Token.address);
+
+            await expect(updatePaymentTokens(JobContract, Token.address, true)).to.be.revertedWith("Already added !");
+        })
+    })
+
+    describe('Setter Functions', function() {
+        // TODO
+    });
 
 })
