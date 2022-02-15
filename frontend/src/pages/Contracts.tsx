@@ -1,12 +1,14 @@
 import ContractsContainer from '../components/contracts/ContractsContainer';
 import SortFilterHeading from '../components/SortFilterHeading';
-import { contracts } from '../mocks/contracts';
+import { useFindJobs } from 'components/smart-contracts/useJob';
 
 const Contracts = () => {
+  const { jobs, isLoading } = useFindJobs();
+
   return (
     <>
       <SortFilterHeading heading="Contracts" displayCreate />
-      <ContractsContainer contracts={contracts} />
+      {isLoading ? <div>Loading..</div> : <ContractsContainer jobs={jobs} />}
     </>
   );
 };

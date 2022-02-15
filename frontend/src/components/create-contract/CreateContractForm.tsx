@@ -20,6 +20,7 @@ const CreateContractForm = () => {
     description: '',
     acceptanceCriteria: '',
     bounty: '',
+    buyIn: '',
   };
 
   const history = useHistory();
