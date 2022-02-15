@@ -10,17 +10,14 @@ interface ISmartContractContext {
   updateERC20Approval: (isERC20Approved: boolean) => void;
 }
 
-export const buildSmartContractState = (
-  wallet: IWalletState,
-  isERC20Approved: boolean
-) => {
+export const buildSmartContractState = (wallet: IWalletState) => {
   const walletProvider =
     wallet.provider !== null
       ? wallet.provider.getSigner()
       : new ethers.providers.BaseProvider('any');
 
   const contracts: ISmartContractState = {
-    isERC20Approved: isERC20Approved,
+    isERC20Approved: false,
     ERC20: ERC20__factory.connect(
       SmartContractAddresses.PaymentToken,
       walletProvider
@@ -38,10 +35,7 @@ const initialWalletState: IWalletState = {
   providerInfo: null,
 };
 
-const initialSmartContractsState = buildSmartContractState(
-  initialWalletState,
-  false
-);
+const initialSmartContractsState = buildSmartContractState(initialWalletState);
 
 const defaultSmartContractsContextValue: ISmartContractContext = {
   contracts: initialSmartContractsState,

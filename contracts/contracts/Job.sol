@@ -229,6 +229,8 @@ contract Job is IJob, Ownable {
         jobs[jobId].deposit = deposit;
         jobs[jobId].startTime = block.timestamp;
         jobs[jobId].state = States.Started;
+
+        emit JobStarted(msg.sender, jobId);
     }
 
     // engineer marks a job as completed

@@ -1,8 +1,5 @@
 import { WalletContext } from 'components/wallet/WalletContext';
-import { useEffect, useContext } from 'react';
-import { ISmartContractState } from 'interfaces/ISmartContractState';
-import { BaseContract, EventFilter } from 'ethers';
-import { Listener } from '@ethersproject/providers';
+import { useContext } from 'react';
 
 export const useWallet = () => {
   const context = useContext(WalletContext);
@@ -10,27 +7,4 @@ export const useWallet = () => {
     throw new Error('No Contract Context Found');
   }
   return context;
-};
-
-export const useBlockchainEventFilter = (
-  contracts: ISmartContractState,
-  contract: BaseContract,
-  buildFilter: () => EventFilter | undefined,
-  handlerCallback: Listener
-) => {
-  useEffect(() => {
-    // attach
-    const filter = buildFilter();
-    if (filter) {
-      contract.on(filter, handlerCallback);
-    }
-    return () => {
-      // detach
-      const filter = buildFilter();
-      if (filter) {
-        contract.off(filter, handlerCallback);
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contracts]);
 };
