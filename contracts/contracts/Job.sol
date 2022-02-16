@@ -381,7 +381,6 @@ contract Job is IJob, Ownable {
         address reporter = reports[jobId].reporter;
 
         delete jobs[jobId].isReported;
-        delete reports[jobId];
 
         sendFunds(REPORT_TOKEN, daoTreasury, REPORT_DEPOSIT);
         emit JobReportDeclined(jobId, reporter, reason);
@@ -395,7 +394,6 @@ contract Job is IJob, Ownable {
         address reporter = reports[jobId].reporter;
 
         delete jobs[jobId];
-        delete reports[jobId];
 
         uint256 rewardAmount = (job.bounty * REPORT_REWARD_PERCENT) / BASE_PERCENTAGE;
         uint256 refundAmount = job.bounty - rewardAmount;

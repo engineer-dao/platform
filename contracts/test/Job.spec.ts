@@ -1495,14 +1495,11 @@ describe("JobContract ", function() {
 
             // get the job & report
             const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
-            const reportOne = await JobContract.reports(testUtil.JOB_ID_1);
 
             // check state
             expect(jobOne.state).to.equal(
                 testUtil.STATE_DoesntExist
             );
-
-            expect(reportOne.reporter).to.equal(testUtil.ZERO_ADDRESS);
         });
 
         it('may only be called in Reported state', async function() {
@@ -1692,14 +1689,11 @@ describe("JobContract ", function() {
 
             // get the job & report
             const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
-            const reportOne = await JobContract.reports(testUtil.JOB_ID_1);
 
             // check state
             expect(jobOne.state).to.equal(
                 testUtil.STATE_Available
             );
-
-            expect(reportOne.reporter).to.equal(testUtil.ZERO_ADDRESS);
         });
 
         it('may only be called in Reported state', async function() {
