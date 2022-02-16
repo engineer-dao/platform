@@ -1,20 +1,6 @@
 import { JobState } from 'enums/JobState';
 import { BigNumber } from 'ethers';
 
-export const JobStateLabels = {
-  1: 'Available',
-  2: 'Started',
-  3: 'Completed',
-  4: 'Disputed',
-  5: 'Finalized and Paid',
-  6: 'Canceled By Supplier',
-  7: 'Closed by Mutual Agreement',
-  8: 'Abandoned with no Response',
-  9: 'Dispute Resolved for Supplier',
-  10: 'Dispute Resolved for Engineer',
-  11: 'Dispute Resolved with Split',
-};
-
 export interface IJobSmartContractData {
   supplier: string;
   bounty: BigNumber;

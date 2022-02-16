@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 // import { ContractStatus } from '../../enums/ContractStatus';
-import { JobState } from 'enums/JobState';
+import { JobState, JobStateLabels } from 'enums/JobState';
 
 interface IContractStatusLabelProps {
   status: JobState;
@@ -19,7 +19,7 @@ const ContractStatusLabel: React.FC<IContractStatusLabelProps> = (props) => {
       _color = 'text-blue-600';
       break;
     case JobState.Completed:
-      _color = 'text-orange-600';
+      _color = 'text-yellow-600';
       break;
     case JobState.FinalApproved:
       _color = 'text-gray-600';
@@ -37,7 +37,7 @@ const ContractStatusLabel: React.FC<IContractStatusLabelProps> = (props) => {
 
   return (
     <h3 className={classNames('text-md truncate font-medium', _color)}>
-      {JobState[status]}
+      {JobStateLabels[status]}
     </h3>
   );
 };
