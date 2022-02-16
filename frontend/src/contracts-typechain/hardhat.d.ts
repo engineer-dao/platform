@@ -33,13 +33,17 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.DaoTreasury__factory>;
     getContractFactory(
-      name: "IRouter",
+      name: "IDaoTreasury",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IRouter__factory>;
+    ): Promise<Contracts.IDaoTreasury__factory>;
     getContractFactory(
       name: "IJob",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IJob__factory>;
+    getContractFactory(
+      name: "IRouter",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IRouter__factory>;
     getContractFactory(
       name: "Job",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -75,15 +79,20 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.DaoTreasury>;
     getContractAt(
-      name: "IRouter",
+      name: "IDaoTreasury",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.IRouter>;
+    ): Promise<Contracts.IDaoTreasury>;
     getContractAt(
       name: "IJob",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IJob>;
+    getContractAt(
+      name: "IRouter",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IRouter>;
     getContractAt(
       name: "Job",
       address: string,

@@ -1,5 +1,3 @@
-import { CreateFormValues } from 'components/forms/types';
-
 import {
   CheckCircleIcon,
   ClockIcon,
@@ -7,9 +5,9 @@ import {
   KeyIcon,
   UserGroupIcon,
 } from '@heroicons/react/outline';
-import React from 'react';
+import { ICreateContractForm } from './ICreateContractForm';
 
-const OptionsSummary = ({ data }: { data: CreateFormValues }) => {
+const OptionsSummary = ({ data }: { data: ICreateContractForm }) => {
   return (
     <>
       <div className="flex">

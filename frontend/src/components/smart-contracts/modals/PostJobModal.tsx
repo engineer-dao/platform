@@ -1,13 +1,13 @@
-import { CreateFormValues } from 'components/forms/types';
 import { SmartContractAddresses } from 'components/smart-contracts/SmartContractAddresses';
 import { TransactionModal } from 'components/smart-contracts/modals/TransactionModal';
 import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
 import { ContractReceipt, ethers } from 'ethers';
 import { ITransactionModalProps } from 'interfaces/ITransactionModalProps';
 import React from 'react';
+import { ICreateContractForm } from '../../create-contract/ICreateContractForm';
 
 interface IProps extends ITransactionModalProps {
-  formData: CreateFormValues;
+  formData: ICreateContractForm;
 }
 
 export const PostJobModal = (props: IProps) => {
