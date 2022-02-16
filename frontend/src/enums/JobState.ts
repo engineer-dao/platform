@@ -11,3 +11,17 @@ export enum JobState {
   FinalDisputeResolvedForEngineer = 10,
   FinalDisputeResolvedWithSplit = 11,
 }
+
+export const JobStateLabels = {
+  [JobState.Available]: 'Available',
+  [JobState.Started]: 'Started',
+  [JobState.Completed]: 'Completed',
+  [JobState.Disputed]: 'Disputed',
+  [JobState.FinalApproved]: 'Accepted and Paid',
+  [JobState.FinalCanceledBySupplier]: 'Canceled By Supplier',
+  [JobState.FinalMutualClose]: 'Closed by Mutual Agreement',
+  [JobState.FinalNoResponse]: 'Abandoned with no Response',
+  [JobState.FinalDisputeResolvedForSupplier]: 'Dispute Resolved for Supplier',
+  [JobState.FinalDisputeResolvedForEngineer]: 'Dispute Resolved for Engineer',
+  [JobState.FinalDisputeResolvedWithSplit]: 'Dispute Resolved with Split',
+};

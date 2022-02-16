@@ -173,7 +173,7 @@ const CreateContractForm = () => {
               ) : (
                 <div className="col-span-6 text-center text-sm font-normal leading-5">
                   <div className="mt-2 text-gray-800">
-                    You must grant approve to the contract to spend the payment
+                    You must grant approval to the contract to spend the payment
                     token before you can post this job.
                   </div>
 
