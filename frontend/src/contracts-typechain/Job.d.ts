@@ -25,14 +25,18 @@ interface JobInterface extends ethers.utils.Interface {
     "DAO_FEE()": FunctionFragment;
     "MINIMUM_BOUNTY()": FunctionFragment;
     "MINIMUM_SPLIT_CHUNK_PERCENTAGE()": FunctionFragment;
+    "REPORT_DEPOSIT()": FunctionFragment;
+    "REPORT_REWARD_PERCENT()": FunctionFragment;
+    "REPORT_TOKEN()": FunctionFragment;
     "RESOLUTION_FEE_PERCENTAGE()": FunctionFragment;
+    "acceptReport(uint256,string)": FunctionFragment;
     "approveJob(uint256)": FunctionFragment;
     "cancelJob(uint256)": FunctionFragment;
     "closeJob(uint256)": FunctionFragment;
     "completeJob(uint256)": FunctionFragment;
     "completeTimedOutJob(uint256)": FunctionFragment;
     "daoTreasury()": FunctionFragment;
-    "delistJob(uint256,string)": FunctionFragment;
+    "declineReport(uint256,string)": FunctionFragment;
     "disputeJob(uint256)": FunctionFragment;
     "disputeResolver()": FunctionFragment;
     "getAllPaymentTokens()": FunctionFragment;
@@ -42,8 +46,10 @@ interface JobInterface extends ethers.utils.Interface {
     "jobs(uint256)": FunctionFragment;
     "owner()": FunctionFragment;
     "paymentTokens(address)": FunctionFragment;
-    "postJob(address,uint256,uint256,string)": FunctionFragment;
+    "postJob(address,uint256,uint256,uint256)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
+    "reportJob(uint256,uint256)": FunctionFragment;
+    "reports(uint256)": FunctionFragment;
     "resolveDisputeForEngineer(uint256)": FunctionFragment;
     "resolveDisputeForSupplier(uint256)": FunctionFragment;
     "resolveDisputeWithCustomSplit(uint256,uint256)": FunctionFragment;
@@ -52,6 +58,9 @@ interface JobInterface extends ethers.utils.Interface {
     "setJobTimeout(uint256)": FunctionFragment;
     "setMinBounty(uint256)": FunctionFragment;
     "setMinChunk(uint256)": FunctionFragment;
+    "setReportDeposit(uint256)": FunctionFragment;
+    "setReportReward(uint256)": FunctionFragment;
+    "setReportToken(address)": FunctionFragment;
     "setResolutionFee(uint256)": FunctionFragment;
     "setResolver(address)": FunctionFragment;
     "startJob(uint256,uint256)": FunctionFragment;
@@ -74,8 +83,24 @@ interface JobInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "REPORT_DEPOSIT",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "REPORT_REWARD_PERCENT",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "REPORT_TOKEN",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "RESOLUTION_FEE_PERCENTAGE",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "acceptReport",
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "approveJob",
@@ -102,7 +127,7 @@ interface JobInterface extends ethers.utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "delistJob",
+    functionFragment: "declineReport",
     values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
@@ -134,11 +159,19 @@ interface JobInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "postJob",
-    values: [string, BigNumberish, BigNumberish, string]
+    values: [string, BigNumberish, BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "reportJob",
+    values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "reports",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "resolveDisputeForEngineer",
@@ -171,6 +204,18 @@ interface JobInterface extends ethers.utils.Interface {
   encodeFunctionData(
     functionFragment: "setMinChunk",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setReportDeposit",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setReportReward",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setReportToken",
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "setResolutionFee",
@@ -208,7 +253,23 @@ interface JobInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "REPORT_DEPOSIT",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "REPORT_REWARD_PERCENT",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "REPORT_TOKEN",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "RESOLUTION_FEE_PERCENTAGE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "acceptReport",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "approveJob", data: BytesLike): Result;
@@ -226,7 +287,10 @@ interface JobInterface extends ethers.utils.Interface {
     functionFragment: "daoTreasury",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "delistJob", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "declineReport",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "disputeJob", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "disputeResolver",
@@ -256,6 +320,8 @@ interface JobInterface extends ethers.utils.Interface {
     functionFragment: "renounceOwnership",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "reportJob", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "reports", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "resolveDisputeForEngineer",
     data: BytesLike
@@ -286,6 +352,18 @@ interface JobInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "setReportDeposit",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setReportReward",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setReportToken",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "setResolutionFee",
     data: BytesLike
   ): Result;
@@ -311,10 +389,12 @@ interface JobInterface extends ethers.utils.Interface {
     "JobClosedByEngineer(uint256)": EventFragment;
     "JobClosedBySupplier(uint256)": EventFragment;
     "JobCompleted(uint256)": EventFragment;
-    "JobDelisted(uint256,string)": EventFragment;
+    "JobDelisted(uint256,address,string)": EventFragment;
     "JobDisputeResolved(uint256,uint8)": EventFragment;
     "JobDisputed(uint256)": EventFragment;
-    "JobPosted(uint256,string)": EventFragment;
+    "JobPosted(uint256,uint256)": EventFragment;
+    "JobReportDeclined(uint256,address,string)": EventFragment;
+    "JobReported(uint256,address,uint256)": EventFragment;
     "JobStarted(address,uint256)": EventFragment;
     "JobSupplied(address,uint256)": EventFragment;
     "JobTimeoutPayout(uint256,uint256)": EventFragment;
@@ -332,6 +412,8 @@ interface JobInterface extends ethers.utils.Interface {
   getEvent(nameOrSignatureOrTopic: "JobDisputeResolved"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "JobDisputed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "JobPosted"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "JobReportDeclined"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "JobReported"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "JobStarted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "JobSupplied"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "JobTimeoutPayout"): EventFragment;
@@ -358,7 +440,11 @@ export type JobClosedBySupplierEvent = TypedEvent<
 export type JobCompletedEvent = TypedEvent<[BigNumber] & { jobId: BigNumber }>;
 
 export type JobDelistedEvent = TypedEvent<
-  [BigNumber, string] & { jobId: BigNumber; reason: string }
+  [BigNumber, string, string] & {
+    jobId: BigNumber;
+    reporter: string;
+    reason: string;
+  }
 >;
 
 export type JobDisputeResolvedEvent = TypedEvent<
@@ -368,7 +454,23 @@ export type JobDisputeResolvedEvent = TypedEvent<
 export type JobDisputedEvent = TypedEvent<[BigNumber] & { jobId: BigNumber }>;
 
 export type JobPostedEvent = TypedEvent<
-  [BigNumber, string] & { jobId: BigNumber; jobMetaData: string }
+  [BigNumber, BigNumber] & { jobId: BigNumber; metadataDigest: BigNumber }
+>;
+
+export type JobReportDeclinedEvent = TypedEvent<
+  [BigNumber, string, string] & {
+    jobId: BigNumber;
+    reporter: string;
+    reason: string;
+  }
+>;
+
+export type JobReportedEvent = TypedEvent<
+  [BigNumber, string, BigNumber] & {
+    jobId: BigNumber;
+    reporter: string;
+    metadataDigest: BigNumber;
+  }
 >;
 
 export type JobStartedEvent = TypedEvent<
@@ -445,7 +547,19 @@ export class Job extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    REPORT_DEPOSIT(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    REPORT_REWARD_PERCENT(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    REPORT_TOKEN(overrides?: CallOverrides): Promise<[string]>;
+
     RESOLUTION_FEE_PERCENTAGE(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    acceptReport(
+      jobId: BigNumberish,
+      reason: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     approveJob(
       jobId: BigNumberish,
@@ -474,7 +588,7 @@ export class Job extends BaseContract {
 
     daoTreasury(overrides?: CallOverrides): Promise<[string]>;
 
-    delistJob(
+    declineReport(
       jobId: BigNumberish,
       reason: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -526,7 +640,9 @@ export class Job extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
-        BigNumber
+        BigNumber,
+        BigNumber,
+        boolean
       ] & {
         closedBySupplier: boolean;
         closedByEngineer: boolean;
@@ -539,6 +655,8 @@ export class Job extends BaseContract {
         bounty: BigNumber;
         startTime: BigNumber;
         completedTime: BigNumber;
+        metadataDigest: BigNumber;
+        isReported: boolean;
       }
     >;
 
@@ -550,13 +668,26 @@ export class Job extends BaseContract {
       paymentToken: string,
       bountyValue: BigNumberish,
       depositPct: BigNumberish,
-      jobMetaData: string,
+      metadataDigest: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    reportJob(
+      jobId: BigNumberish,
+      metadataDigest: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    reports(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, BigNumber] & { reporter: string; metadataDigest: BigNumber }
+    >;
 
     resolveDisputeForEngineer(
       jobId: BigNumberish,
@@ -596,6 +727,21 @@ export class Job extends BaseContract {
 
     setMinChunk(
       newValue: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setReportDeposit(
+      newValue: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setReportReward(
+      newPercent: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setReportToken(
+      newToken: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -640,7 +786,19 @@ export class Job extends BaseContract {
 
   MINIMUM_SPLIT_CHUNK_PERCENTAGE(overrides?: CallOverrides): Promise<BigNumber>;
 
+  REPORT_DEPOSIT(overrides?: CallOverrides): Promise<BigNumber>;
+
+  REPORT_REWARD_PERCENT(overrides?: CallOverrides): Promise<BigNumber>;
+
+  REPORT_TOKEN(overrides?: CallOverrides): Promise<string>;
+
   RESOLUTION_FEE_PERCENTAGE(overrides?: CallOverrides): Promise<BigNumber>;
+
+  acceptReport(
+    jobId: BigNumberish,
+    reason: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   approveJob(
     jobId: BigNumberish,
@@ -669,7 +827,7 @@ export class Job extends BaseContract {
 
   daoTreasury(overrides?: CallOverrides): Promise<string>;
 
-  delistJob(
+  declineReport(
     jobId: BigNumberish,
     reason: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -719,7 +877,9 @@ export class Job extends BaseContract {
       BigNumber,
       BigNumber,
       BigNumber,
-      BigNumber
+      BigNumber,
+      BigNumber,
+      boolean
     ] & {
       closedBySupplier: boolean;
       closedByEngineer: boolean;
@@ -732,6 +892,8 @@ export class Job extends BaseContract {
       bounty: BigNumber;
       startTime: BigNumber;
       completedTime: BigNumber;
+      metadataDigest: BigNumber;
+      isReported: boolean;
     }
   >;
 
@@ -743,13 +905,26 @@ export class Job extends BaseContract {
     paymentToken: string,
     bountyValue: BigNumberish,
     depositPct: BigNumberish,
-    jobMetaData: string,
+    metadataDigest: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   renounceOwnership(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  reportJob(
+    jobId: BigNumberish,
+    metadataDigest: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  reports(
+    arg0: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<
+    [string, BigNumber] & { reporter: string; metadataDigest: BigNumber }
+  >;
 
   resolveDisputeForEngineer(
     jobId: BigNumberish,
@@ -789,6 +964,21 @@ export class Job extends BaseContract {
 
   setMinChunk(
     newValue: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setReportDeposit(
+    newValue: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setReportReward(
+    newPercent: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setReportToken(
+    newToken: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -832,7 +1022,19 @@ export class Job extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    REPORT_DEPOSIT(overrides?: CallOverrides): Promise<BigNumber>;
+
+    REPORT_REWARD_PERCENT(overrides?: CallOverrides): Promise<BigNumber>;
+
+    REPORT_TOKEN(overrides?: CallOverrides): Promise<string>;
+
     RESOLUTION_FEE_PERCENTAGE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    acceptReport(
+      jobId: BigNumberish,
+      reason: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     approveJob(jobId: BigNumberish, overrides?: CallOverrides): Promise<void>;
 
@@ -849,7 +1051,7 @@ export class Job extends BaseContract {
 
     daoTreasury(overrides?: CallOverrides): Promise<string>;
 
-    delistJob(
+    declineReport(
       jobId: BigNumberish,
       reason: string,
       overrides?: CallOverrides
@@ -896,7 +1098,9 @@ export class Job extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
-        BigNumber
+        BigNumber,
+        BigNumber,
+        boolean
       ] & {
         closedBySupplier: boolean;
         closedByEngineer: boolean;
@@ -909,6 +1113,8 @@ export class Job extends BaseContract {
         bounty: BigNumber;
         startTime: BigNumber;
         completedTime: BigNumber;
+        metadataDigest: BigNumber;
+        isReported: boolean;
       }
     >;
 
@@ -920,11 +1126,24 @@ export class Job extends BaseContract {
       paymentToken: string,
       bountyValue: BigNumberish,
       depositPct: BigNumberish,
-      jobMetaData: string,
+      metadataDigest: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    reportJob(
+      jobId: BigNumberish,
+      metadataDigest: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    reports(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, BigNumber] & { reporter: string; metadataDigest: BigNumber }
+    >;
 
     resolveDisputeForEngineer(
       jobId: BigNumberish,
@@ -960,6 +1179,18 @@ export class Job extends BaseContract {
       newValue: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    setReportDeposit(
+      newValue: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setReportReward(
+      newPercent: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setReportToken(newToken: string, overrides?: CallOverrides): Promise<void>;
 
     setResolutionFee(
       newValue: BigNumberish,
@@ -1045,20 +1276,22 @@ export class Job extends BaseContract {
       jobId?: BigNumberish | null
     ): TypedEventFilter<[BigNumber], { jobId: BigNumber }>;
 
-    "JobDelisted(uint256,string)"(
+    "JobDelisted(uint256,address,string)"(
       jobId?: BigNumberish | null,
+      reporter?: null,
       reason?: null
     ): TypedEventFilter<
-      [BigNumber, string],
-      { jobId: BigNumber; reason: string }
+      [BigNumber, string, string],
+      { jobId: BigNumber; reporter: string; reason: string }
     >;
 
     JobDelisted(
       jobId?: BigNumberish | null,
+      reporter?: null,
       reason?: null
     ): TypedEventFilter<
-      [BigNumber, string],
-      { jobId: BigNumber; reason: string }
+      [BigNumber, string, string],
+      { jobId: BigNumber; reporter: string; reason: string }
     >;
 
     "JobDisputeResolved(uint256,uint8)"(
@@ -1085,20 +1318,56 @@ export class Job extends BaseContract {
       jobId?: BigNumberish | null
     ): TypedEventFilter<[BigNumber], { jobId: BigNumber }>;
 
-    "JobPosted(uint256,string)"(
+    "JobPosted(uint256,uint256)"(
       jobId?: BigNumberish | null,
-      jobMetaData?: null
+      metadataDigest?: null
     ): TypedEventFilter<
-      [BigNumber, string],
-      { jobId: BigNumber; jobMetaData: string }
+      [BigNumber, BigNumber],
+      { jobId: BigNumber; metadataDigest: BigNumber }
     >;
 
     JobPosted(
       jobId?: BigNumberish | null,
-      jobMetaData?: null
+      metadataDigest?: null
     ): TypedEventFilter<
-      [BigNumber, string],
-      { jobId: BigNumber; jobMetaData: string }
+      [BigNumber, BigNumber],
+      { jobId: BigNumber; metadataDigest: BigNumber }
+    >;
+
+    "JobReportDeclined(uint256,address,string)"(
+      jobId?: BigNumberish | null,
+      reporter?: null,
+      reason?: null
+    ): TypedEventFilter<
+      [BigNumber, string, string],
+      { jobId: BigNumber; reporter: string; reason: string }
+    >;
+
+    JobReportDeclined(
+      jobId?: BigNumberish | null,
+      reporter?: null,
+      reason?: null
+    ): TypedEventFilter<
+      [BigNumber, string, string],
+      { jobId: BigNumber; reporter: string; reason: string }
+    >;
+
+    "JobReported(uint256,address,uint256)"(
+      jobId?: BigNumberish | null,
+      reporter?: null,
+      metadataDigest?: null
+    ): TypedEventFilter<
+      [BigNumber, string, BigNumber],
+      { jobId: BigNumber; reporter: string; metadataDigest: BigNumber }
+    >;
+
+    JobReported(
+      jobId?: BigNumberish | null,
+      reporter?: null,
+      metadataDigest?: null
+    ): TypedEventFilter<
+      [BigNumber, string, BigNumber],
+      { jobId: BigNumber; reporter: string; metadataDigest: BigNumber }
     >;
 
     "JobStarted(address,uint256)"(
@@ -1187,7 +1456,19 @@ export class Job extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    REPORT_DEPOSIT(overrides?: CallOverrides): Promise<BigNumber>;
+
+    REPORT_REWARD_PERCENT(overrides?: CallOverrides): Promise<BigNumber>;
+
+    REPORT_TOKEN(overrides?: CallOverrides): Promise<BigNumber>;
+
     RESOLUTION_FEE_PERCENTAGE(overrides?: CallOverrides): Promise<BigNumber>;
+
+    acceptReport(
+      jobId: BigNumberish,
+      reason: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     approveJob(
       jobId: BigNumberish,
@@ -1216,7 +1497,7 @@ export class Job extends BaseContract {
 
     daoTreasury(overrides?: CallOverrides): Promise<BigNumber>;
 
-    delistJob(
+    declineReport(
       jobId: BigNumberish,
       reason: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1253,13 +1534,21 @@ export class Job extends BaseContract {
       paymentToken: string,
       bountyValue: BigNumberish,
       depositPct: BigNumberish,
-      jobMetaData: string,
+      metadataDigest: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    reportJob(
+      jobId: BigNumberish,
+      metadataDigest: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    reports(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
     resolveDisputeForEngineer(
       jobId: BigNumberish,
@@ -1299,6 +1588,21 @@ export class Job extends BaseContract {
 
     setMinChunk(
       newValue: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setReportDeposit(
+      newValue: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setReportReward(
+      newPercent: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setReportToken(
+      newToken: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1348,8 +1652,22 @@ export class Job extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    REPORT_DEPOSIT(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    REPORT_REWARD_PERCENT(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    REPORT_TOKEN(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     RESOLUTION_FEE_PERCENTAGE(
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    acceptReport(
+      jobId: BigNumberish,
+      reason: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     approveJob(
@@ -1379,7 +1697,7 @@ export class Job extends BaseContract {
 
     daoTreasury(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    delistJob(
+    declineReport(
       jobId: BigNumberish,
       reason: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1424,12 +1742,23 @@ export class Job extends BaseContract {
       paymentToken: string,
       bountyValue: BigNumberish,
       depositPct: BigNumberish,
-      jobMetaData: string,
+      metadataDigest: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    reportJob(
+      jobId: BigNumberish,
+      metadataDigest: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    reports(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     resolveDisputeForEngineer(
@@ -1470,6 +1799,21 @@ export class Job extends BaseContract {
 
     setMinChunk(
       newValue: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setReportDeposit(
+      newValue: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setReportReward(
+      newPercent: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setReportToken(
+      newToken: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

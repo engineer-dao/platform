@@ -61,12 +61,13 @@ contract Job is IJob, Ownable {
         uint256 bounty;
         uint256 startTime;
         uint256 completedTime;
+        uint256 metadataDigest;
         bool isReported;
     }
 
     struct Report {
         address reporter;
-        string metadata;
+        uint256 metadataDigest;
     }
 
     enum States {
@@ -92,7 +93,7 @@ contract Job is IJob, Ownable {
      * Events *
      **********/
 
-    event JobPosted(uint256 indexed jobId, string jobMetaData);
+    event JobPosted(uint256 indexed jobId, uint256 metadataDigest);
     event JobSupplied(address indexed supplier, uint256 indexed jobId);
     event JobStarted(address indexed engineer, uint256 indexed jobId);
     event JobCompleted(uint256 indexed jobId);
@@ -106,9 +107,9 @@ contract Job is IJob, Ownable {
     event JobDisputeResolved(uint256 indexed jobId, States finalState);
     event PaymentTokensUpdated(IERC20 indexed token, bool indexed value);
 
-    event JobReported(uint256 indexed jobId, address reporter, string metadata);
-    event JobReportDeclined(uint256 indexed jobId, address reporter, string reason);
-    event JobDelisted(uint256 indexed jobId, address reporter, string reason);
+    event JobReported(uint256 indexed jobId, address reporter, uint256 metadataDigest);
+    event JobReportDeclined(uint256 indexed jobId, address reporter, uint256 reasonDigest);
+    event JobDelisted(uint256 indexed jobId, address reporter, uint256 reasonDigest);
 
     /***************
      * Constructor *
@@ -181,15 +182,14 @@ contract Job is IJob, Ownable {
      * @param paymentToken ERC20 token from the whitelist.
      * @param bountyValue amount of paymentToken
      * @param depositPct min % of bountyValue that an engineer needs to deposit to start the job
-     * @param jobMetaData ifps url with job description & extra data.
+     * @param metadataDigest ifps digest hash with job description & extra data.
      */
     function postJob(
         IERC20 paymentToken,
         uint256 bountyValue,
         uint256 depositPct,
-        string memory jobMetaData
+        uint256 metadataDigest
     ) external onlyWhitelisted(paymentToken) requiresApproval(paymentToken, bountyValue) {
-        // TODO: add jobMetaData length check after ipfs integration is ready.
         require(bountyValue >= MINIMUM_BOUNTY, "Minimum bounty not provided");
         require(depositPct > 0 && depositPct < BASE_PERCENTAGE, "Deposit percent invalid");
 
@@ -208,7 +208,7 @@ contract Job is IJob, Ownable {
         jobs[newJobId].depositPct = depositPct;
 
         // save the job meta data
-        emit JobPosted(newJobId, jobMetaData);
+        emit JobPosted(newJobId, metadataDigest);
 
         // emit JobSupplied to map the supplier to the job
         emit JobSupplied(msg.sender, newJobId);
@@ -360,7 +360,7 @@ contract Job is IJob, Ownable {
     }
 
     // Used to prevent illegal activity
-    function reportJob(uint256 jobId, string memory metadata) external {
+    function reportJob(uint256 jobId, uint256 metadataDigest) external {
         JobData memory job = jobs[jobId];
 
         // TODO: Should we also allow Disputed state ?
@@ -368,14 +368,14 @@ contract Job is IJob, Ownable {
 
         jobs[jobId].isReported = true;
         reports[jobId].reporter = msg.sender;
-        reports[jobId].metadata = metadata;
+        reports[jobId].metadataDigest = metadataDigest;
 
         receiveFunds(REPORT_TOKEN, msg.sender, REPORT_DEPOSIT);
 
-        emit JobReported(jobId, msg.sender, metadata);
+        emit JobReported(jobId, msg.sender, metadataDigest);
     }
 
-    function declineReport(uint256 jobId, string memory reason) external onlyResolver {
+    function declineReport(uint256 jobId, uint256 reasonDigest) external onlyResolver {
         require(jobs[jobId].isReported, "Method not available for job state");
 
         address reporter = reports[jobId].reporter;
@@ -383,10 +383,10 @@ contract Job is IJob, Ownable {
         delete jobs[jobId].isReported;
 
         sendFunds(REPORT_TOKEN, daoTreasury, REPORT_DEPOSIT);
-        emit JobReportDeclined(jobId, reporter, reason);
+        emit JobReportDeclined(jobId, reporter, reasonDigest);
     }
 
-    function acceptReport(uint256 jobId, string memory reason) external onlyResolver {
+    function acceptReport(uint256 jobId, uint256 reasonDigest) external onlyResolver {
         JobData memory job = jobs[jobId];
 
         require(job.isReported, "Method not available for job state");
@@ -407,7 +407,7 @@ contract Job is IJob, Ownable {
 
         sendFunds(REPORT_TOKEN, daoTreasury, REPORT_DEPOSIT);
 
-        emit JobDelisted(jobId, reporter, reason);
+        emit JobDelisted(jobId, reporter, reasonDigest);
     }
 
     // TODO: Do we need any other convenient getters ?
