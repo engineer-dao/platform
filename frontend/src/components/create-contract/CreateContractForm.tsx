@@ -42,114 +42,117 @@ const CreateContractForm = () => {
     history.push(`/contract/${jobId}`);
   };
 
-  const onJobPostedError = () => {
-    setShowPostJobModal(false);
-  };
-
   return (
     <Formik initialValues={initialValues} onSubmit={handleSubmit}>
-      {({ values, isSubmitting }) => (
-        <Form
-          className="mt-6 overflow-hidden shadow sm:rounded-md"
-          style={isSubmitting ? { opacity: 0.5 } : {}}
-        >
-          <div className="bg-white px-4 py-5 sm:p-6">
-            <div className="grid grid-cols-6 gap-6">
-              <div className="col-span-6">
-                <Input id="title" label="Title" />
-              </div>
-              <div className="col-span-6">
-                <TextArea id="description" rows={10} label="Description" />
-              </div>
-              <div className="col-span-6">
-                <TextArea
-                  id="acceptanceCriteria"
-                  label="Acceptance Criteria"
-                  rows={5}
-                />
-              </div>
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Labels
-                </label>
-                <ListBox items={labelItems} name="labels"></ListBox>
-              </div>
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Identity
-                </label>
-                <ListBox items={identityItems} name="identity"></ListBox>
-              </div>
+      {({ values, isSubmitting, setSubmitting }) => {
+        const onJobPostedError = () => {
+          setSubmitting(false);
+          setShowPostJobModal(false);
+        };
 
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Acceptance Tests
-                </label>
-                <ListBox
-                  items={acceptanceTestsItems}
-                  name="acceptanceTests"
-                ></ListBox>
-              </div>
-              <div className="col-span-2">
-                <Currency
-                  id="bounty"
-                  label="Bounty"
-                  placeholder="1000"
-                  tokenName={tokenName}
-                />
-              </div>
-              <div className="col-span-2">
-                <Currency
-                  id="buyIn"
-                  placeholder="0.3"
-                  label="Buy-In"
-                  tokenName={tokenName}
-                />
-              </div>
-              <div className="col-span-2">
-                <label
-                  htmlFor="end-date"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  End Date
-                </label>
-                <input
-                  type="date"
-                  id="end-date"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                />
-              </div>
-              <div className="col-span-6">
-                <label className="block text-sm font-medium text-gray-700">
-                  Attach Files
-                </label>
-                <Dropzone />
-              </div>
-              <div className="col-span-6 flex w-full bg-gray-50 px-4 py-5 sm:p-6">
-                <div className="w-1/2">
-                  <PaymentSummary tokenName={tokenName} data={values} />
+        return (
+          <Form
+            className="mt-6 overflow-hidden shadow sm:rounded-md"
+            style={isSubmitting ? { opacity: 0.5 } : {}}
+          >
+            <div className="bg-white px-4 py-5 sm:p-6">
+              <div className="grid grid-cols-6 gap-6">
+                <div className="col-span-6">
+                  <Input id="title" label="Title" />
                 </div>
-                <div className="w-1/2">
-                  <OptionsSummary data={values} />
+                <div className="col-span-6">
+                  <TextArea id="description" rows={10} label="Description" />
                 </div>
+                <div className="col-span-6">
+                  <TextArea
+                    id="acceptanceCriteria"
+                    label="Acceptance Criteria"
+                    rows={5}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Labels
+                  </label>
+                  <ListBox items={labelItems} name="labels"></ListBox>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Identity
+                  </label>
+                  <ListBox items={identityItems} name="identity"></ListBox>
+                </div>
+
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Acceptance Tests
+                  </label>
+                  <ListBox
+                    items={acceptanceTestsItems}
+                    name="acceptanceTests"
+                  ></ListBox>
+                </div>
+                <div className="col-span-2">
+                  <Currency
+                    id="bounty"
+                    label="Bounty"
+                    placeholder="1000"
+                    tokenName={tokenName}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Currency
+                    id="buyIn"
+                    placeholder="0.3"
+                    label="Buy-In"
+                    tokenName={tokenName}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label
+                    htmlFor="end-date"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    id="end-date"
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  />
+                </div>
+                <div className="col-span-6">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Attach Files
+                  </label>
+                  <Dropzone />
+                </div>
+                <div className="col-span-6 flex w-full bg-gray-50 px-4 py-5 sm:p-6">
+                  <div className="w-1/2">
+                    <PaymentSummary tokenName={tokenName} data={values} />
+                  </div>
+                  <div className="w-1/2">
+                    <OptionsSummary data={values} />
+                  </div>
+                </div>
+                <SubmitButton />
               </div>
-              <SubmitButton />
             </div>
-          </div>
-          {values && (
-            <PostJobModal
-              formData={values}
-              show={showPostJobModal}
-              onConfirmed={onJobPosted}
-              onError={onJobPostedError}
+            {values && (
+              <PostJobModal
+                formData={values}
+                show={showPostJobModal}
+                onConfirmed={onJobPosted}
+                onError={onJobPostedError}
+              />
+            )}
+            <ApproveERC20Modal
+              show={showApproveERC20Modal && !contracts.isERC20Approved}
+              onFinish={() => setShowApproveERC20Modal(false)}
             />
-          )}
-          <ApproveERC20Modal
-            show={showApproveERC20Modal && !contracts.isERC20Approved}
-            onFinish={() => setShowApproveERC20Modal(false)}
-          />
-        </Form>
-      )}
+          </Form>
+        );
+      }}
     </Formik>
   );
 
