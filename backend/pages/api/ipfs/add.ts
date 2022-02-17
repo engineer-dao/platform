@@ -3,15 +3,15 @@ import Cors from 'cors';
 import { utils } from 'ethers';
 import { pinata } from '../../../services/pinata';
 
-const MAX_MESSAGE_SIZE = parseInt(
-  process.env.MAX_MESSAGE_SIZE || '4096'
-);
+const MAX_MESSAGE_SIZE = parseInt(process.env.MAX_MESSAGE_SIZE || '4096');
 
 const cors = Cors({
   methods: ['GET', 'HEAD'],
 });
 
 type Data = {
+  ipfsHash?: string;
+  ipfsUrl?: string;
   message: string;
 };
 
@@ -41,11 +41,7 @@ export default async function handler(
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const {
-    address: addressString,
-    sig,
-    metadata,
-  } = req?.body || {};
+  const { address: addressString, sig, metadata } = req?.body || {};
 
   // basic validation of message
   if (!metadata) {
@@ -66,9 +62,7 @@ export default async function handler(
   }
   const address = utils.getAddress(addressString);
 
-
   // TODO - verify user signature to the address
-
 
   // pin the content to IPFS
   const result = await pinata.pinJSONToIPFS(metadata, {
@@ -88,7 +82,6 @@ export default async function handler(
   const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${ipfsHash}`;
 
   return res.status(200).json({
-    // @ts-ignore
     ipfsHash,
     ipfsUrl,
     message: 'success',

@@ -10,10 +10,16 @@ import { ISmartContractState } from 'interfaces/ISmartContractState';
 import { useEffect, useState } from 'react';
 import { digestToCid, fetchIpfsMetaData } from 'services/ipfs';
 
+enum CacheKeys {
+  JOB = 'job',
+  VERSION = 'v',
+  TIMESTAMP = 't',
+}
+
 interface IJobCacheEntry {
-  job: IJobData;
-  v: number;
-  t: number;
+  [CacheKeys.JOB]: IJobData;
+  [CacheKeys.VERSION]: number;
+  [CacheKeys.TIMESTAMP]: number;
 }
 
 const assembleJob = (
@@ -80,9 +86,9 @@ const loadJobFromJobId = async (
 
   const assembledJob = assembleJob(jobId, job, unsafeJobMetaData);
   const newCachedJobEntry: IJobCacheEntry = {
-    job: assembledJob,
-    v: 1,
-    t: Date.now(),
+    [CacheKeys.JOB]: assembledJob,
+    [CacheKeys.VERSION]: 1,
+    [CacheKeys.TIMESTAMP]: Date.now(),
   };
   storage.setItem(jobCacheKey, JSON.stringify(newCachedJobEntry));
 

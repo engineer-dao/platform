@@ -51,6 +51,8 @@ export const fetchIpfsMetaData = async (cidString: string) => {
   return apiResponse;
 };
 
+// shortens a long IPFS CID string like bafkreifco...4l4y7rm
+//   to an unsinged 256 bit integer (uint256)
 export const cidToDigest = (cidString: string) => {
   const cid = CID.parse(cidString);
   if (cid === null) {
@@ -60,6 +62,8 @@ export const cidToDigest = (cidString: string) => {
   return BigNumber.from(cid.multihash.digest);
 };
 
+// expands an unsinged 256 bit integer (uint256)
+//    to a long IPFS CIDv1 string like bafkreifco...4l4y7rm
 export const digestToCid = (cidDigest: BigNumber) => {
   const hex = cidDigest.toHexString().substring(2);
   const uintArray = Uint8Array.from(Buffer.from(hex, 'hex'));
