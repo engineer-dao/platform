@@ -1,9 +1,4 @@
-import { BigNumber } from 'ethers';
 import { IJobMetaData } from 'interfaces/IJobData';
-import { CID, digest } from 'multiformats';
-import * as raw from 'multiformats/codecs/raw';
-import { Buffer } from 'buffer';
-import { sha256 } from 'multiformats/hashes/sha2';
 
 interface IPostMetaData {
   address: string;
@@ -12,8 +7,7 @@ interface IPostMetaData {
 }
 
 interface IPostMetaDataResponse {
-  ipfsHashDigest: BigNumber;
-  ipfsHash: string;
+  ipfsCid: string;
   ipfsUrl: string;
   message: string;
 }
@@ -36,9 +30,7 @@ export const pinIpfsMetaData = async ({
   });
 
   const apiResponse = await response.json();
-  const ipfsHashDigest = cidToDigest(apiResponse.ipfsHash);
-
-  return { ipfsHashDigest, ...apiResponse } as IPostMetaDataResponse;
+  return apiResponse as IPostMetaDataResponse;
 };
 
 export const fetchIpfsMetaData = async (cidString: string) => {
@@ -49,26 +41,4 @@ export const fetchIpfsMetaData = async (cidString: string) => {
 
   const apiResponse = await response.json();
   return apiResponse;
-};
-
-// shortens a long IPFS CID string like bafkreifco...4l4y7rm
-//   to an unsinged 256 bit integer (uint256)
-export const cidToDigest = (cidString: string) => {
-  const cid = CID.parse(cidString);
-  if (cid === null) {
-    return BigNumber.from(0);
-  }
-
-  return BigNumber.from(cid.multihash.digest);
-};
-
-// expands an unsinged 256 bit integer (uint256)
-//    to a long IPFS CIDv1 string like bafkreifco...4l4y7rm
-export const digestToCid = (cidDigest: BigNumber) => {
-  const hex = cidDigest.toHexString().substring(2);
-  const uintArray = Uint8Array.from(Buffer.from(hex, 'hex'));
-  const multiHashDigest = digest.create(sha256.code, uintArray);
-  const cid = CID.create(1, raw.code, multiHashDigest);
-
-  return cid.toString();
 };

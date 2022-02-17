@@ -8,7 +8,7 @@ import {
 } from 'interfaces/IJobData';
 import { ISmartContractState } from 'interfaces/ISmartContractState';
 import { useEffect, useState } from 'react';
-import { digestToCid, fetchIpfsMetaData } from 'services/ipfs';
+import { fetchIpfsMetaData } from 'services/ipfs';
 
 enum CacheKeys {
   JOB = 'job',
@@ -77,9 +77,7 @@ const loadJobFromJobId = async (
 
   const event = results[0];
 
-  const metaDataIPFSHash = event.args.metadataDigest;
-
-  const cidString = digestToCid(metaDataIPFSHash);
+  const cidString = event.args.metadataCid;
   const unsafeJobMetaData = await fetchIpfsMetaData(cidString);
 
   // TODO: validate meta data with a schema

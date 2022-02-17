@@ -10,7 +10,7 @@ const cors = Cors({
 });
 
 type Data = {
-  ipfsHash?: string;
+  ipfsCid?: string;
   ipfsUrl?: string;
   message: string;
 };
@@ -78,11 +78,11 @@ export default async function handler(
     },
   });
 
-  const ipfsHash = String(result.IpfsHash);
-  const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${ipfsHash}`;
+  const ipfsCid = String(result.IpfsHash);
+  const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${ipfsCid}`;
 
   return res.status(200).json({
-    ipfsHash,
+    ipfsCid,
     ipfsUrl,
     message: 'success',
   });

@@ -4,7 +4,7 @@ import { TransactionModal } from 'components/smart-contracts/modals/TransactionM
 import { SmartContractAddresses } from 'components/smart-contracts/SmartContractAddresses';
 import { Modal } from 'components/ui/Modal';
 import { useWallet } from 'components/wallet/useWallet';
-import { BigNumber, ContractReceipt, ethers } from 'ethers';
+import { ContractReceipt, ethers } from 'ethers';
 import { ITransactionModalProps } from 'interfaces/ITransactionModalProps';
 import React, { useEffect, useState } from 'react';
 import { pinIpfsMetaData } from 'services/ipfs';
@@ -16,7 +16,7 @@ interface IProps extends ITransactionModalProps {
 export const PostJobModal = (props: IProps) => {
   const [showIPFSModal, setShowIPFSModal] = useState(true);
   const [IPFSUploadingBegan, setIPFSUploadingBegan] = useState(false);
-  const [IPFSDigest, setIPFSDigest] = useState(BigNumber.from(0));
+  const [IPFSCid, setIPFSCid] = useState('');
   const { formData, show, onFinish, onConfirmed, onError } = props;
 
   const { contracts } = useSmartContracts();
@@ -31,7 +31,7 @@ export const PostJobModal = (props: IProps) => {
       SmartContractAddresses.PaymentToken,
       bountyWei,
       depositPct,
-      IPFSDigest
+      IPFSCid
     );
   };
 
@@ -68,7 +68,7 @@ export const PostJobModal = (props: IProps) => {
         metadata,
       });
 
-      setIPFSDigest(result.ipfsHashDigest);
+      setIPFSCid(result.ipfsCid);
       setShowIPFSModal(false);
     };
 

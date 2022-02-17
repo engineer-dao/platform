@@ -46,9 +46,9 @@ interface JobInterface extends ethers.utils.Interface {
     "jobs(uint256)": FunctionFragment;
     "owner()": FunctionFragment;
     "paymentTokens(address)": FunctionFragment;
-    "postJob(address,uint256,uint256,uint256)": FunctionFragment;
+    "postJob(address,uint256,uint256,string)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
-    "reportJob(uint256,uint256)": FunctionFragment;
+    "reportJob(uint256,string)": FunctionFragment;
     "reports(uint256)": FunctionFragment;
     "resolveDisputeForEngineer(uint256)": FunctionFragment;
     "resolveDisputeForSupplier(uint256)": FunctionFragment;
@@ -159,7 +159,7 @@ interface JobInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "postJob",
-    values: [string, BigNumberish, BigNumberish, BigNumberish]
+    values: [string, BigNumberish, BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
@@ -167,7 +167,7 @@ interface JobInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "reportJob",
-    values: [BigNumberish, BigNumberish]
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "reports",
@@ -392,9 +392,9 @@ interface JobInterface extends ethers.utils.Interface {
     "JobDelisted(uint256,address,string)": EventFragment;
     "JobDisputeResolved(uint256,uint8)": EventFragment;
     "JobDisputed(uint256)": EventFragment;
-    "JobPosted(uint256,uint256)": EventFragment;
+    "JobPosted(uint256,string)": EventFragment;
     "JobReportDeclined(uint256,address,string)": EventFragment;
-    "JobReported(uint256,address,uint256)": EventFragment;
+    "JobReported(uint256,address,string)": EventFragment;
     "JobStarted(address,uint256)": EventFragment;
     "JobSupplied(address,uint256)": EventFragment;
     "JobTimeoutPayout(uint256,uint256)": EventFragment;
@@ -443,7 +443,7 @@ export type JobDelistedEvent = TypedEvent<
   [BigNumber, string, string] & {
     jobId: BigNumber;
     reporter: string;
-    reason: string;
+    reasonCid: string;
   }
 >;
 
@@ -454,22 +454,22 @@ export type JobDisputeResolvedEvent = TypedEvent<
 export type JobDisputedEvent = TypedEvent<[BigNumber] & { jobId: BigNumber }>;
 
 export type JobPostedEvent = TypedEvent<
-  [BigNumber, BigNumber] & { jobId: BigNumber; metadataDigest: BigNumber }
+  [BigNumber, string] & { jobId: BigNumber; metadataCid: string }
 >;
 
 export type JobReportDeclinedEvent = TypedEvent<
   [BigNumber, string, string] & {
     jobId: BigNumber;
     reporter: string;
-    reason: string;
+    reasonCid: string;
   }
 >;
 
 export type JobReportedEvent = TypedEvent<
-  [BigNumber, string, BigNumber] & {
+  [BigNumber, string, string] & {
     jobId: BigNumber;
     reporter: string;
-    metadataDigest: BigNumber;
+    metadataCid: string;
   }
 >;
 
@@ -557,7 +557,7 @@ export class Job extends BaseContract {
 
     acceptReport(
       jobId: BigNumberish,
-      reason: string,
+      reasonCid: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -590,7 +590,7 @@ export class Job extends BaseContract {
 
     declineReport(
       jobId: BigNumberish,
-      reason: string,
+      reasonCid: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -641,7 +641,6 @@ export class Job extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
-        BigNumber,
         boolean
       ] & {
         closedBySupplier: boolean;
@@ -655,7 +654,6 @@ export class Job extends BaseContract {
         bounty: BigNumber;
         startTime: BigNumber;
         completedTime: BigNumber;
-        metadataDigest: BigNumber;
         isReported: boolean;
       }
     >;
@@ -668,7 +666,7 @@ export class Job extends BaseContract {
       paymentToken: string,
       bountyValue: BigNumberish,
       depositPct: BigNumberish,
-      metadataDigest: BigNumberish,
+      metadataCid: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -678,16 +676,14 @@ export class Job extends BaseContract {
 
     reportJob(
       jobId: BigNumberish,
-      metadataDigest: BigNumberish,
+      metadataCid: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     reports(
       arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<
-      [string, BigNumber] & { reporter: string; metadataDigest: BigNumber }
-    >;
+    ): Promise<[string, string] & { reporter: string; metadataCid: string }>;
 
     resolveDisputeForEngineer(
       jobId: BigNumberish,
@@ -796,7 +792,7 @@ export class Job extends BaseContract {
 
   acceptReport(
     jobId: BigNumberish,
-    reason: string,
+    reasonCid: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -829,7 +825,7 @@ export class Job extends BaseContract {
 
   declineReport(
     jobId: BigNumberish,
-    reason: string,
+    reasonCid: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -878,7 +874,6 @@ export class Job extends BaseContract {
       BigNumber,
       BigNumber,
       BigNumber,
-      BigNumber,
       boolean
     ] & {
       closedBySupplier: boolean;
@@ -892,7 +887,6 @@ export class Job extends BaseContract {
       bounty: BigNumber;
       startTime: BigNumber;
       completedTime: BigNumber;
-      metadataDigest: BigNumber;
       isReported: boolean;
     }
   >;
@@ -905,7 +899,7 @@ export class Job extends BaseContract {
     paymentToken: string,
     bountyValue: BigNumberish,
     depositPct: BigNumberish,
-    metadataDigest: BigNumberish,
+    metadataCid: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -915,16 +909,14 @@ export class Job extends BaseContract {
 
   reportJob(
     jobId: BigNumberish,
-    metadataDigest: BigNumberish,
+    metadataCid: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   reports(
     arg0: BigNumberish,
     overrides?: CallOverrides
-  ): Promise<
-    [string, BigNumber] & { reporter: string; metadataDigest: BigNumber }
-  >;
+  ): Promise<[string, string] & { reporter: string; metadataCid: string }>;
 
   resolveDisputeForEngineer(
     jobId: BigNumberish,
@@ -1032,7 +1024,7 @@ export class Job extends BaseContract {
 
     acceptReport(
       jobId: BigNumberish,
-      reason: string,
+      reasonCid: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1053,7 +1045,7 @@ export class Job extends BaseContract {
 
     declineReport(
       jobId: BigNumberish,
-      reason: string,
+      reasonCid: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1099,7 +1091,6 @@ export class Job extends BaseContract {
         BigNumber,
         BigNumber,
         BigNumber,
-        BigNumber,
         boolean
       ] & {
         closedBySupplier: boolean;
@@ -1113,7 +1104,6 @@ export class Job extends BaseContract {
         bounty: BigNumber;
         startTime: BigNumber;
         completedTime: BigNumber;
-        metadataDigest: BigNumber;
         isReported: boolean;
       }
     >;
@@ -1126,7 +1116,7 @@ export class Job extends BaseContract {
       paymentToken: string,
       bountyValue: BigNumberish,
       depositPct: BigNumberish,
-      metadataDigest: BigNumberish,
+      metadataCid: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1134,16 +1124,14 @@ export class Job extends BaseContract {
 
     reportJob(
       jobId: BigNumberish,
-      metadataDigest: BigNumberish,
+      metadataCid: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
     reports(
       arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<
-      [string, BigNumber] & { reporter: string; metadataDigest: BigNumber }
-    >;
+    ): Promise<[string, string] & { reporter: string; metadataCid: string }>;
 
     resolveDisputeForEngineer(
       jobId: BigNumberish,
@@ -1279,19 +1267,19 @@ export class Job extends BaseContract {
     "JobDelisted(uint256,address,string)"(
       jobId?: BigNumberish | null,
       reporter?: null,
-      reason?: null
+      reasonCid?: null
     ): TypedEventFilter<
       [BigNumber, string, string],
-      { jobId: BigNumber; reporter: string; reason: string }
+      { jobId: BigNumber; reporter: string; reasonCid: string }
     >;
 
     JobDelisted(
       jobId?: BigNumberish | null,
       reporter?: null,
-      reason?: null
+      reasonCid?: null
     ): TypedEventFilter<
       [BigNumber, string, string],
-      { jobId: BigNumber; reporter: string; reason: string }
+      { jobId: BigNumber; reporter: string; reasonCid: string }
     >;
 
     "JobDisputeResolved(uint256,uint8)"(
@@ -1318,56 +1306,56 @@ export class Job extends BaseContract {
       jobId?: BigNumberish | null
     ): TypedEventFilter<[BigNumber], { jobId: BigNumber }>;
 
-    "JobPosted(uint256,uint256)"(
+    "JobPosted(uint256,string)"(
       jobId?: BigNumberish | null,
-      metadataDigest?: null
+      metadataCid?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber],
-      { jobId: BigNumber; metadataDigest: BigNumber }
+      [BigNumber, string],
+      { jobId: BigNumber; metadataCid: string }
     >;
 
     JobPosted(
       jobId?: BigNumberish | null,
-      metadataDigest?: null
+      metadataCid?: null
     ): TypedEventFilter<
-      [BigNumber, BigNumber],
-      { jobId: BigNumber; metadataDigest: BigNumber }
+      [BigNumber, string],
+      { jobId: BigNumber; metadataCid: string }
     >;
 
     "JobReportDeclined(uint256,address,string)"(
       jobId?: BigNumberish | null,
       reporter?: null,
-      reason?: null
+      reasonCid?: null
     ): TypedEventFilter<
       [BigNumber, string, string],
-      { jobId: BigNumber; reporter: string; reason: string }
+      { jobId: BigNumber; reporter: string; reasonCid: string }
     >;
 
     JobReportDeclined(
       jobId?: BigNumberish | null,
       reporter?: null,
-      reason?: null
+      reasonCid?: null
     ): TypedEventFilter<
       [BigNumber, string, string],
-      { jobId: BigNumber; reporter: string; reason: string }
+      { jobId: BigNumber; reporter: string; reasonCid: string }
     >;
 
-    "JobReported(uint256,address,uint256)"(
+    "JobReported(uint256,address,string)"(
       jobId?: BigNumberish | null,
       reporter?: null,
-      metadataDigest?: null
+      metadataCid?: null
     ): TypedEventFilter<
-      [BigNumber, string, BigNumber],
-      { jobId: BigNumber; reporter: string; metadataDigest: BigNumber }
+      [BigNumber, string, string],
+      { jobId: BigNumber; reporter: string; metadataCid: string }
     >;
 
     JobReported(
       jobId?: BigNumberish | null,
       reporter?: null,
-      metadataDigest?: null
+      metadataCid?: null
     ): TypedEventFilter<
-      [BigNumber, string, BigNumber],
-      { jobId: BigNumber; reporter: string; metadataDigest: BigNumber }
+      [BigNumber, string, string],
+      { jobId: BigNumber; reporter: string; metadataCid: string }
     >;
 
     "JobStarted(address,uint256)"(
@@ -1466,7 +1454,7 @@ export class Job extends BaseContract {
 
     acceptReport(
       jobId: BigNumberish,
-      reason: string,
+      reasonCid: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1499,7 +1487,7 @@ export class Job extends BaseContract {
 
     declineReport(
       jobId: BigNumberish,
-      reason: string,
+      reasonCid: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1534,7 +1522,7 @@ export class Job extends BaseContract {
       paymentToken: string,
       bountyValue: BigNumberish,
       depositPct: BigNumberish,
-      metadataDigest: BigNumberish,
+      metadataCid: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1544,7 +1532,7 @@ export class Job extends BaseContract {
 
     reportJob(
       jobId: BigNumberish,
-      metadataDigest: BigNumberish,
+      metadataCid: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1666,7 +1654,7 @@ export class Job extends BaseContract {
 
     acceptReport(
       jobId: BigNumberish,
-      reason: string,
+      reasonCid: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1699,7 +1687,7 @@ export class Job extends BaseContract {
 
     declineReport(
       jobId: BigNumberish,
-      reason: string,
+      reasonCid: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1742,7 +1730,7 @@ export class Job extends BaseContract {
       paymentToken: string,
       bountyValue: BigNumberish,
       depositPct: BigNumberish,
-      metadataDigest: BigNumberish,
+      metadataCid: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1752,7 +1740,7 @@ export class Job extends BaseContract {
 
     reportJob(
       jobId: BigNumberish,
-      metadataDigest: BigNumberish,
+      metadataCid: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
