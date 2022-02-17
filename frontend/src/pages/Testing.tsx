@@ -1,11 +1,10 @@
-import { useNotifications } from '../components/notifications/useNotifications';
-
-import { useState } from 'react';
+import { clearJobCache } from 'components/smart-contracts/hooks/useJob';
 import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
-
 import { ApproveERC20Modal } from 'components/smart-contracts/modals/ApproveERC20Modal';
 import { RevokeERC20Modal } from 'components/smart-contracts/modals/RevokeERC20Modal';
 import { TransactionModal } from 'components/smart-contracts/modals/TransactionModal';
+import { useState } from 'react';
+import { useNotifications } from '../components/notifications/useNotifications';
 
 const Dashboard = () => {
   const { pushNotification } = useNotifications();
@@ -19,6 +18,7 @@ const Dashboard = () => {
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
     undefined
   );
+
   return (
     <div>
       <h2 className="mb-6">Testing</h2>
@@ -99,6 +99,21 @@ const Dashboard = () => {
             setErrorMessage(error);
           }}
         />
+      </div>
+
+      <div className="mt-5">
+        <div>Clear Job Cache</div>
+        <div>
+          <button
+            onClick={() => {
+              clearJobCache();
+            }}
+            type="button"
+            className="focus:outline-none ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          >
+            Clear Cache
+          </button>
+        </div>
       </div>
 
       <ApproveERC20Modal

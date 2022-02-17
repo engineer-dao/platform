@@ -177,7 +177,7 @@ describe("JobContract ", function() {
 
             await expect(testUtil.postSampleJob()(JobContract, TestToken))
                 .to.emit(JobContract, 'JobPosted')
-                .withArgs(testUtil.JOB_ID_1, JSON.stringify(testUtil.defaultJobMetaData));
+                .withArgs(testUtil.JOB_ID_1, testUtil.DEFAULT_JOB_METADATA_CID);
         });
 
         it('emits JobSupplied event when posted', async function() {
@@ -1421,7 +1421,7 @@ describe("JobContract ", function() {
             expect(jobOne.isReported).to.equal(true);
 
             expect(reportOne.reporter).to.equal(addr1.address);
-            expect(reportOne.metadata).to.equal(testUtil.DEFAULT_REPORT_META);
+            expect(reportOne.metadataCid).to.equal(testUtil.DEFAULT_REPORT_META_CID);
         });
 
         it('may not reported in Disputed state', async function() {
@@ -1458,7 +1458,7 @@ describe("JobContract ", function() {
                 .withArgs(
                     testUtil.JOB_ID_1,
                     addr1.address,
-                    testUtil.DEFAULT_REPORT_META
+                    testUtil.DEFAULT_REPORT_META_CID
                 );
         });
 
@@ -1577,7 +1577,7 @@ describe("JobContract ", function() {
                 .withArgs(
                     testUtil.JOB_ID_1,
                     reporter.address,
-                    testUtil.DEFAULT_REPORT_RESOLVE_REASON
+                    testUtil.DEFAULT_REPORT_RESOLVE_REASON_CID
                 );
         });
 
@@ -1771,7 +1771,7 @@ describe("JobContract ", function() {
                 .withArgs(
                     testUtil.JOB_ID_1,
                     reporter.address,
-                    testUtil.DEFAULT_REPORT_RESOLVE_REASON
+                    testUtil.DEFAULT_REPORT_RESOLVE_REASON_CID
                 );
         });
 

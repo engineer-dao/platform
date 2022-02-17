@@ -9,6 +9,7 @@
         "lint": "next lint"
     },
     "dependencies": {
+        "@pinata/sdk": "^1.1.23",
         "cors": "^2.8.5",
         "ethers": "^5.5.4",
         "firebase": "^9.6.5",
