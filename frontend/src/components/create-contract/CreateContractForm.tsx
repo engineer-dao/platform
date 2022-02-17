@@ -25,7 +25,8 @@ const CreateContractForm = () => {
     labels: [],
     identity: [],
     acceptanceTests: [],
-    buyIn: '',
+    deposit: '',
+    endDate: '',
   };
 
   const { contracts } = useSmartContracts();
@@ -102,7 +103,7 @@ const CreateContractForm = () => {
                 </div>
                 <div className="col-span-2">
                   <Currency
-                    id="buyIn"
+                    id="deposit"
                     placeholder="0.3"
                     label="Buy-In"
                     tokenName={tokenName}
@@ -117,6 +118,7 @@ const CreateContractForm = () => {
                   </label>
                   <input
                     type="date"
+                    name="endDate"
                     id="end-date"
                     className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                   />

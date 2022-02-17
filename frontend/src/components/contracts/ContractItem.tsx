@@ -14,7 +14,7 @@ interface IJobDataItemProps {
 const tokenName = process.env.REACT_APP_PAYMENT_TOKEN_NAME || '';
 
 const ContractItem: React.FC<IJobDataItemProps> = ({ job }) => {
-  const { id, title, bounty, buyIn, state } = job;
+  const { id, title, bounty, deposit, state } = job;
 
   return (
     <li
@@ -42,7 +42,7 @@ const ContractItem: React.FC<IJobDataItemProps> = ({ job }) => {
                     className="mr-2 h-5 w-5 text-green-500"
                     aria-hidden="true"
                   />
-                  {buyIn || '0'} {tokenName} Buy-In
+                  {deposit || '0'} {tokenName} Buy-In
                 </p>
               </div>
             </div>

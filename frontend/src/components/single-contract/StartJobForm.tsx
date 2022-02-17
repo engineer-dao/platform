@@ -47,7 +47,7 @@ export const StartJobForm: React.FC<IStartJobFormProps> = (props) => {
               {contracts.isERC20Approved ? (
                 <>
                   <div className="col-span-6 text-sm font-normal leading-5">
-                    You will be depositing {job.buyIn} {tokenName} and
+                    You will be depositing {job.deposit} {tokenName} and
                     committing to completing this job.
                   </div>
                   <div className="col-span-6 text-right text-sm font-normal leading-5 text-white">
@@ -67,7 +67,7 @@ export const StartJobForm: React.FC<IStartJobFormProps> = (props) => {
                     {isSubmitting && (
                       <StartJobModal
                         jobId={job.id}
-                        deposit={job.buyIn}
+                        deposit={job.deposit}
                         show={showStartJobModal}
                         onConfirmed={(jobId: string) => {
                           setShowStartJobModal(false);

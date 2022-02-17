@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ContractTransaction } from 'ethers';
-import { Modal } from 'components/ui/Modal';
+import { Modal } from 'components/modals/Modal';
 import { ContractReceipt } from 'ethers';
 
 type CallContractCallback = () => Promise<ContractTransaction>;
@@ -125,6 +125,7 @@ export const TransactionModal = ({
       <Modal
         title="There was an error"
         icon="ExclamationIcon"
+        iconColor="red"
         isOpen={showErrorModal}
         onRequestClose={() => {
           setTxStatus(TXStatus.Finished);

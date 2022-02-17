@@ -22,6 +22,7 @@ export const PostJobModal = (props: IProps) => {
     const jobMetaData = JSON.stringify(formDataToSerialize);
 
     const depositPct = 1000; // TODO - hook this up to the form value
+
     return contracts.Job.postJob(
       SmartContractAddresses.PaymentToken,
       bountyWei,

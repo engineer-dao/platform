@@ -5,5 +5,6 @@ export interface IWalletState {
   connected: boolean;
   account: string | null;
   provider: ethers.providers.Web3Provider | null;
+  etherscan: ethers.providers.EtherscanProvider | null;
   providerInfo: IProviderInfo | null;
 }

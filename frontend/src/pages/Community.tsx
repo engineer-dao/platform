@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal } from 'components/ui/Modal';
+import { Modal } from 'components/modals/Modal';
 
 const Community = () => {
   const [showModal, setShowModal] = useState(true);

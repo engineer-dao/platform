@@ -1,6 +1,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import { IDataTableItemChips } from '../../../interfaces/IDataTableItem';
+import { IListBoxItem } from '../../../interfaces/IListBoxItem';
 
 const DataTableItemChips: React.FC<IDataTableItemChips> = (props) => {
   const { label, value, chipColor = 'bg-green-200 text-green-800' } = props;
@@ -11,7 +12,7 @@ const DataTableItemChips: React.FC<IDataTableItemChips> = (props) => {
       <dd className="align-self mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
         <div className="flex flex-wrap">
           {(Array.isArray(value) ? value : ([value] as any[]))?.map(
-            (item: string, index: number) => (
+            (item: IListBoxItem, index: number) => (
               <span
                 key={index}
                 className={classNames(
@@ -19,7 +20,7 @@ const DataTableItemChips: React.FC<IDataTableItemChips> = (props) => {
                   chipColor
                 )}
               >
-                <div>{item}</div>
+                <div>{item.name}</div>
               </span>
             )
           )}

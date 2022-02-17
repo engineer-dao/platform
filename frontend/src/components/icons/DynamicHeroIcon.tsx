@@ -1,4 +1,4 @@
-import * as HeroIcons from '@heroicons/react/outline';
+import * as HeroIcons from '@heroicons/react/solid';
 
 type IconName = keyof typeof HeroIcons;
 interface IconProps {

@@ -11,13 +11,15 @@ export const walletReducer = (
 ): IWalletState => {
   switch (action.type) {
     case 'set_wallet_connection': {
-      const { account, connected, provider, providerInfo } = action?.payload;
+      const { account, connected, provider, etherscan, providerInfo } =
+        action?.payload;
 
       return {
         ...state,
         account,
         connected,
         provider,
+        etherscan,
         providerInfo,
       };
     }

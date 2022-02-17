@@ -36,8 +36,11 @@ const assembleJob = (
 
     title: jobMetaData.title,
     description: jobMetaData.description,
-    buyIn: jobMetaData.buyIn,
     acceptanceCriteria: jobMetaData.acceptanceCriteria,
+    labels: jobMetaData.labels,
+    identity: jobMetaData.identity,
+    acceptanceTests: jobMetaData.acceptanceTests,
+    endDate: jobMetaData.endDate,
   };
 
   return job;
