@@ -2,11 +2,30 @@
 
 🎈 We are so happy to have you!
 
-Todo
+We're trying to create a new way of decentralized work!
+
+There are many ways to contribute, including:
+1. Get involved in the protocol design decisions [Joining Discord](https://discord.gg/FGw97wHZJJ) !
+2. [Grab an Issue](https://github.com/engineer-dao/platform/issues)
 
 ## Workflow for Pull Requests
 
-🚨 Todo
+🚨 Fork; new branch; rebase; PR
+
+In order to contribute `create a new branch in the main repo` that includes your changes and open a PR to `main`.
+
+Additionally, if you are writing a new feature, please ensure you add appropriate test cases.
+
+Follow the [Development Quick Start](#development-quick-start) to set up your local development environment.
+
+We recommend using the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) format on commit messages.
+
+### Rebasing
+
+We use the `git rebase` command to keep our commit history tidy.
+Rebasing is an easy way to make sure that each PR includes a series of clean commits with descriptive commit messages
+See [this tutorial](https://docs.gitlab.com/ee/topics/git/git_rebase.html) for a detailed explanation of `git rebase` and how you should use it to maintain a clean commit history.
+
 
 ## Development Quick Start
 
@@ -15,7 +34,7 @@ Todo
 You'll need the following:
 
 * [Git](https://git-scm.com/downloads)
-* [NodeJS](https://nodejs.org/en/download/)
+* [NodeJS](https://nodejs.org/en/download/) v16.5.0
 * [Yarn](https://classic.yarnpkg.com/en/docs/install)
 
 ### Setup
