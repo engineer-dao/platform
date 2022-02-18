@@ -12,7 +12,6 @@ const initialState: IWalletState = {
   account: null,
   connected: false,
   provider: null,
-  etherscan: null,
   providerInfo: null,
 };
 

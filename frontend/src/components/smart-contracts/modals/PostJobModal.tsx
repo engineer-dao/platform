@@ -1,13 +1,13 @@
 import { TransactionModal } from 'components/smart-contracts/modals/TransactionModal';
 import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
 import { SmartContractAddresses } from 'components/smart-contracts/SmartContractAddresses';
-import { Modal } from 'components/ui/Modal';
 import { useWallet } from 'components/wallet/useWallet';
 import { ContractReceipt, ethers } from 'ethers';
 import { ITransactionModalProps } from 'interfaces/ITransactionModalProps';
 import { ICreateContractForm } from '../../create-contract/ICreateContractForm';
 import { pinIpfsMetaData } from 'services/ipfs';
 import React, { useEffect, useState } from 'react';
+import { Modal } from '../../modals/Modal';
 
 interface IProps extends ITransactionModalProps {
   formData: ICreateContractForm;
@@ -58,8 +58,12 @@ export const PostJobModal = (props: IProps) => {
       const metadata = {
         title: formData.title,
         description: formData.description,
-        buyIn: parseInt(formData.buyIn),
+        deposit: parseInt(formData.deposit),
         acceptanceCriteria: formData.acceptanceCriteria,
+        labels: formData.labels,
+        identity: formData.identity,
+        acceptanceTests: formData.acceptanceTests,
+        endDate: formData.endDate,
       };
 
       // push to the backend service

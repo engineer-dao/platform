@@ -5,7 +5,6 @@ import DataTableItemText from './row-types/DataTableItemText';
 import { IJobData } from 'interfaces/IJobData';
 import { contractData as mockContractData } from 'mocks/contractData';
 import DataTableItemCurrency from './row-types/DataTableItemCurrency';
-import { useWallet } from '../wallet/useWallet';
 import { useMemo } from 'react';
 import { ethers } from 'ethers';
 
@@ -21,8 +20,6 @@ interface IAttachment {
 const DataTable: React.FC<IDataTableProps> = (props) => {
   const { contract } = props;
 
-  console.log(contract);
-
   const ethPrice = useMemo(async () => {
     const getPrice = async () => {
       const etherscan = new ethers.providers.EtherscanProvider();
@@ -32,8 +29,6 @@ const DataTable: React.FC<IDataTableProps> = (props) => {
     return await getPrice();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contract.bounty]);
-
-  console.log(ethPrice);
 
   return (
     <div className="overflow-hidden bg-white shadow sm:rounded-lg">

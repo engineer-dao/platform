@@ -1,7 +1,7 @@
-import { PlayIcon } from '@heroicons/react/solid';
 import classNames from 'classnames';
 import React from 'react';
 import { IDataTableItemCurrency } from '../../../interfaces/IDataTableItem';
+import { StartJobButton } from '../../single-contract/StartJobButton';
 
 const DataTableItemCurrency: React.FC<IDataTableItemCurrency> = (props) => {
   const { label, value, totalRow } = props;
@@ -29,15 +29,7 @@ const DataTableItemCurrency: React.FC<IDataTableItemCurrency> = (props) => {
             </span>
             &nbsp;({fiat_value} {fiat_suffix})
           </div>
-          {!!totalRow && (
-            <button
-              type="button"
-              className="focus:outline-none inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-            >
-              <PlayIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
-              Accept
-            </button>
-          )}
+          {!!totalRow && <StartJobButton />}
         </div>
       </dd>
     </div>
