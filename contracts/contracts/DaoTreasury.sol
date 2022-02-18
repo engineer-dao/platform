@@ -13,10 +13,11 @@ contract DaoTreasury is IDaoTreasury, Ownable {
     IJob public JobContract;
     IERC20 public stableCoin;
 
-    // mainnet
-    IRouter public Router = IRouter(0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff);
+    IRouter public Router;
 
-    constructor() {}
+    constructor(address _routerAddr) {
+        Router = IRouter(_routerAddr);
+    }
 
     function swapAllToStable(uint256 slippage) external onlyOwner {
         IERC20[] memory tokens = JobContract.getAllPaymentTokens();
@@ -37,12 +38,15 @@ contract DaoTreasury is IDaoTreasury, Ownable {
     ) public onlyOwner {
         address[] memory path = new address[](2);
         path[0] = address(token);
-        path[0] = address(stableCoin);
+        path[1] = address(stableCoin);
 
         uint256[] memory amounts = Router.getAmountsOut(tokenAmount, path);
         uint256 amountOut = amounts[amounts.length - 1];
 
         uint256 minAmountOut = amountOut - ((amountOut * slip) / 10000);
+
+        // approve spending of our token from the router
+        token.approve(address(Router), tokenAmount);
 
         Router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
             tokenAmount,
