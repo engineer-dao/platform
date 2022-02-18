@@ -1,10 +1,10 @@
 import DataTableItemChips from './row-types/DataTableItemChips';
-// import DataTableItemCurrency from './row-types/DataTableItemCurrency';
 import DataTableItemFiles from './row-types/DataTableItemFiles';
 import DataTableItemText from './row-types/DataTableItemText';
 import { IJobData } from 'interfaces/IJobData';
 import { contractData as mockContractData } from 'mocks/contractData';
 import DataTableItemCurrency from './row-types/DataTableItemCurrency';
+import DataTableItemActions from './row-types/DataTableItemActions';
 
 interface IDataTableProps {
   contract: IJobData;
@@ -56,10 +56,9 @@ const DataTable: React.FC<IDataTableProps> = (props) => {
             label={mockContractData[10].label}
             value={mockContractData[10].value as any}
           />
-          <DataTableItemCurrency
+          <DataTableItemActions
             label={mockContractData[11].label}
             value={mockContractData[11].value as any}
-            totalRow
           />
         </dl>
       </div>

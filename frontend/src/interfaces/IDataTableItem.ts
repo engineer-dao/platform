@@ -31,5 +31,8 @@ export interface IDataTableItemFiles extends IDataTableItem {
 
 export interface IDataTableItemCurrency extends IDataTableItem {
   value: ICurrency;
-  totalRow?: boolean;
+}
+
+export interface IDataTableItemActions extends IDataTableItem {
+  value: ICurrency;
 }
