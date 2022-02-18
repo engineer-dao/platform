@@ -13,10 +13,11 @@ contract DaoTreasury is IDaoTreasury, Ownable {
     IJob public JobContract;
     IERC20 public stableCoin;
 
-    // mainnet
-    IRouter public Router = IRouter(0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff);
+    IRouter public Router;
 
-    constructor() {}
+    constructor(address _routerAddr) {
+        Router = IRouter(_routerAddr);
+    }
 
     function swapAllToStable(uint256 slippage) external onlyOwner {
         IERC20[] memory tokens = JobContract.getAllPaymentTokens();

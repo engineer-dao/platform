@@ -74,7 +74,7 @@ describe('DaoTreasury ', function () {
         testUtil.USDC_ADDRESS
       );
 
-      expect(await DaoTreasury.Router()).to.equal(testUtil.ROUTER_ADDRESS);
+      expect(await DaoTreasury.Router()).to.equal(testUtil.QUICK_SWAP_POLY_ADDRESS);
       await (await DaoTreasury.setRouter(addr2.address)).wait();
       expect(await DaoTreasury.Router()).to.equal(addr2.address);
 
@@ -176,8 +176,8 @@ describe('DaoTreasury ', function () {
       const finalDAIBalance = await getBalanceOf(ercTokenDAI.address, DaoTreasury.address);
       expect(finalDAIBalance).to.equal('0');
       const finalUSDCBalance = await getBalanceOf(ercTokenUSDC.address, DaoTreasury.address);
-      expect(finalUSDCBalance).to.equal(ethers.utils.parseUnits('1000'));
 
+      expect(finalUSDCBalance).to.equal(ethers.utils.parseUnits('1000'));
     });
 
     it('can swap multiple coins to stable coin', async function () {

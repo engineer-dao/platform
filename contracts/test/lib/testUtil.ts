@@ -44,7 +44,8 @@ export const ZERO_ADDRESS = ethers.constants.AddressZero;
 // TODO: can be moved to env & env.testnet and called "DAO_STABLE_COIN_ADDRESS"
 // polygon mainnet
 export const USDC_ADDRESS = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174";
-export const ROUTER_ADDRESS = "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff";
+export const QUICK_SWAP_POLY_ADDRESS = "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff";
+
 let erc20TokenSetupInstructions: string[];
 
 interface JobMetaData {
@@ -59,7 +60,7 @@ interface JobMetaData {
 export const deployDaoTreasury = async () => {
     const DaoTreasury = await (
         await ethers.getContractFactory('DaoTreasury')
-    ).deploy();
+    ).deploy(QUICK_SWAP_POLY_ADDRESS);
     await DaoTreasury.deployed();
     return DaoTreasury;
 };
