@@ -49,6 +49,8 @@ enum NetworkIDs {
     POLYGON = 137,
 }
 
+const enableGasReport = !!process.env.REPORT_GAS
+
 const config: HardhatUserConfig = {
     solidity: {
         version: '0.8.9',
@@ -98,8 +100,12 @@ const config: HardhatUserConfig = {
         },
     },
     gasReporter: {
-        enabled: process.env.REPORT_GAS !== undefined,
+        enabled: enableGasReport,
+        gasPrice: 90,
         currency: 'USD',
+        coinmarketcap: process.env.CMC_API_KEY,
+        // token: "MATIC",
+        // gasPriceApi: "https://api.polygonscan.com/api?module=proxy&action=eth_gasPrice"
     },
     etherscan: {
         apiKey: process.env.ETHERSCAN_API_KEY,
