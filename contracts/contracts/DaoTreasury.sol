@@ -37,12 +37,15 @@ contract DaoTreasury is IDaoTreasury, Ownable {
     ) public onlyOwner {
         address[] memory path = new address[](2);
         path[0] = address(token);
-        path[0] = address(stableCoin);
+        path[1] = address(stableCoin);
 
         uint256[] memory amounts = Router.getAmountsOut(tokenAmount, path);
         uint256 amountOut = amounts[amounts.length - 1];
 
         uint256 minAmountOut = amountOut - ((amountOut * slip) / 10000);
+
+        // approve spending of our token from the router
+        token.approve(address(Router), tokenAmount);
 
         Router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
             tokenAmount,
