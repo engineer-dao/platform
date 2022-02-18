@@ -43,6 +43,14 @@ task(
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
+enum NetworkIDs {
+    MAINNET = 1,
+    ROPSTEN = 3,
+    POLYGON = 137,
+}
+
+const enableGasReport = !!process.env.REPORT_GAS
+
 const config: HardhatUserConfig = {
     solidity: {
         version: '0.8.9',
@@ -54,9 +62,24 @@ const config: HardhatUserConfig = {
         }
     },
     namedAccounts: {
-        deployer: 0,
-        daoTreasury: 1,
-        disputeResolver: 2,
+        deployer: {
+            default: 0,
+            [NetworkIDs.MAINNET]: process.env.MAINNET_DEPLOYER_PRIVATE_KEY ? `privatekey://${process.env.MAINNET_DEPLOYER_PRIVATE_KEY}` : 0,
+            [NetworkIDs.ROPSTEN]: process.env.ROPSTEN_DEPLOYER_PRIVATE_KEY ? `privatekey://${process.env.ROPSTEN_DEPLOYER_PRIVATE_KEY}` : 0,
+            [NetworkIDs.POLYGON]: process.env.POLYGON_DEPLOYER_PRIVATE_KEY ? `privatekey://${process.env.POLYGON_DEPLOYER_PRIVATE_KEY}` : 0,
+        },
+        daoTreasury: {
+            default: 1,
+            [NetworkIDs.MAINNET]: process.env.MAINNET_TREASURY_PRIVATE_KEY ? `privatekey://${process.env.MAINNET_TREASURY_PRIVATE_KEY}` : 1,
+            [NetworkIDs.ROPSTEN]: process.env.ROPSTEN_TREASURY_PRIVATE_KEY ? `privatekey://${process.env.ROPSTEN_TREASURY_PRIVATE_KEY}` : 1,
+            [NetworkIDs.POLYGON]: process.env.POLYGON_TREASURY_PRIVATE_KEY ? `privatekey://${process.env.POLYGON_TREASURY_PRIVATE_KEY}` : 1,
+        },
+        disputeResolver: {
+            default: 2,
+            [NetworkIDs.MAINNET]: process.env.MAINNET_DR_RESOLVER_PRIVATE_KEY ? `privatekey://${process.env.MAINNET_DR_RESOLVER_PRIVATE_KEY}` : 2,
+            [NetworkIDs.ROPSTEN]: process.env.ROPSTEN_DR_RESOLVER_PRIVATE_KEY ? `privatekey://${process.env.ROPSTEN_DR_RESOLVER_PRIVATE_KEY}` : 2,
+            [NetworkIDs.POLYGON]: process.env.POLYGON_DR_RESOLVER_PRIVATE_KEY ? `privatekey://${process.env.POLYGON_DR_RESOLVER_PRIVATE_KEY}` : 2,
+        },
     },
     networks: {
         localhost: {
@@ -64,7 +87,7 @@ const config: HardhatUserConfig = {
         },
         hardhat: {
             // forking: {
-            //     url: process.env.RPC_URL || "https://polygon-rpc.com",
+            //     url: process.env.FORKING_RPC_URL || "https://polygon-rpc.com",
             //     blockNumber: 24238595,
             // },
             chainId: 1337,
@@ -72,15 +95,17 @@ const config: HardhatUserConfig = {
         },
         ropsten: {
             url: process.env.ROPSTEN_URL || '',
-            accounts:
-                process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
             live: false,
             chainId: 3,
         },
     },
     gasReporter: {
-        enabled: process.env.REPORT_GAS !== undefined,
+        enabled: enableGasReport,
+        gasPrice: 90,
         currency: 'USD',
+        coinmarketcap: process.env.CMC_API_KEY,
+        // token: "MATIC",
+        // gasPriceApi: "https://api.polygonscan.com/api?module=proxy&action=eth_gasPrice"
     },
     etherscan: {
         apiKey: process.env.ETHERSCAN_API_KEY,
