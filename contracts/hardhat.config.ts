@@ -55,6 +55,8 @@ const config: HardhatUserConfig = {
     },
     namedAccounts: {
         deployer: 0,
+        daoTreasury: 1,
+        disputeResolver: 2,
     },
     networks: {
         localhost: {

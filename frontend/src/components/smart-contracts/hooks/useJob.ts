@@ -1,13 +1,26 @@
-import { useEffect, useState } from 'react';
 import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
 import { useWallet } from 'components/wallet/useWallet';
 import { BigNumber, ethers } from 'ethers';
 import {
   IJobData,
-  IJobSmartContractData,
   IJobMetaData,
+  IJobSmartContractData,
 } from 'interfaces/IJobData';
 import { ISmartContractState } from 'interfaces/ISmartContractState';
+import { useEffect, useState } from 'react';
+import { fetchIpfsMetaData } from 'services/ipfs';
+
+enum CacheKeys {
+  JOB = 'job',
+  VERSION = 'v',
+  TIMESTAMP = 't',
+}
+
+interface IJobCacheEntry {
+  [CacheKeys.JOB]: IJobData;
+  [CacheKeys.VERSION]: number;
+  [CacheKeys.TIMESTAMP]: number;
+}
 
 const assembleJob = (
   jobId: string,
@@ -50,6 +63,14 @@ const loadJobFromJobId = async (
   jobId: string,
   contracts: ISmartContractState
 ) => {
+  const storage = window.localStorage;
+  const jobCacheKey = `job:${jobId}`;
+  const cachedJobString = storage.getItem(jobCacheKey);
+  if (cachedJobString !== null) {
+    const cachedJobEntry: IJobCacheEntry = JSON.parse(cachedJobString);
+    return cachedJobEntry.job;
+  }
+
   // get the job data from the contract
   const job = await contracts.Job.jobs(jobId);
 
@@ -59,11 +80,24 @@ const loadJobFromJobId = async (
 
   const event = results[0];
 
-  const jobMetaDataJSON = event.args.jobMetaData;
-  // TODO: validate meta data with a schema
-  const unsafeJobMetaData = JSON.parse(jobMetaDataJSON);
+  const cidString = event.args.metadataCid;
+  const unsafeJobMetaData = await fetchIpfsMetaData(cidString);
 
-  return assembleJob(jobId, job, unsafeJobMetaData);
+  // TODO: validate meta data with a schema
+
+  const assembledJob = assembleJob(jobId, job, unsafeJobMetaData);
+  const newCachedJobEntry: IJobCacheEntry = {
+    [CacheKeys.JOB]: assembledJob,
+    [CacheKeys.VERSION]: 1,
+    [CacheKeys.TIMESTAMP]: Date.now(),
+  };
+  storage.setItem(jobCacheKey, JSON.stringify(newCachedJobEntry));
+
+  return assembledJob;
+};
+
+export const clearJobCache = () => {
+  window.localStorage.clear();
 };
 
 export const useJob = (jobId: string) => {

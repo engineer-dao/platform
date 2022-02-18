@@ -4,7 +4,7 @@ import { DeployFunction } from 'hardhat-deploy/types';
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts, network } = hre;
   const { deploy } = deployments;
-  const { deployer } = await getNamedAccounts();
+  const { deployer, daoTreasury, disputeResolver } = await getNamedAccounts();
 
   let erc20ContractAddress: string;
   if (network.live === false) {

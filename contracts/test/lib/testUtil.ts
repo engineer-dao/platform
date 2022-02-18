@@ -36,8 +36,9 @@ export const DISPUTE_RESOLUTION_PCT = 0.06;
 export const DEFAULT_DEPOSIT_PCT = 1000;
 export const BASE_PERCENT = 10000;
 
-export const DEFAULT_REPORT_META = "Illegal Activity";
-export const DEFAULT_REPORT_RESOLVE_REASON = "Default Reason";
+export const DEFAULT_JOB_METADATA_CID = 'bafkxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx000';
+export const DEFAULT_REPORT_META_CID = 'bafkxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx001';
+export const DEFAULT_REPORT_RESOLVE_REASON_CID = 'bafkxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx003';
 export const ZERO_ADDRESS = ethers.constants.AddressZero;
 
 // TODO: can be moved to env & env.testnet and called "DAO_STABLE_COIN_ADDRESS"
@@ -53,13 +54,6 @@ interface JobMetaData {
     contact?: string;
 }
 
-export const defaultJobMetaData: JobMetaData = {
-    ver: '1',
-    name: 'Job Name',
-    description: 'The job description',
-    acceptance: 'The job acceptance criteria',
-    contact: 'owner@myjobsite.com',
-};
 
 export const deployDaoTreasury = async () => {
     const DaoTreasury = await (
@@ -226,21 +220,14 @@ export const postSampleJob = (signer: undefined | Signer = undefined) => async (
     token: ERC20,
     bounty: undefined | string = undefined,
     depositPct: undefined | number = DEFAULT_DEPOSIT_PCT,
-    jobMetaData: undefined | JobMetaData = undefined,
+    metadataCid: undefined | string = undefined,
 ) => {
     if (!signer) {
         signer = (await signers()).supplier;
     }
 
-    if (!jobMetaData) {
-        jobMetaData = {
-            ...defaultJobMetaData,
-        };
-    } else {
-        jobMetaData = {
-            ...defaultJobMetaData,
-            ...jobMetaData,
-        };
+    if (!metadataCid) {
+        metadataCid = DEFAULT_JOB_METADATA_CID;
     }
 
     // post the job from the supplier address;
@@ -250,7 +237,7 @@ export const postSampleJob = (signer: undefined | Signer = undefined) => async (
 
     const postJobTx = await Job
         .connect(signer)
-        .postJob(token.address, bounty, depositPct, JSON.stringify(jobMetaData));
+        .postJob(token.address, bounty, depositPct, metadataCid);
 
     return postJobTx;
 };
@@ -380,7 +367,7 @@ export const reportJob = async (
         signer = (await signers()).reporter;
     }
 
-    const reportJobTx = await Job.connect(signer).reportJob(jobId, DEFAULT_REPORT_META);
+    const reportJobTx = await Job.connect(signer).reportJob(jobId, DEFAULT_REPORT_META_CID);
 
     return reportJobTx;
 };
@@ -394,7 +381,7 @@ export const acceptReport = async (
         signer = (await signers()).resolver;
     }
 
-    const acceptReportTx = await Job.connect(signer).acceptReport(jobId, DEFAULT_REPORT_RESOLVE_REASON);
+    const acceptReportTx = await Job.connect(signer).acceptReport(jobId, DEFAULT_REPORT_RESOLVE_REASON_CID);
 
     return acceptReportTx;
 };
@@ -408,7 +395,7 @@ export const declineReport = async (
         signer = (await signers()).resolver;
     }
 
-    const declineReportTx = await Job.connect(signer).declineReport(jobId, DEFAULT_REPORT_RESOLVE_REASON);
+    const declineReportTx = await Job.connect(signer).declineReport(jobId, DEFAULT_REPORT_RESOLVE_REASON_CID);
 
     return declineReportTx;
 };
