@@ -1,5 +1,6 @@
 import { JobState } from 'enums/JobState';
 import { BigNumber } from 'ethers';
+import { IListBoxItem } from './IListBoxItem';
 
 export interface IJobSmartContractData {
   supplier: string;
@@ -16,15 +17,12 @@ export interface IJobSmartContractData {
 export interface IJobMetaData {
   title: string;
   description: string;
-  buyIn: number;
+  deposit: number;
   acceptanceCriteria: string;
-
-  // timeframe: string;
-  // status: keyof typeof ContractStatus;
-  // technologies: string[];
-  // testing_type: string[];
-  // anon_type: string[];
-  // ownership: IContractOwnership;
+  labels: IListBoxItem[];
+  identity: IListBoxItem[];
+  acceptanceTests: IListBoxItem[];
+  endDate: string;
 }
 
 export interface IJobData extends IJobMetaData {
@@ -33,7 +31,6 @@ export interface IJobData extends IJobMetaData {
   supplier: string;
   engineer?: string;
   bounty: number;
-  deposit: number;
   startTime?: number;
   completedTime?: number;
   closedBySupplier: boolean;

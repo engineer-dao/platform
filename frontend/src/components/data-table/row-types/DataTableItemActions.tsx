@@ -1,15 +1,16 @@
 import React from 'react';
-import { IDataTableItemCurrency } from '../../../interfaces/IDataTableItem';
+import { IDataTableItemActions } from '../../../interfaces/IDataTableItem';
+import { StartJobButton } from '../../single-contract/StartJobButton';
 
-const DataTableItemCurrency: React.FC<IDataTableItemCurrency> = (props) => {
+const DataTableItemActions: React.FC<IDataTableItemActions> = (props) => {
   const { label, value } = props;
 
   const { crypto_value, crypto_suffix, fiat_suffix, fiat_value } = value;
 
   return (
-    <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+    <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-5">
       <dt className="text-sm font-medium text-gray-500">{label}</dt>
-      <dd className="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+      <dd className="mt-1 text-lg text-gray-900 sm:col-span-2 sm:mt-0">
         <div className="flex justify-between">
           <div>
             <span className="font-bold">
@@ -17,10 +18,11 @@ const DataTableItemCurrency: React.FC<IDataTableItemCurrency> = (props) => {
             </span>
             &nbsp;({fiat_value} {fiat_suffix})
           </div>
+          <StartJobButton />
         </div>
       </dd>
     </div>
   );
 };
 
-export default DataTableItemCurrency;
+export default DataTableItemActions;

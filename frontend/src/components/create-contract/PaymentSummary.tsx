@@ -1,12 +1,11 @@
-import { CreateFormValues } from 'components/forms/types';
+import { ICreateContractForm } from './ICreateContractForm';
 
-//
 const PaymentSummary = ({
   tokenName,
   data,
 }: {
   tokenName?: string;
-  data: CreateFormValues;
+  data: ICreateContractForm;
 }) => {
   const token = tokenName || process.env.REACT_APP_PAYMENT_TOKEN_NAME || '';
 

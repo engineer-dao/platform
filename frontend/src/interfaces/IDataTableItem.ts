@@ -1,3 +1,5 @@
+import { IListBoxItem } from './IListBoxItem';
+
 interface IAttachment {
   filename: string;
   link: string;
@@ -19,7 +21,7 @@ export interface IDataTableItemText extends IDataTableItem {
 }
 
 export interface IDataTableItemChips extends IDataTableItem {
-  value: string[];
+  value: IListBoxItem[];
   chipColor?: string;
 }
 
@@ -29,5 +31,8 @@ export interface IDataTableItemFiles extends IDataTableItem {
 
 export interface IDataTableItemCurrency extends IDataTableItem {
   value: ICurrency;
-  totalRow?: boolean;
+}
+
+export interface IDataTableItemActions extends IDataTableItem {
+  value: ICurrency;
 }

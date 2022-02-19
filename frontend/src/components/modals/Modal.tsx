@@ -2,45 +2,8 @@ import { Fragment, useRef } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 
 import { IModalProps } from 'interfaces/IModalProps';
-import { DynamicHeroIcon } from 'components/ui/DynamicHeroIcon';
-
-/*
-// usage:
-import { useState } from 'react';
-import { Modal } from 'components/ui/Modal';
-
-export const MyComponent: React.FunctionComponent = () => {
-  const [showModal, setShowModal] = useState(false);
-
-  // find Icon types at https://unpkg.com/browse/@heroicons/react@1.0.5/outline/index.js
-  return (
-    <>
-      <button
-        className="mt-2 rounded-lg border-2 border:gray-700 text-gray-200 hover:border-white hover:bg-gray-700 hover:text-white py-2 px-3 w-100 whitespace-nowrap"
-        onClick={() => {
-          setShowModal(true);
-        }}
-      >
-        Click this button to show the Modal Dialog
-      </button>
-
-
-      <Modal
-        title="Example Modal Title"
-        icon="EmojiHappyIcon"
-        closeButton="I'm good"
-        isOpen={showModal}
-        onRequestClose={() => {
-          setShowModal(false);
-        }}
-      >
-        <p>The body of the modal content here.</p>
-        <p>Another line of information is here.</p>
-      </Modal>
-    </>
-  );
-};
-*/
+import { DynamicHeroIcon } from 'components/icons/DynamicHeroIcon';
+import classNames from 'classnames';
 
 export const Modal: React.FunctionComponent<IModalProps> = (
   props: IModalProps
@@ -50,6 +13,8 @@ export const Modal: React.FunctionComponent<IModalProps> = (
   const onClose = () => {
     props.onRequestClose && props.onRequestClose();
   };
+
+  const { iconColor = 'green' } = props;
 
   return (
     <Transition.Root show={props.isOpen} as={Fragment}>
@@ -93,6 +58,10 @@ export const Modal: React.FunctionComponent<IModalProps> = (
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
                   <DynamicHeroIcon
                     icon={props.icon ?? 'CheckIcon'}
+                    className={classNames('h-6 w-6', {
+                      'text-green-600': iconColor === 'green',
+                      'text-red-600': iconColor === 'red',
+                    })}
                   ></DynamicHeroIcon>
                 </div>
                 <div className="mt-3 text-center sm:mt-5">
