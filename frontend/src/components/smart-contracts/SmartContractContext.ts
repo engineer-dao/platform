@@ -33,6 +33,8 @@ const initialWalletState: IWalletState = {
   connected: false,
   provider: null,
   providerInfo: null,
+  chainId: null,
+  chainIsSupported: false,
 };
 
 const initialSmartContractsState = buildSmartContractState(initialWalletState);

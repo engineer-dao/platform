@@ -156,7 +156,7 @@ export const useFindJobsByCurrentWallet = () => {
 
 export const useFindJobs = (jobFilter?: IJobFilter) => {
   const { contracts } = useSmartContracts();
-  const { account } = useWallet();
+  const { account, chainIsSupported } = useWallet();
   const [jobs, setJobs] = useState<IJobData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -184,10 +184,10 @@ export const useFindJobs = (jobFilter?: IJobFilter) => {
       setIsLoading(false);
     };
 
-    if (account) {
+    if (account && chainIsSupported) {
       fetchJobs();
     }
-  }, [account, contracts, jobFilter]);
+  }, [account, chainIsSupported, contracts, jobFilter]);
 
   return {
     jobs,
