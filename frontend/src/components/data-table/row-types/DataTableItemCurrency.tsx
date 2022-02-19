@@ -15,7 +15,11 @@ const DataTableItemCurrency: React.FC<IDataTableItemCurrency> = (props) => {
             <span className="font-bold">
               {crypto_value} {crypto_suffix}
             </span>
-            &nbsp;({fiat_value} {fiat_suffix})
+            {fiat_value && (
+              <>
+                &nbsp;({fiat_value} {fiat_suffix})
+              </>
+            )}
           </div>
         </div>
       </dd>

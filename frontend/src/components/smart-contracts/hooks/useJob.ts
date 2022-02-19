@@ -57,6 +57,9 @@ const assembleJob = (
     identity: jobMetaData.identity,
     acceptanceTests: jobMetaData.acceptanceTests,
     endDate: jobMetaData.endDate,
+    requiredDeposit: jobMetaData.deposit,
+
+    paymentTokenName: process.env.REACT_APP_PAYMENT_TOKEN_NAME || '',
   };
 
   return job;

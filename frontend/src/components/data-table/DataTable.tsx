@@ -17,6 +17,7 @@ interface IAttachment {
 
 const DataTable: React.FC<IDataTableProps> = (props) => {
   const { contract } = props;
+  const tokenName = process.env.REACT_APP_PAYMENT_TOKEN_NAME || '';
 
   return (
     <div className="overflow-hidden bg-white shadow sm:rounded-lg">
@@ -50,15 +51,21 @@ const DataTable: React.FC<IDataTableProps> = (props) => {
           />
           <DataTableItemCurrency
             label="Bounty"
-            value={{ crypto_value: contract.bounty, crypto_suffix: 'ETH' }}
+            value={{ crypto_value: contract.bounty, crypto_suffix: tokenName }}
           />
           <DataTableItemCurrency
-            label={mockContractData[10].label}
-            value={mockContractData[10].value as any}
+            label="Buy-In"
+            value={{
+              crypto_value: contract.requiredDeposit,
+              crypto_suffix: tokenName,
+            }}
           />
           <DataTableItemActions
-            label={mockContractData[11].label}
-            value={mockContractData[11].value as any}
+            label="Total Payout"
+            value={{
+              crypto_value: contract.bounty + contract.requiredDeposit,
+              crypto_suffix: tokenName,
+            }}
           />
         </dl>
       </div>

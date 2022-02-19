@@ -16,7 +16,11 @@ const DataTableItemActions: React.FC<IDataTableItemActions> = (props) => {
             <span className="font-bold">
               {crypto_value} {crypto_suffix}
             </span>
-            &nbsp;({fiat_value} {fiat_suffix})
+            {fiat_value && (
+              <>
+                &nbsp;({fiat_value} {fiat_suffix})
+              </>
+            )}
           </div>
           <StartJobButton />
         </div>

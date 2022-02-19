@@ -39,4 +39,7 @@ export interface IJobData extends IJobMetaData {
   closedBySupplier: boolean;
   closedByEngineer: boolean;
   state: JobState;
+
+  paymentTokenName: string;
+  requiredDeposit: number;
 }
