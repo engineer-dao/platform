@@ -6,6 +6,7 @@ import {
   IJobMetaData,
   IJobSmartContractData,
 } from 'interfaces/IJobData';
+import { IJobFilter } from 'interfaces/IJobFilter';
 import { ISmartContractState } from 'interfaces/ISmartContractState';
 import { useEffect, useState } from 'react';
 import { fetchIpfsMetaData } from 'services/ipfs';
@@ -124,7 +125,7 @@ export const useJob = (jobId: string) => {
   return jobData;
 };
 
-export const useFindJobs = () => {
+export const useFindJobs = (jobFilter?: IJobFilter) => {
   const { contracts } = useSmartContracts();
   const { account } = useWallet();
   const [jobs, setJobs] = useState<IJobData[]>([]);
@@ -146,17 +147,68 @@ export const useFindJobs = () => {
         allJobs.push(jobData);
       }
 
-      setJobs(allJobs);
+      if (jobFilter) {
+        setJobs(filterJobs(allJobs, jobFilter));
+      } else {
+        setJobs(allJobs);
+      }
       setIsLoading(false);
     };
 
     if (account) {
       fetchJobs();
     }
-  }, [account, contracts]);
+  }, [account, contracts, jobFilter]);
 
   return {
     jobs,
     isLoading,
   };
+};
+
+const filterJobs = (jobs: IJobData[], jobFilter: IJobFilter) => {
+  const filteredJobs: IJobData[] = [];
+  const filterFields = jobFilter.fields;
+  for (const job of jobs) {
+    let anyFound = false;
+    Object.getOwnPropertyNames(filterFields).forEach((key) => {
+      if (anyFound) {
+        return;
+      }
+
+      switch (key) {
+        case 'id':
+          if (job.id === filterFields.id) {
+            anyFound = true;
+          }
+          break;
+        case 'supplier':
+          if (job.supplier === filterFields.supplier) {
+            anyFound = true;
+          }
+          break;
+        case 'engineer':
+          if (job.engineer === filterFields.engineer) {
+            anyFound = true;
+          }
+          break;
+        case 'state':
+          if (job.state === filterFields.state) {
+            anyFound = true;
+          }
+          break;
+        case 'paymentTokenName':
+          if (job.paymentTokenName === filterFields.paymentTokenName) {
+            anyFound = true;
+          }
+          break;
+      }
+    });
+
+    if (anyFound) {
+      filteredJobs.push(job);
+    }
+  }
+
+  return filteredJobs;
 };
