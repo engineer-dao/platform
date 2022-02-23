@@ -1,9 +1,8 @@
 import React from 'react';
-import { IDataTableItemActions } from '../../../interfaces/IDataTableItem';
-import { StartJobButton } from '../../single-contract/StartJobButton';
+import { IDataTableItemActions } from 'interfaces/IDataTableItem';
 
 const DataTableItemActions: React.FC<IDataTableItemActions> = (props) => {
-  const { label, value } = props;
+  const { label, value, button } = props;
 
   const { crypto_value, crypto_suffix, fiat_suffix, fiat_value } = value;
 
@@ -22,7 +21,7 @@ const DataTableItemActions: React.FC<IDataTableItemActions> = (props) => {
               </>
             )}
           </div>
-          <StartJobButton />
+          {button}
         </div>
       </dd>
     </div>

@@ -60,7 +60,7 @@ export const PostJobModal = (props: IProps) => {
       const metadata = {
         title: formData.title,
         description: formData.description,
-        deposit: parseInt(formData.deposit),
+        requiredDeposit: parseInt(formData.deposit),
         acceptanceCriteria: formData.acceptanceCriteria,
         labels: formData.labels,
         identity: formData.identity,

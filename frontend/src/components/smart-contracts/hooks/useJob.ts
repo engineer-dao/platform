@@ -2,6 +2,7 @@ import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartCont
 import { useWallet } from 'components/wallet/useWallet';
 import { BigNumber, ethers } from 'ethers';
 import {
+  IFormattedJobSmartContractData,
   IJobData,
   IJobMetaData,
   IJobSmartContractData,
@@ -12,27 +13,24 @@ import { useEffect, useState } from 'react';
 import { fetchIpfsMetaData } from 'services/ipfs';
 import { formatIntegerPercentage } from 'utils/number';
 
+const CACHE_VERSION = 1;
+
 enum CacheKeys {
-  JOB = 'job',
+  JOB = 'j',
+  JOB_META = 'm',
   VERSION = 'v',
   TIMESTAMP = 't',
 }
 
 interface IJobCacheEntry {
-  [CacheKeys.JOB]: IJobData;
+  [CacheKeys.JOB_META]: IJobMetaData;
   [CacheKeys.VERSION]: number;
   [CacheKeys.TIMESTAMP]: number;
 }
 
-const assembleJob = (
-  jobId: string,
-  jobContractData: IJobSmartContractData,
-  jobMetaData: IJobMetaData
-) => {
-  const job: IJobData = {
-    id: jobId,
-
-    supplier: ethers.utils.getAddress(jobContractData.supplier),
+const formatJobContractData = (jobContractData: IJobSmartContractData) => {
+  return {
+    supplier: String(ethers.utils.getAddress(jobContractData.supplier)),
     engineer:
       jobContractData.engineer === ethers.constants.AddressZero
         ? undefined
@@ -50,60 +48,47 @@ const assembleJob = (
     closedBySupplier: jobContractData.closedBySupplier,
     closedByEngineer: jobContractData.closedByEngineer,
     state: jobContractData.state,
-
-    title: jobMetaData.title,
-    description: jobMetaData.description,
-    acceptanceCriteria: jobMetaData.acceptanceCriteria,
-    labels: jobMetaData.labels,
-    identity: jobMetaData.identity,
-    acceptanceTests: jobMetaData.acceptanceTests,
-    endDate: jobMetaData.endDate,
-    requiredDeposit: jobMetaData.deposit,
-
-    paymentTokenName: process.env.REACT_APP_PAYMENT_TOKEN_NAME || '',
   };
-
-  return job;
 };
 
 const loadJobFromJobId = async (
   jobId: string,
   contracts: ISmartContractState
 ) => {
-  const storage = window.localStorage;
-  const jobCacheKey = `job:${jobId}`;
-  const cachedJobString = storage.getItem(jobCacheKey);
-  if (cachedJobString !== null) {
-    const cachedJobEntry: IJobCacheEntry = JSON.parse(cachedJobString);
-    return cachedJobEntry.job;
-  }
+  // load cached information
+  const cachedJobMetaData = loadJobMetaDataFromCache(jobId);
 
-  // get the job data from the contract
-  const job = await contracts.Job.jobs(jobId);
+  // always get the job data from the contract as it can change
+  const jobContractData: IFormattedJobSmartContractData = formatJobContractData(
+    await contracts.Job.jobs(jobId)
+  );
 
-  // load job meta data from log...
-  const filter = contracts.Job.filters.JobPosted(BigNumber.from(jobId));
-  const results = await contracts.Job.queryFilter(filter);
+  // load job meta data from IPFS if needed
+  const jobMetaData = cachedJobMetaData
+    ? cachedJobMetaData
+    : await fetchJobMetaData(jobId, contracts);
 
-  const event = results[0];
-
-  const cidString = event.args.metadataCid;
-  const unsafeJobMetaData = await fetchIpfsMetaData(cidString);
-
-  // TODO: validate meta data with a schema
-
-  const assembledJob = assembleJob(jobId, job, unsafeJobMetaData);
-  const newCachedJobEntry: IJobCacheEntry = {
-    [CacheKeys.JOB]: assembledJob,
-    [CacheKeys.VERSION]: 1,
-    [CacheKeys.TIMESTAMP]: Date.now(),
+  const assembledJob = {
+    id: jobId,
+    ...jobContractData,
+    ...jobMetaData,
+    paymentTokenName: process.env.REACT_APP_PAYMENT_TOKEN_NAME || '',
   };
-  storage.setItem(jobCacheKey, JSON.stringify(newCachedJobEntry));
+
+  // save to cache
+  if (!cachedJobMetaData) {
+    const newCachedJobEntry: IJobCacheEntry = {
+      [CacheKeys.JOB_META]: jobMetaData,
+      [CacheKeys.VERSION]: CACHE_VERSION,
+      [CacheKeys.TIMESTAMP]: Date.now(),
+    };
+    saveJobToCache(jobId, newCachedJobEntry);
+  }
 
   return assembledJob;
 };
 
-export const clearJobCache = () => {
+export const clearEntireJobCache = () => {
   window.localStorage.clear();
 };
 
@@ -192,6 +177,46 @@ export const useFindJobs = (jobFilter?: IJobFilter) => {
   return {
     jobs,
     isLoading,
+  };
+};
+
+const buildJobCacheKey = (jobId: string) => {
+  return `job:${jobId}`;
+};
+
+const loadJobMetaDataFromCache = (jobId: string) => {
+  let cachedJobMetaData: IJobMetaData | undefined = undefined;
+  const storage = window.localStorage;
+  const jobCacheKey = buildJobCacheKey(jobId);
+  const cachedJobString = storage.getItem(jobCacheKey);
+  if (cachedJobString !== null) {
+    const cachedJobEntry: IJobCacheEntry = JSON.parse(cachedJobString);
+    cachedJobMetaData = cachedJobEntry[CacheKeys.JOB_META];
+  }
+  return cachedJobMetaData;
+};
+
+const saveJobToCache = (jobId: string, newCachedJobEntry: IJobCacheEntry) => {
+  const storage = window.localStorage;
+  const jobCacheKey = buildJobCacheKey(jobId);
+  storage.setItem(jobCacheKey, JSON.stringify(newCachedJobEntry));
+};
+
+const fetchJobMetaData = async (
+  jobId: string,
+  contracts: ISmartContractState
+): Promise<IJobMetaData> => {
+  const filter = contracts.Job.filters.JobPosted(BigNumber.from(jobId));
+  const results = await contracts.Job.queryFilter(filter);
+  const event = results[0];
+  const cidString = event.args.metadataCid;
+  const unsafeJobMetaData = await fetchIpfsMetaData(cidString);
+
+  // TODO: validate meta data with a schema
+  // transform metadata
+  return {
+    ...unsafeJobMetaData,
+    requiredDeposit: unsafeJobMetaData.deposit,
   };
 };
 
