@@ -12,7 +12,7 @@ interface IJobDataItemProps {
 }
 
 const ContractItem: React.FC<IJobDataItemProps> = ({ job }) => {
-  const { id, title, bounty, requiredDeposit, state } = job;
+  const { bounty, id, paymentTokenName, requiredDeposit, state, title } = job;
 
   return (
     <li
@@ -33,14 +33,14 @@ const ContractItem: React.FC<IJobDataItemProps> = ({ job }) => {
                     className="mr-2 h-5 w-5 text-green-500"
                     aria-hidden="true"
                   />
-                  {bounty} {job.paymentTokenName} Bounty
+                  {bounty} {paymentTokenName} Bounty
                 </p>
                 <p className="text-md mt-1 flex items-center truncate font-bold text-gray-700">
                   <OutlineCashIcon
                     className="mr-2 h-5 w-5 text-green-500"
                     aria-hidden="true"
                   />
-                  {requiredDeposit || '0'} {job.paymentTokenName} Buy-In
+                  {requiredDeposit || '0'} {paymentTokenName} Buy-In
                 </p>
               </div>
             </div>
