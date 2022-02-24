@@ -6,6 +6,7 @@ import {
   IJobMetaData,
   IJobSmartContractData,
 } from 'interfaces/IJobData';
+import { IJobFilter } from 'interfaces/IJobFilter';
 import { ISmartContractState } from 'interfaces/ISmartContractState';
 import { useEffect, useState } from 'react';
 import { fetchIpfsMetaData } from 'services/ipfs';
@@ -124,7 +125,36 @@ export const useJob = (jobId: string) => {
   return jobData;
 };
 
-export const useFindJobs = () => {
+export const useFindJobsByCurrentWallet = () => {
+  const { account } = useWallet();
+
+  const [jobFilter, setJobFilter] = useState<IJobFilter>({
+    fields: {
+      supplier: '0x00',
+      engineer: '0x00',
+    },
+  });
+
+  // filter by wallet account (address)
+  useEffect(() => {
+    if (account) {
+      const formattedAddress = ethers.utils.getAddress(account);
+      setJobFilter((jobFilter) => {
+        return {
+          ...jobFilter,
+          fields: {
+            supplier: formattedAddress,
+            engineer: formattedAddress,
+          },
+        };
+      });
+    }
+  }, [account]);
+
+  return useFindJobs(jobFilter);
+};
+
+export const useFindJobs = (jobFilter?: IJobFilter) => {
   const { contracts } = useSmartContracts();
   const { account } = useWallet();
   const [jobs, setJobs] = useState<IJobData[]>([]);
@@ -146,17 +176,50 @@ export const useFindJobs = () => {
         allJobs.push(jobData);
       }
 
-      setJobs(allJobs);
+      if (jobFilter) {
+        setJobs(filterJobs(allJobs, jobFilter));
+      } else {
+        setJobs(allJobs);
+      }
       setIsLoading(false);
     };
 
     if (account) {
       fetchJobs();
     }
-  }, [account, contracts]);
+  }, [account, contracts, jobFilter]);
 
   return {
     jobs,
     isLoading,
   };
+};
+
+const filterJobs = (jobs: IJobData[], jobFilter: IJobFilter) => {
+  const filterFields = jobFilter.fields;
+
+  const filteredJobs: IJobData[] = jobs.filter((job: IJobData) => {
+    if (filterFields.id && job.id === filterFields.id) {
+      return true;
+    }
+    if (filterFields.supplier && job.supplier === filterFields.supplier) {
+      return true;
+    }
+    if (filterFields.engineer && job.engineer === filterFields.engineer) {
+      return true;
+    }
+    if (filterFields.state && job.state === filterFields.state) {
+      return true;
+    }
+    if (
+      filterFields.paymentTokenName &&
+      job.paymentTokenName === filterFields.paymentTokenName
+    ) {
+      return true;
+    }
+
+    return false;
+  });
+
+  return filteredJobs;
 };

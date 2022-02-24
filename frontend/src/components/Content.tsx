@@ -4,7 +4,7 @@ import { SectionPath } from '../enums/admin/Sections';
 import Community from '../pages/Community';
 import Contracts from '../pages/Contracts';
 import Dashboard from '../pages/Dashboard';
-import MyContracts from '../pages/MyContracts';
+import { MyContracts } from '../pages/MyContracts';
 import SingleContract from '../pages/SingleContract';
 import { CreateContract } from '../pages/CreateContract';
 import Testing from '../pages/Testing';
