@@ -1,41 +1,12 @@
 import { PlusIcon } from '@heroicons/react/outline';
 import ContractsContainer from 'components/contracts/ContractsContainer';
-import { useFindJobs } from 'components/smart-contracts/hooks/useJob';
+import { useFindJobsByCurrentWallet } from 'components/smart-contracts/hooks/useJob';
 import SortFilterHeading from 'components/SortFilterHeading';
-import { useWallet } from 'components/wallet/useWallet';
 import { SectionPath } from 'enums/admin/Sections';
-import { ethers } from 'ethers';
-import { IJobFilter } from 'interfaces/IJobFilter';
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 export const MyContracts = () => {
-  const [jobFilter, setJobFilter] = useState<IJobFilter>({
-    fields: {
-      supplier: '0x00',
-      engineer: '0x00',
-    },
-  });
-
-  const wallet = useWallet();
-
-  // filter by addresses
-  useEffect(() => {
-    if (wallet.account) {
-      const formattedAddress = ethers.utils.getAddress(wallet.account);
-      setJobFilter((jobFilter) => {
-        return {
-          ...jobFilter,
-          fields: {
-            supplier: formattedAddress,
-            engineer: formattedAddress,
-          },
-        };
-      });
-    }
-  }, [wallet.account]);
-
-  const { jobs, isLoading } = useFindJobs(jobFilter);
+  const { jobs, isLoading } = useFindJobsByCurrentWallet();
 
   return (
     <>

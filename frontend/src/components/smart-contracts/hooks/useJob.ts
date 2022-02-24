@@ -125,6 +125,35 @@ export const useJob = (jobId: string) => {
   return jobData;
 };
 
+export const useFindJobsByCurrentWallet = () => {
+  const { account } = useWallet();
+
+  const [jobFilter, setJobFilter] = useState<IJobFilter>({
+    fields: {
+      supplier: '0x00',
+      engineer: '0x00',
+    },
+  });
+
+  // filter by wallet account (address)
+  useEffect(() => {
+    if (account) {
+      const formattedAddress = ethers.utils.getAddress(account);
+      setJobFilter((jobFilter) => {
+        return {
+          ...jobFilter,
+          fields: {
+            supplier: formattedAddress,
+            engineer: formattedAddress,
+          },
+        };
+      });
+    }
+  }, [account]);
+
+  return useFindJobs(jobFilter);
+};
+
 export const useFindJobs = (jobFilter?: IJobFilter) => {
   const { contracts } = useSmartContracts();
   const { account } = useWallet();
@@ -167,48 +196,30 @@ export const useFindJobs = (jobFilter?: IJobFilter) => {
 };
 
 const filterJobs = (jobs: IJobData[], jobFilter: IJobFilter) => {
-  const filteredJobs: IJobData[] = [];
   const filterFields = jobFilter.fields;
-  for (const job of jobs) {
-    let anyFound = false;
-    Object.getOwnPropertyNames(filterFields).forEach((key) => {
-      if (anyFound) {
-        return;
-      }
 
-      switch (key) {
-        case 'id':
-          if (job.id === filterFields.id) {
-            anyFound = true;
-          }
-          break;
-        case 'supplier':
-          if (job.supplier === filterFields.supplier) {
-            anyFound = true;
-          }
-          break;
-        case 'engineer':
-          if (job.engineer === filterFields.engineer) {
-            anyFound = true;
-          }
-          break;
-        case 'state':
-          if (job.state === filterFields.state) {
-            anyFound = true;
-          }
-          break;
-        case 'paymentTokenName':
-          if (job.paymentTokenName === filterFields.paymentTokenName) {
-            anyFound = true;
-          }
-          break;
-      }
-    });
-
-    if (anyFound) {
-      filteredJobs.push(job);
+  const filteredJobs: IJobData[] = jobs.filter((job: IJobData) => {
+    if (filterFields.id && job.id === filterFields.id) {
+      return true;
     }
-  }
+    if (filterFields.supplier && job.supplier === filterFields.supplier) {
+      return true;
+    }
+    if (filterFields.engineer && job.engineer === filterFields.engineer) {
+      return true;
+    }
+    if (filterFields.state && job.state === filterFields.state) {
+      return true;
+    }
+    if (
+      filterFields.paymentTokenName &&
+      job.paymentTokenName === filterFields.paymentTokenName
+    ) {
+      return true;
+    }
+
+    return false;
+  });
 
   return filteredJobs;
 };
