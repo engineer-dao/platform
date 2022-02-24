@@ -16,7 +16,6 @@ import { formatIntegerPercentage } from 'utils/number';
 const CACHE_VERSION = 1;
 
 enum CacheKeys {
-  JOB = 'j',
   JOB_META = 'm',
   VERSION = 'v',
   TIMESTAMP = 't',
