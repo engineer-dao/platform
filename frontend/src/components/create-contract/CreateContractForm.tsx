@@ -3,7 +3,11 @@ import Dropzone from '../forms/inputs/Dropzone';
 import Input from '../forms/inputs/Input';
 import TextArea from '../forms/inputs/TextArea';
 import { ListBox } from '../ListBox';
-import { acceptanceTestsItems, identityItems, labelItems } from './labels';
+import {
+  acceptanceTestsItems,
+  identityItems,
+  labelItems,
+} from 'interfaces/Labels';
 import OptionsSummary from './OptionsSummary';
 import PaymentSummary from './PaymentSummary';
 import { Formik, Form } from 'formik';
@@ -25,7 +29,7 @@ const CreateContractForm = () => {
     labels: [],
     identity: [],
     acceptanceTests: [],
-    deposit: '',
+    requiredDeposit: '',
     endDate: '',
   };
 
@@ -103,25 +107,14 @@ const CreateContractForm = () => {
                 </div>
                 <div className="col-span-2">
                   <Currency
-                    id="deposit"
+                    id="requiredDeposit"
                     placeholder="0.3"
                     label="Buy-In"
                     tokenName={tokenName}
                   />
                 </div>
                 <div className="col-span-2">
-                  <label
-                    htmlFor="end-date"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    End Date
-                  </label>
-                  <input
-                    type="date"
-                    name="endDate"
-                    id="end-date"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  />
+                  <Input id="endDate" label="End Date" type="date" />
                 </div>
                 <div className="col-span-6">
                   <label className="block text-sm font-medium text-gray-700">

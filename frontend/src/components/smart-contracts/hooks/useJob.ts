@@ -11,7 +11,9 @@ import { IJobFilter } from 'interfaces/IJobFilter';
 import { ISmartContractState } from 'interfaces/ISmartContractState';
 import { useEffect, useState } from 'react';
 import { fetchIpfsMetaData } from 'services/ipfs';
+import { createJobMetaDataFromIPFSData } from 'utils/metadata';
 import { formatIntegerPercentage } from 'utils/number';
+import { validateMetaData } from 'utils/schema';
 
 const CACHE_VERSION = 1;
 
@@ -66,6 +68,10 @@ const loadJobFromJobId = async (
   const jobMetaData = cachedJobMetaData
     ? cachedJobMetaData
     : await fetchJobMetaData(jobId, contracts);
+
+  if (jobMetaData === undefined) {
+    return undefined;
+  }
 
   const assembledJob = {
     id: jobId,
@@ -157,7 +163,9 @@ export const useFindJobs = (jobFilter?: IJobFilter) => {
       ) {
         // load
         const jobData = await loadJobFromJobId(String(jobIdInteger), contracts);
-        allJobs.push(jobData);
+        if (jobData) {
+          allJobs.push(jobData);
+        }
       }
 
       if (jobFilter) {
@@ -204,19 +212,23 @@ const saveJobToCache = (jobId: string, newCachedJobEntry: IJobCacheEntry) => {
 const fetchJobMetaData = async (
   jobId: string,
   contracts: ISmartContractState
-): Promise<IJobMetaData> => {
+): Promise<IJobMetaData | undefined> => {
   const filter = contracts.Job.filters.JobPosted(BigNumber.from(jobId));
   const results = await contracts.Job.queryFilter(filter);
   const event = results[0];
   const cidString = event.args.metadataCid;
-  const unsafeJobMetaData = await fetchIpfsMetaData(cidString);
+  const ipfsMetaData = await fetchIpfsMetaData(cidString);
 
-  // TODO: validate meta data with a schema
-  // transform metadata
-  return {
-    ...unsafeJobMetaData,
-    requiredDeposit: unsafeJobMetaData.deposit,
-  };
+  // validate the job meta data
+  const parseResult = validateMetaData(ipfsMetaData);
+  if (!parseResult.isValid) {
+    return undefined;
+  }
+
+  // convert IPFS metadata into local metadata
+  const jobMetaData = createJobMetaDataFromIPFSData(ipfsMetaData);
+
+  return jobMetaData;
 };
 
 const filterJobs = (jobs: IJobData[], jobFilter: IJobFilter) => {

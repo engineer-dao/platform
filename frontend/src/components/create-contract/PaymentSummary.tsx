@@ -10,7 +10,7 @@ const PaymentSummary = ({
   const token = tokenName || process.env.REACT_APP_PAYMENT_TOKEN_NAME || '';
 
   const bounty = data.bounty ? parseInt(data.bounty) : 0;
-  const deposit = data.deposit ? parseInt(data.deposit) : 0;
+  const deposit = data.requiredDeposit ? parseInt(data.requiredDeposit) : 0;
 
   const totalPayout = bounty + deposit;
 
