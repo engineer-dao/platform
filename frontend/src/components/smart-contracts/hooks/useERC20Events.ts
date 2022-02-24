@@ -31,9 +31,11 @@ export const useERC20Approval = (
   };
 
   useMemo(() => {
-    lookupERC20ApprovalOnce();
+    if (wallet.chainIsSupported) {
+      lookupERC20ApprovalOnce();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wallet.account, contracts.ERC20]);
+  }, [wallet.account, wallet.chainIsSupported, contracts.ERC20]);
 
   return { isERC20Approved, setIsERC20Approved, queryComplete };
 };

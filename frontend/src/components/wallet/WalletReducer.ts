@@ -1,8 +1,11 @@
-import { IWalletState } from 'interfaces/IWalletState';
+import {
+  IWalletState,
+  WalletStateActionPayload,
+} from 'interfaces/IWalletState';
 
 type WalletAction = {
   type: 'set_wallet_connection';
-  payload: IWalletState;
+  payload: WalletStateActionPayload;
 };
 
 export const walletReducer = (
@@ -11,7 +14,12 @@ export const walletReducer = (
 ): IWalletState => {
   switch (action.type) {
     case 'set_wallet_connection': {
-      const { account, connected, provider, providerInfo } = action?.payload;
+      const { account, connected, provider, providerInfo, chainId } =
+        action?.payload;
+
+      const chainIsSupported = !!(
+        chainId && chainId === process.env.REACT_APP_SUPPORTED_CHAIN_ID
+      );
 
       return {
         ...state,
@@ -19,6 +27,8 @@ export const walletReducer = (
         connected,
         provider,
         providerInfo,
+        chainId,
+        chainIsSupported,
       };
     }
     default: {
