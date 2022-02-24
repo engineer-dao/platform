@@ -9,6 +9,7 @@ import {
 import { ISmartContractState } from 'interfaces/ISmartContractState';
 import { useEffect, useState } from 'react';
 import { fetchIpfsMetaData } from 'services/ipfs';
+import { formatIntegerPercentage } from 'utils/number';
 
 enum CacheKeys {
   JOB = 'job',
@@ -41,6 +42,8 @@ const assembleJob = (
     deposit: BigNumber.from(jobContractData.deposit)
       .div(ethers.constants.WeiPerEther)
       .toNumber(),
+    depositPct: jobContractData.depositPct.toNumber(),
+    formattedDepositPct: formatIntegerPercentage(jobContractData.depositPct),
     startTime: BigNumber.from(jobContractData.startTime).toNumber(),
     completedTime: BigNumber.from(jobContractData.completedTime).toNumber(),
     closedBySupplier: jobContractData.closedBySupplier,
@@ -54,6 +57,9 @@ const assembleJob = (
     identity: jobMetaData.identity,
     acceptanceTests: jobMetaData.acceptanceTests,
     endDate: jobMetaData.endDate,
+    requiredDeposit: jobMetaData.deposit,
+
+    paymentTokenName: process.env.REACT_APP_PAYMENT_TOKEN_NAME || '',
   };
 
   return job;

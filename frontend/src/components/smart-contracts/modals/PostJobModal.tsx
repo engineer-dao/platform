@@ -1,12 +1,13 @@
-import { TransactionModal } from 'components/smart-contracts/modals/TransactionModal';
 import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
+import { TransactionModal } from 'components/smart-contracts/modals/TransactionModal';
 import { SmartContractAddresses } from 'components/smart-contracts/SmartContractAddresses';
 import { useWallet } from 'components/wallet/useWallet';
 import { ContractReceipt, ethers } from 'ethers';
 import { ITransactionModalProps } from 'interfaces/ITransactionModalProps';
-import { ICreateContractForm } from '../../create-contract/ICreateContractForm';
-import { pinIpfsMetaData } from 'services/ipfs';
 import React, { useEffect, useState } from 'react';
+import { pinIpfsMetaData } from 'services/ipfs';
+import { buildIntegerPercentage } from 'utils/number';
+import { ICreateContractForm } from '../../create-contract/ICreateContractForm';
 import { Modal } from '../../modals/Modal';
 
 interface IProps extends ITransactionModalProps {
@@ -25,8 +26,9 @@ export const PostJobModal = (props: IProps) => {
   // the logic called to initiate the transaction
   const callContract = async () => {
     const bountyWei = ethers.utils.parseUnits(formData.bounty.toString());
+    const depositWei = ethers.utils.parseUnits(formData.deposit.toString());
 
-    const depositPct = 1000; // TODO - hook this up to the form value
+    const depositPct = buildIntegerPercentage(depositWei, bountyWei);
 
     return contracts.Job.postJob(
       SmartContractAddresses.PaymentToken,

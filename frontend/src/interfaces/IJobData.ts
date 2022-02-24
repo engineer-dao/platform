@@ -7,6 +7,7 @@ export interface IJobSmartContractData {
   bounty: BigNumber;
   engineer: string;
   deposit: BigNumber;
+  depositPct: BigNumber;
   startTime: BigNumber;
   completedTime: BigNumber;
   closedBySupplier: boolean;
@@ -31,9 +32,14 @@ export interface IJobData extends IJobMetaData {
   supplier: string;
   engineer?: string;
   bounty: number;
+  depositPct: number;
+  formattedDepositPct: string;
   startTime?: number;
   completedTime?: number;
   closedBySupplier: boolean;
   closedByEngineer: boolean;
   state: JobState;
+
+  paymentTokenName: string;
+  requiredDeposit: number;
 }
