@@ -88,20 +88,20 @@ describe("JobContract ", function() {
             expect(jobOne.bounty).to.equal(amountSent);
 
             // check bounty
-            expect(jobOne.depositPct).to.equal(testUtil.DEFAULT_DEPOSIT_PCT);
+            expect(jobOne.requiredDeposit).to.equal(testUtil.DEFAULT_REQUIRED_DEPOSIT);
 
             // check state
             expect(jobOne.state).to.equal(testUtil.STATE_Available);
         });
 
-        it('should have correct depositPct', async function() {
+        it('should have correct requiredDeposit', async function() {
 
             // jobId 0
             expect(await JobContract.jobCount()).to.equal(0);
 
             const amountSent = testUtil.ONE_HUND_TOKENS;
-            const depositPct = 4200;
-            await testUtil.postSampleJob()(JobContract, TestToken, amountSent, depositPct);
+            const requiredDeposit = testUtil.toBigNum(51);
+            await testUtil.postSampleJob()(JobContract, TestToken, amountSent, requiredDeposit);
 
             // jobId 1
             expect(await JobContract.jobCount()).to.equal(1);
@@ -110,7 +110,7 @@ describe("JobContract ", function() {
             const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
 
             // check bounty
-            expect(jobOne.depositPct).to.equal(depositPct);
+            expect(jobOne.requiredDeposit).to.equal(requiredDeposit);
         });
 
         it('requires payment approval', async function() {
@@ -229,15 +229,15 @@ describe("JobContract ", function() {
             // jobId 0
             expect(await JobContract.jobCount()).to.equal(0);
 
-            const amountSent = testUtil.ONE_HUND_THOUS_TOKENS;
+            const amountSent = testUtil.ONE_HUND_TOKENS;
 
             await expect(
-                testUtil.postSampleJob()(JobContract, TestToken, amountSent, BASE_PERCENT + 1)
-            ).to.be.revertedWith('Deposit percent invalid');
+                testUtil.postSampleJob()(JobContract, TestToken, amountSent, testUtil.toBigNum(101))
+            ).to.be.revertedWith('Deposit too large');
 
             await expect(
-                testUtil.postSampleJob()(JobContract, TestToken, amountSent, 0)
-            ).to.be.revertedWith('Deposit percent invalid');
+                testUtil.postSampleJob()(JobContract, TestToken, amountSent, testUtil.toBigNum(49))
+            ).to.be.revertedWith('Minimum deposit not provided');
         });
 
         it('should revert if jobMetaData is not a valid ipfs hash', async function() {
@@ -262,7 +262,7 @@ describe("JobContract ", function() {
             expect(jobData.engineer).to.equal(engineer.address);
 
             // check deposit
-            expect(jobData.deposit).to.equal(testUtil.TEN_TOKENS);
+            expect(jobData.deposit).to.equal(testUtil.FIFTY_TOKENS);
 
             // check startTime
             const blockTimestamp = (
@@ -284,9 +284,9 @@ describe("JobContract ", function() {
 
         it('can be started when given correct deposit', async function() {
             const amount = testUtil.ONE_HUND_TOKENS;
-            const depositPct = 5000;
+            const requiredDeposit = testUtil.toBigNum(50);
 
-            await testUtil.postSampleJob()(JobContract, TestToken, amount, depositPct);
+            await testUtil.postSampleJob()(JobContract, TestToken, amount, requiredDeposit);
 
             const exactlyMinDeposit = BigNumber.from(amount).div(2).toString();
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1, exactlyMinDeposit);
@@ -326,9 +326,9 @@ describe("JobContract ", function() {
         it('requires more than min deposit', async function() {
 
             const amount = testUtil.ONE_HUND_TOKENS;
-            const depositPct = 5000;
+            const requiredDeposit = testUtil.toBigNum(50);
 
-            await testUtil.postSampleJob()(JobContract, TestToken, amount, depositPct);
+            await testUtil.postSampleJob()(JobContract, TestToken, amount, requiredDeposit);
 
             await expect(
                 testUtil.startJob(JobContract, testUtil.JOB_ID_1, testUtil.ONE_TOKEN)
@@ -371,7 +371,7 @@ describe("JobContract ", function() {
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
             const secondEscrowValue = await getBalanceOf(TestToken, JobContract.address);
-            expect(secondEscrowValue).to.equal(testUtil.toBigNum(110));
+            expect(secondEscrowValue).to.equal(testUtil.toBigNum(150));
         });
     });
 
@@ -547,8 +547,8 @@ describe("JobContract ", function() {
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
 
-            // $100 - $10 + $10 = $100
-            const expectedPayoutAmount = testUtil.ONE_HUND_TOKENS;
+            // $100 - $10 + $50 = $140
+            const expectedPayoutAmount = testUtil.toBigNum(140);
 
             await expect(testUtil.approveJob(JobContract, testUtil.JOB_ID_1))
                 .to.emit(JobContract, 'JobApproved')
@@ -719,7 +719,7 @@ describe("JobContract ", function() {
             const startingEngineerBalance = await getBalanceOf(TestToken,
                 engineer.address
             );
-            expect(startingEngineerBalance).to.equal(testUtil.toBigNum(990));
+            expect(startingEngineerBalance).to.equal(testUtil.toBigNum(950));
 
             await testUtil.closeBySupplier(JobContract, testUtil.JOB_ID_1);
             await testUtil.closeByEngineer(JobContract, testUtil.JOB_ID_1);
@@ -835,7 +835,8 @@ describe("JobContract ", function() {
             const TIMEOUT_PERIOD = await JobContract.COMPLETED_TIMEOUT_SECONDS();
             await hre.timeAndMine.setTimeIncrease(TIMEOUT_PERIOD);
 
-            const expectedPayoutAmount = testUtil.ONE_HUND_TOKENS;
+            // $100 - $10 + $50 = $140
+            const expectedPayoutAmount = testUtil.toBigNum(140);
             await expect(testUtil.completeTimedOutJob(JobContract, testUtil.JOB_ID_1))
                 .to.emit(JobContract, 'JobTimeoutPayout')
                 .withArgs(testUtil.JOB_ID_1, expectedPayoutAmount);
@@ -1056,17 +1057,18 @@ describe("JobContract ", function() {
 
             // check supplier (+)
             expect(await getBalanceOf(TestToken, supplier.address)).to.equal(
-                testUtil.toBigNum(1000 + 103.4 - 100)
+                // (100 + 50) * 0.94 = 141
+                testUtil.toBigNum(1000 + 141 - 100)
             );
 
             // check engineer (-)
             expect(await getBalanceOf(TestToken, engineer.address)).to.equal(
-                testUtil.toBigNum(1000 - 10)
+                testUtil.toBigNum(1000 - 50)
             );
 
-            // check Dao funds
+            // check Dao funds | (100 + 50) * 0.06 = 9
             const fundsValue = await getBalanceOf(TestToken, DaoTreasury.address);
-            expect(fundsValue).to.equal(testUtil.toBigNum(6.6));
+            expect(fundsValue).to.equal(testUtil.toBigNum(9));
         });
 
         it('sends funds and updates balances when resolved (with getter)', async function() {
@@ -1091,7 +1093,7 @@ describe("JobContract ", function() {
 
             // check engineer (-)
             expect(await getBalanceOf(TestToken, engineer.address))
-                .to.equal(engineerInitialAmount.sub(testUtil.TEN_TOKENS));
+                .to.equal(engineerInitialAmount.sub(testUtil.FIFTY_TOKENS));
 
             // check Dao funds
             const fundsValue = await getBalanceOf(TestToken, DaoTreasury.address);
@@ -1212,12 +1214,13 @@ describe("JobContract ", function() {
 
             // check engineer funds (+)
             expect(await getBalanceOf(TestToken, engineer.address)).to.equal(
-                testUtil.toBigNum(1000 - 10 + 103.4)
+                // (100 + 50) * 0.94 = 141
+                testUtil.toBigNum(1000 - 50 + 141)
             );
 
-            // Dao % fee
+            // Dao % fee | (100 + 50) * 0.06 = 9
             const daoValue = await getBalanceOf(TestToken, DaoTreasury.address);
-            expect(daoValue).to.equal(testUtil.toBigNum(6.6));
+            expect(daoValue).to.equal(testUtil.toBigNum(9));
         });
 
         it('sends funds and updates balances when resolved (with getter)', async function() {
@@ -1359,17 +1362,19 @@ describe("JobContract ", function() {
 
             // check supplier funds  (-)
             expect(await getBalanceOf(TestToken, supplier.address)).to.equal(
-                testUtil.toBigNum(1000 - 100 + 51.7)
+                // (100 + 50) * 0.94 = 141 / 2 = 70.5
+                testUtil.toBigNum(1000 - 100 + 70.5)
             );
 
             // check engineer funds (+)
             expect(await getBalanceOf(TestToken, engineer.address)).to.equal(
-                testUtil.toBigNum(1000 - 10 + 51.7)
+                // (100 + 50) * 0.94 = 141 / 2 = 70.5
+                testUtil.toBigNum(1000 - 50 + 70.5)
             );
 
-            // Dao % fee
+            // Dao % fee | (100 + 50) * 0.06 = 9
             const daoValue = await getBalanceOf(TestToken, DaoTreasury.address);
-            expect(daoValue).to.equal(testUtil.toBigNum(6.6));
+            expect(daoValue).to.equal(testUtil.toBigNum(9));
         });
 
         it('sends funds and updates balances when resolved (with getter) 50%', async function() {

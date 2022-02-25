@@ -13,7 +13,6 @@ export const schema_v1: JSONSchemaType<IIPFSJobMetaData> = {
     title: { type: 'string', minLength: 3, maxLength: 120 },
     description: { type: 'string', minLength: 3, maxLength: 24576 },
     acceptanceCriteria: { type: 'string', minLength: 3, maxLength: 24576 },
-    requiredDeposit: { type: 'integer', minimum: 1, maximum: 999999999 },
     labels: {
       type: 'array',
       minItems: 1,
@@ -54,7 +53,6 @@ export const schema_v1: JSONSchemaType<IIPFSJobMetaData> = {
     'title',
     'description',
     'acceptanceCriteria',
-    'requiredDeposit',
     'labels',
     'identity',
     'acceptanceTests',

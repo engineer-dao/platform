@@ -7,7 +7,6 @@ const goodData = {
   title: 'good title',
   description: 'good description',
   acceptanceCriteria: 'good acceptance criteria',
-  requiredDeposit: 100,
   labels: ['Backend'],
   identity: ['Optionally Anon'],
   acceptanceTests: ['Test Coverage Requirement'],
@@ -87,18 +86,6 @@ test('catches errors for invalid json', () => {
   testError(
     { ...goodData, acceptanceCriteria: 'x'.repeat(24576 + 1) },
     'Error in property /acceptanceCriteria: must NOT have more than 24576 characters'
-  );
-  testError(
-    { ...goodData, requiredDeposit: 'bad' },
-    'Error in property /requiredDeposit: must be integer'
-  );
-  testError(
-    { ...goodData, requiredDeposit: 0 },
-    'Error in property /requiredDeposit: must be >= 1'
-  );
-  testError(
-    { ...goodData, requiredDeposit: 1000000000 },
-    'Error in property /requiredDeposit: must be <= 999999999'
   );
   testError(
     { ...goodData, endDate: '' },

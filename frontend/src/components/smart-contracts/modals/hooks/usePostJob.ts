@@ -6,7 +6,6 @@ import { ContractReceipt, ethers } from 'ethers';
 import { useEffect, useState } from 'react';
 import { pinIpfsMetaData } from 'services/ipfs';
 import { createIFPSMetaDataFromFormData } from 'utils/metadata';
-import { buildIntegerPercentage } from 'utils/number';
 import { validateMetaData } from 'utils/schema';
 
 interface UsePostJobProps {
@@ -33,12 +32,10 @@ export const usePostJob = (props: UsePostJobProps) => {
       formData.requiredDeposit.toString()
     );
 
-    const depositPct = buildIntegerPercentage(depositWei, bountyWei);
-
     return contracts.Job.postJob(
       SmartContractAddresses.PaymentToken,
       bountyWei,
-      depositPct,
+      depositWei,
       IPFSCid
     );
   };
