@@ -13,9 +13,7 @@ const Contracts = () => {
       ) : jobs.length ? (
         <ContractsContainer jobs={jobs} />
       ) : (
-        <div>
-          <div>No jobs are available to show at this time.</div>
-        </div>
+        <div>No jobs found.</div>
       )}
     </>
   );
