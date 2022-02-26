@@ -22,7 +22,7 @@ contract Job is IJob, Ownable {
 
     // 50 paymentTokens ($50)
     uint256 public MINIMUM_BOUNTY = 50e18;
-    // 50 paymentTokens ($50)
+    // 50 paymentTokens ($50) - TODO: Should we make this a pct with a hard floor?
     uint256 public MINIMUM_DEPOSIT = 50e18;
 
     // TODO: yet to be decided
