@@ -21,3 +21,10 @@ export const formatIntegerPercentage = (integerPct: BigNumberish): string => {
     minimumFractionDigits: 0,
   });
 };
+
+export const multiplyByIntegerPercentage = (
+  number: BigNumberish,
+  integerPct: BigNumberish
+): BigNumber => {
+  return BigNumber.from(number).mul(integerPct).div(BASE_PERCENT);
+};

@@ -32,7 +32,9 @@ const SingleContract: React.FC = () => {
       {data.state === JobState.Completed && <ApproveJobForm job={data} />}
       <ActivityFeed />
     </>
-  ) : null;
+  ) : (
+    <div>Invalid or missing Job</div>
+  );
 };
 
 export default SingleContract;

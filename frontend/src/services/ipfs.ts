@@ -1,9 +1,9 @@
-import { IJobMetaData } from 'interfaces/IJobData';
+import { IIPFSJobMetaData } from 'interfaces/IJobData';
 
 interface IPostMetaData {
   address: string;
   sig: string;
-  metadata: IJobMetaData;
+  metadata: IIPFSJobMetaData;
 }
 
 interface IPostMetaDataResponse {

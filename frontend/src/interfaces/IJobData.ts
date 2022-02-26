@@ -16,6 +16,7 @@ export interface IJobSmartContractData {
 }
 
 export interface IJobMetaData {
+  version: number;
   title: string;
   description: string;
   requiredDeposit: number;
@@ -45,4 +46,17 @@ export interface IJobData extends IJobMetaData, IFormattedJobSmartContractData {
   id: string;
 
   paymentTokenName: string;
+}
+
+
+export interface IIPFSJobMetaData {
+  version: number;
+  title: string;
+  description: string;
+  acceptanceCriteria: string;
+  requiredDeposit: number;
+  labels: string[];
+  identity: string[];
+  acceptanceTests: string[];
+  endDate: string;
 }

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import { PlayIcon, ThumbUpIcon } from '@heroicons/react/solid';
 import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
 import { ApproveERC20Modal } from 'components/smart-contracts/modals/ApproveERC20Modal';
 import { StartJobModal } from 'components/smart-contracts/modals/StartJobModal';
+import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { PlayIcon, ThumbUpIcon } from '@heroicons/react/solid';
+import { multiplyByIntegerPercentage } from 'utils/number';
 import { useSingleContract } from './context/useSingleContract';
 
 export const StartJobButton: React.FC = () => {
@@ -34,7 +35,10 @@ export const StartJobButton: React.FC = () => {
 
         <StartJobModal
           jobId={data.id}
-          deposit={data.deposit}
+          deposit={multiplyByIntegerPercentage(
+            data.bounty,
+            data.depositPct
+          ).toNumber()}
           show={showStartJobModal}
           onConfirmed={(jobId: string) => {
             setShowStartJobModal(false);

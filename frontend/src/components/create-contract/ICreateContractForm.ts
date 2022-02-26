@@ -8,6 +8,6 @@ export interface ICreateContractForm {
   labels: IListBoxItem[];
   identity: IListBoxItem[];
   acceptanceTests: IListBoxItem[];
-  deposit: string;
+  requiredDeposit: string;
   endDate: string;
 }
