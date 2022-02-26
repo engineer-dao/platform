@@ -21,7 +21,7 @@ export const usePostJob = (props: UsePostJobProps) => {
   const [showIPFSModal, setShowIPFSModal] = useState(true);
   const [IPFSUploadingBegan, setIPFSUploadingBegan] = useState(false);
   const [IPFSCid, setIPFSCid] = useState('');
-  const [errorMessage, setErroMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const { contracts } = useSmartContracts();
   const wallet = useWallet();
@@ -67,7 +67,7 @@ export const usePostJob = (props: UsePostJobProps) => {
       const validationResult = validateMetaData(metadata);
       if (!validationResult.isValid) {
         setIPFSUploadingBegan(false);
-        setErroMessage(
+        setErrorMessage(
           'The job data was not valid. ' + (validationResult.error || '')
         );
         return;
@@ -86,7 +86,7 @@ export const usePostJob = (props: UsePostJobProps) => {
 
     // clear error message when closing the modal
     if (!showPostJobModal) {
-      setErroMessage('');
+      setErrorMessage('');
     }
 
     if (showPostJobModal && !IPFSUploadingBegan && wallet.account) {
@@ -98,7 +98,7 @@ export const usePostJob = (props: UsePostJobProps) => {
     IPFSUploadingBegan,
     formData,
     wallet.account,
-    setErroMessage,
+    setErrorMessage,
   ]);
 
   return { showIPFSModal, jobTxConfirmed, callContract, errorMessage };
