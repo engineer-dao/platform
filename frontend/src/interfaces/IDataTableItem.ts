@@ -35,4 +35,5 @@ export interface IDataTableItemCurrency extends IDataTableItem {
 
 export interface IDataTableItemActions extends IDataTableItem {
   value: ICurrency;
+  button: React.ReactNode;
 }

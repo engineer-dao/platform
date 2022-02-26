@@ -1,4 +1,4 @@
-import { clearJobCache } from 'components/smart-contracts/hooks/useJob';
+import { clearEntireJobCache } from 'components/smart-contracts/hooks/useJob';
 import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
 import { ApproveERC20Modal } from 'components/smart-contracts/modals/ApproveERC20Modal';
 import { RevokeERC20Modal } from 'components/smart-contracts/modals/RevokeERC20Modal';
@@ -106,7 +106,7 @@ const Dashboard = () => {
         <div>
           <button
             onClick={() => {
-              clearJobCache();
+              clearEntireJobCache();
             }}
             type="button"
             className="focus:outline-none ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"

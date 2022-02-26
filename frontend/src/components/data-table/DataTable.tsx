@@ -5,6 +5,10 @@ import { IJobData } from 'interfaces/IJobData';
 import { contractData as mockContractData } from 'mocks/contractData';
 import DataTableItemCurrency from './row-types/DataTableItemCurrency';
 import DataTableItemActions from './row-types/DataTableItemActions';
+import { useWallet } from 'components/wallet/useWallet';
+import { StartJobButton } from 'components/single-contract/StartJobButton';
+import { CancelJobButton } from 'components/single-contract/CancelJobButton';
+import { JobState } from 'enums/JobState';
 
 interface IDataTableProps {
   contract: IJobData;
@@ -18,6 +22,19 @@ interface IAttachment {
 const DataTable: React.FC<IDataTableProps> = (props) => {
   const { contract } = props;
   const tokenName = process.env.REACT_APP_PAYMENT_TOKEN_NAME || '';
+
+  const wallet = useWallet();
+  const isSupplier =
+    (wallet.account || '').toLowerCase() ===
+    (contract.supplier || '').toLowerCase();
+
+  // determine buttons
+  let button = <></>;
+  if (isSupplier && contract.state === JobState.Available) {
+    button = <CancelJobButton />;
+  } else if (contract.state === JobState.Available) {
+    button = <StartJobButton />;
+  }
 
   return (
     <div className="overflow-hidden bg-white shadow sm:rounded-lg">
@@ -66,6 +83,7 @@ const DataTable: React.FC<IDataTableProps> = (props) => {
               crypto_value: contract.bounty + contract.requiredDeposit,
               crypto_suffix: tokenName,
             }}
+            button={button}
           />
         </dl>
       </div>

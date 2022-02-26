@@ -18,7 +18,7 @@ export interface IJobSmartContractData {
 export interface IJobMetaData {
   title: string;
   description: string;
-  deposit: number;
+  requiredDeposit: number;
   acceptanceCriteria: string;
   labels: IListBoxItem[];
   identity: IListBoxItem[];
@@ -26,12 +26,11 @@ export interface IJobMetaData {
   endDate: string;
 }
 
-export interface IJobData extends IJobMetaData {
-  id: string;
-
+export interface IFormattedJobSmartContractData {
   supplier: string;
   engineer?: string;
   bounty: number;
+  deposit: number;
   depositPct: number;
   formattedDepositPct: string;
   startTime?: number;
@@ -39,7 +38,11 @@ export interface IJobData extends IJobMetaData {
   closedBySupplier: boolean;
   closedByEngineer: boolean;
   state: JobState;
+}
+
+
+export interface IJobData extends IJobMetaData, IFormattedJobSmartContractData {
+  id: string;
 
   paymentTokenName: string;
-  requiredDeposit: number;
 }
