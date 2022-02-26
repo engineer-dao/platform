@@ -25,11 +25,11 @@ export const validateMetaData = (metadata: any): IValidationResult => {
     };
   }
 
-  const validater = ajv.compile(schema);
-  const isValid = validater(metadata);
+  const validator = ajv.compile(schema);
+  const isValid = validator(metadata);
   if (!isValid) {
     const errorMessages: string[] = [];
-    for (const err of validater.errors as DefinedError[]) {
+    for (const err of validator.errors as DefinedError[]) {
       let errorMessage = '';
       if (err.instancePath) {
         errorMessage = `Error in property ${err.instancePath}: `;
