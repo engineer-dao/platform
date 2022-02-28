@@ -12,15 +12,11 @@ export const CloseJobFormButton = () => {
   return job ? (
     <Formik
       initialValues={{}}
-      validate={(values) => {
-        const errors = {};
-        return errors;
-      }}
       onSubmit={(values) => {
         setShowCloseJobModal(true);
       }}
     >
-      {({ values, isSubmitting, setSubmitting }) => (
+      {({ isSubmitting, setSubmitting }) => (
         <Form style={isSubmitting ? { opacity: 0.5 } : {}}>
           <button
             disabled={isSubmitting}
