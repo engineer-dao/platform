@@ -11,6 +11,7 @@ import path from "path";
 export const T_SUFFIX = '000000000000000000';
 export const ONE_TOKEN = '1' + T_SUFFIX;
 export const TEN_TOKENS = '10' + T_SUFFIX;
+export const FIFTY_TOKENS = '50' + T_SUFFIX;
 export const ONE_HUND_TOKENS = '100' + T_SUFFIX;
 export const ONE_THOUS_TOKENS = '1000' + T_SUFFIX;
 export const ONE_HUND_THOUS_TOKENS = '100000' + T_SUFFIX;
@@ -33,7 +34,7 @@ export const STATE_FinalDisputeResolvedForEngineer = 10;
 export const STATE_FinalDisputeResolvedWithSplit = 11;
 export const DISPUTE_RESOLUTION_PCT = 0.06;
 
-export const DEFAULT_DEPOSIT_PCT = 1000;
+export const DEFAULT_REQUIRED_DEPOSIT = FIFTY_TOKENS;
 export const BASE_PERCENT = 10000;
 
 export const DEFAULT_JOB_METADATA_CID = 'bafkxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx000';
@@ -229,7 +230,7 @@ export const postSampleJob = (signer: undefined | Signer = undefined) => async (
     Job: ContractTypes.Job,
     token: ERC20,
     bounty: undefined | string = undefined,
-    depositPct: undefined | number = DEFAULT_DEPOSIT_PCT,
+    requiredDeposit: undefined | string = DEFAULT_REQUIRED_DEPOSIT,
     metadataCid: undefined | string = undefined,
 ) => {
     if (!signer) {
@@ -247,7 +248,7 @@ export const postSampleJob = (signer: undefined | Signer = undefined) => async (
 
     const postJobTx = await Job
         .connect(signer)
-        .postJob(token.address, bounty, depositPct, metadataCid);
+        .postJob(token.address, bounty, requiredDeposit, metadataCid);
 
     return postJobTx;
 };
@@ -263,7 +264,7 @@ export const startJob = async (
     }
 
     if (deposit === null) {
-        deposit = TEN_TOKENS; // $10
+        deposit = FIFTY_TOKENS; // $50
     }
     const startJobTx = await Job.connect(signer).startJob(jobId, deposit);
 

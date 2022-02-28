@@ -22,6 +22,8 @@ contract Job is IJob, Ownable {
 
     // 50 paymentTokens ($50)
     uint256 public MINIMUM_BOUNTY = 50e18;
+    // 50 paymentTokens ($50) - TODO: Should we make this a pct with a hard floor?
+    uint256 public MINIMUM_DEPOSIT = 50e18;
 
     // TODO: yet to be decided
     // 10%
@@ -55,8 +57,9 @@ contract Job is IJob, Ownable {
         address supplier;
         address engineer;
         IERC20 token;
-        // Min % of bounty that an engineer needs to deposit to start the job
-        uint256 depositPct;
+        // Amount that an engineer needs to deposit to start the job
+        uint256 requiredDeposit;
+        // Amount that the engineer deposited
         uint256 deposit;
         uint256 bounty;
         uint256 startTime;
@@ -180,17 +183,18 @@ contract Job is IJob, Ownable {
      * Supplier posts a new job
      * @param paymentToken ERC20 token from the whitelist.
      * @param bountyValue amount of paymentToken
-     * @param depositPct min % of bountyValue that an engineer needs to deposit to start the job
+     * @param requiredDeposit min % of bountyValue that an engineer needs to deposit to start the job
      * @param metadataCid IFPS CID with job description & extra data.
      */
     function postJob(
         IERC20 paymentToken,
         uint256 bountyValue,
-        uint256 depositPct,
+        uint256 requiredDeposit,
         string memory metadataCid
     ) external onlyWhitelisted(paymentToken) requiresApproval(paymentToken, bountyValue) {
         require(bountyValue >= MINIMUM_BOUNTY, "Minimum bounty not provided");
-        require(depositPct > 0 && depositPct < BASE_PERCENTAGE, "Deposit percent invalid");
+        require(requiredDeposit >= MINIMUM_DEPOSIT, "Minimum deposit not provided");
+        require(requiredDeposit <= bountyValue, "Deposit too large");
 
         // receive funds
         receiveFunds(paymentToken, msg.sender, bountyValue);
@@ -204,7 +208,7 @@ contract Job is IJob, Ownable {
         jobs[newJobId].token = paymentToken;
         jobs[newJobId].bounty = bountyValue;
         jobs[newJobId].state = States.Available;
-        jobs[newJobId].depositPct = depositPct;
+        jobs[newJobId].requiredDeposit = requiredDeposit;
 
         // save the job meta data
         emit JobPosted(newJobId, metadataCid);
@@ -216,8 +220,7 @@ contract Job is IJob, Ownable {
     // engineer starts a posted job
     function startJob(uint256 jobId, uint256 deposit) external requiresJobState(jobId, States.Available) {
         // require deposit payment
-        uint256 minBuyIn = (jobs[jobId].bounty * jobs[jobId].depositPct) / BASE_PERCENTAGE;
-        require(deposit >= minBuyIn, "Minimum payment not provided");
+        require(deposit >= jobs[jobId].requiredDeposit, "Minimum payment not provided");
         // can't accept your own job
         require(msg.sender != jobs[jobId].supplier, "Address may not be job poster");
 

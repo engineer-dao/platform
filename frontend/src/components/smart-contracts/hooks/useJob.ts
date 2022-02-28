@@ -12,7 +12,6 @@ import { ISmartContractState } from 'interfaces/ISmartContractState';
 import { useEffect, useState } from 'react';
 import { fetchIpfsMetaData } from 'services/ipfs';
 import { createJobMetaDataFromIPFSData } from 'utils/metadata';
-import { formatIntegerPercentage } from 'utils/number';
 import { validateMetaData } from 'utils/schema';
 
 const CACHE_VERSION = 1;
@@ -42,8 +41,9 @@ const formatJobContractData = (jobContractData: IJobSmartContractData) => {
     deposit: BigNumber.from(jobContractData.deposit)
       .div(ethers.constants.WeiPerEther)
       .toNumber(),
-    depositPct: jobContractData.depositPct.toNumber(),
-    formattedDepositPct: formatIntegerPercentage(jobContractData.depositPct),
+    requiredDeposit: jobContractData.requiredDeposit
+      .div(ethers.constants.WeiPerEther)
+      .toNumber(),
     startTime: BigNumber.from(jobContractData.startTime).toNumber(),
     completedTime: BigNumber.from(jobContractData.completedTime).toNumber(),
     closedBySupplier: jobContractData.closedBySupplier,

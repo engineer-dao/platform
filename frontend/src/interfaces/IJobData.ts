@@ -7,7 +7,7 @@ export interface IJobSmartContractData {
   bounty: BigNumber;
   engineer: string;
   deposit: BigNumber;
-  depositPct: BigNumber;
+  requiredDeposit: BigNumber;
   startTime: BigNumber;
   completedTime: BigNumber;
   closedBySupplier: boolean;
@@ -19,7 +19,6 @@ export interface IJobMetaData {
   version: number;
   title: string;
   description: string;
-  requiredDeposit: number;
   acceptanceCriteria: string;
   labels: IListBoxItem[];
   identity: IListBoxItem[];
@@ -32,8 +31,7 @@ export interface IFormattedJobSmartContractData {
   engineer?: string;
   bounty: number;
   deposit: number;
-  depositPct: number;
-  formattedDepositPct: string;
+  requiredDeposit: number;
   startTime?: number;
   completedTime?: number;
   closedBySupplier: boolean;
@@ -54,7 +52,6 @@ export interface IIPFSJobMetaData {
   title: string;
   description: string;
   acceptanceCriteria: string;
-  requiredDeposit: number;
   labels: string[];
   identity: string[];
   acceptanceTests: string[];
