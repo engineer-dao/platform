@@ -1,18 +1,19 @@
 import { PlusIcon } from '@heroicons/react/outline';
 import ContractsContainer from 'components/contracts/ContractsContainer';
-import { useFindJobsByCurrentWallet } from 'components/smart-contracts/hooks/useJob';
 import SortFilterHeading from 'components/SortFilterHeading';
 import { SectionPath } from 'enums/admin/Sections';
 import { Link } from 'react-router-dom';
+import Loader from '../components/full-screen-loader/FullScreenLoader';
+import { useMyJobs } from '../components/smart-contracts/hooks/useMyJobs';
 
 export const MyContracts = () => {
-  const { jobs, isLoading } = useFindJobsByCurrentWallet();
+  const { jobs, isLoading } = useMyJobs();
 
   return (
     <>
       <SortFilterHeading heading="My Contracts" />
       {isLoading ? (
-        <div>Loading...</div>
+        <Loader />
       ) : jobs.length > 0 ? (
         <ContractsContainer jobs={jobs} />
       ) : (

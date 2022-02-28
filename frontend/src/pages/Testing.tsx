@@ -1,10 +1,10 @@
-import { clearEntireJobCache } from 'components/smart-contracts/hooks/useJob';
 import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
 import { ApproveERC20Modal } from 'components/smart-contracts/modals/ApproveERC20Modal';
 import { RevokeERC20Modal } from 'components/smart-contracts/modals/RevokeERC20Modal';
 import { TransactionModal } from 'components/smart-contracts/modals/TransactionModal';
 import { useState } from 'react';
 import { useNotifications } from '../components/notifications/useNotifications';
+import { clearLocalStorage } from '../utils/storage';
 
 const Dashboard = () => {
   const { pushNotification } = useNotifications();
@@ -106,7 +106,7 @@ const Dashboard = () => {
         <div>
           <button
             onClick={() => {
-              clearEntireJobCache();
+              clearLocalStorage();
             }}
             type="button"
             className="focus:outline-none ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
