@@ -39,13 +39,11 @@ export interface IFormattedJobSmartContractData {
   state: JobState;
 }
 
-
 export interface IJobData extends IJobMetaData, IFormattedJobSmartContractData {
   id: string;
 
   paymentTokenName: string;
 }
-
 
 export interface IIPFSJobMetaData {
   version: number;

@@ -6,15 +6,15 @@ import Admin from './pages/Admin';
 
 function App() {
   return (
-    <WalletProvider>
-      <NotificationsProvider>
-        <SingleContractProvider>
-          <Router>
+    <Router>
+      <WalletProvider>
+        <NotificationsProvider>
+          <SingleContractProvider>
             <Admin />
-          </Router>
-        </SingleContractProvider>
-      </NotificationsProvider>
-    </WalletProvider>
+          </SingleContractProvider>
+        </NotificationsProvider>
+      </WalletProvider>
+    </Router>
   );
 }
 

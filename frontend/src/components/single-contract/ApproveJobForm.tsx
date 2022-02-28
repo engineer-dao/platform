@@ -5,24 +5,27 @@ import { Form, Formik } from 'formik';
 import { IJobData } from 'interfaces/IJobData';
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
+import { useJob } from '../smart-contracts/hooks/useJob';
 
 interface IApproveJobFormProps {
-  job: IJobData;
+  job?: IJobData;
 }
 
 export const ApproveJobForm: React.FC<IApproveJobFormProps> = (props) => {
-  const { job } = props;
+  const { job: _job } = useJob();
+  const { job = _job } = props;
 
   const history = useHistory();
 
   const { contracts } = useSmartContracts();
   const wallet = useWallet();
   const isSupplier =
-    (wallet.account || '').toLowerCase() === (job.supplier || '').toLowerCase();
+    (wallet.account || '').toLowerCase() ===
+    (job?.supplier || '').toLowerCase();
 
   const [showApproveJobModal, setShowApproveJobModal] = useState(false);
 
-  return (
+  return job ? (
     <Formik
       initialValues={{}}
       validate={(values) => {
@@ -83,5 +86,5 @@ export const ApproveJobForm: React.FC<IApproveJobFormProps> = (props) => {
         </Form>
       )}
     </Formik>
-  );
+  ) : null;
 };

@@ -1,18 +1,21 @@
 // import { IContract } from '../../interfaces/IContract';
 import StatusChip from './StatusChip';
 import { IJobData } from 'interfaces/IJobData';
+import { useJob } from '../smart-contracts/hooks/useJob';
 
 interface ISingleContractHeadingProps {
-  contract: IJobData;
+  contract?: IJobData;
 }
 
 const SingleContractHeading: React.FC<ISingleContractHeadingProps> = (
   props
 ) => {
-  const { contract } = props;
-  const { title, state } = contract;
+  const { job } = useJob();
+  const { contract = job } = props;
 
-  return (
+  const { title, state } = contract || {};
+
+  return state && title ? (
     <div className="pb-5">
       <div className="sm:flex sm:items-baseline sm:justify-between">
         <div className="sm:w-0 sm:flex-1">
@@ -25,7 +28,7 @@ const SingleContractHeading: React.FC<ISingleContractHeadingProps> = (
         </div>
       </div>
     </div>
-  );
+  ) : null;
 };
 
 export default SingleContractHeading;

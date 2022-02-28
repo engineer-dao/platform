@@ -1,20 +1,23 @@
 import { useMemo, useReducer } from 'react';
 import { IJobData } from '../../../interfaces/IJobData';
+import { useJob } from '../../smart-contracts/hooks/useJob';
 import {
   ISingleContractState,
   SingleContractContext,
 } from './SingleContractContext';
 import { singleContractReducer } from './SingleContractReducer';
 
-const initialState: ISingleContractState = {
-  data: null,
-};
-
 export const SingleContractProvider = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
+  const { job } = useJob();
+
+  const initialState: ISingleContractState = {
+    data: job || null,
+  };
+
   const [state, dispatch] = useReducer(singleContractReducer, initialState);
 
   const setSingleContract = (payload: IJobData) => {
