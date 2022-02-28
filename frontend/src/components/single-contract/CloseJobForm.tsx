@@ -9,13 +9,17 @@ export const CloseJobForm = () => {
 
   const { account } = useWallet();
 
-  // TODO: do not show if engineer/supplier has already requested the job be closed
+  // do not show if engineer/supplier has already requested the job be closed
   const isEngineer = addressesMatch(account, job?.engineer);
   const isSupplier = addressesMatch(account, job?.supplier);
   const showCloseButton =
     job &&
     ((isEngineer && !job.closedByEngineer) ||
       (isSupplier && !job.closedBySupplier));
+  const isFinalCloseButton =
+    job &&
+    ((isEngineer && job.closedBySupplier) ||
+      (isSupplier && job.closedByEngineer));
 
   return job ? (
     <div className="mt-6 overflow-hidden shadow sm:rounded-md">
@@ -54,7 +58,13 @@ export const CloseJobForm = () => {
         </div>
         <div className="mt-5 grid grid-cols-6 gap-6">
           <div className="col-span-6 text-right text-sm font-normal leading-5 text-white">
-            {showCloseButton && <CloseJobFormButton />}
+            {showCloseButton && (
+              <CloseJobFormButton
+                label={
+                  isFinalCloseButton ? 'Close Job' : 'Request to Close Job'
+                }
+              />
+            )}
           </div>
         </div>
       </div>

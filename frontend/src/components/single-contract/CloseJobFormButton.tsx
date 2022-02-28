@@ -4,7 +4,14 @@ import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { useSingleContract } from './context/useSingleContract';
 
-export const CloseJobFormButton = () => {
+interface ICloseJobFormButtonProps {
+  label?: string;
+}
+
+export const CloseJobFormButton: React.FC<ICloseJobFormButtonProps> = (
+  props
+) => {
+  const { label } = props;
   const { data: job } = useSingleContract();
   const [showCloseJobModal, setShowCloseJobModal] = useState(false);
   const history = useHistory();
@@ -28,7 +35,7 @@ export const CloseJobFormButton = () => {
                 : ' bg-indigo-600 hover:bg-indigo-700')
             }
           >
-            Request to Close Job
+            {label || 'Close Job'}
           </button>
 
           {isSubmitting && (
