@@ -48,8 +48,8 @@ export const ApproveJobForm: React.FC<IApproveJobFormProps> = (props) => {
           <div className="bg-white px-4 py-5 sm:p-6">
             <div className="grid grid-cols-6 gap-6">
               <div className="col-span-6 text-sm font-normal leading-5">
-                If you are the supplier who commissioned this job, you may
-                complete this job and send payment to the engineer.
+                As the supplier who commissioned this job, you may complete this
+                job and send payment to the engineer.
               </div>
               <div className="col-span-6 text-right text-sm font-normal leading-5 text-white">
                 <button

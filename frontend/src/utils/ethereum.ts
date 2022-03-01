@@ -16,3 +16,12 @@ export const shortenAddress = (fullAddress: string) => {
     fullAddress.substring(fullAddress.length - 4)
   );
 };
+
+export const addressesMatch = (
+  address1: string | undefined | null,
+  address2: string | undefined | null
+) => {
+  return (
+    address1 && address2 && address1.toLowerCase() === address2.toLowerCase()
+  );
+};
