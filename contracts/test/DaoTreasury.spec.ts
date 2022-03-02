@@ -22,7 +22,7 @@ import { ethers } from 'hardhat';
 import * as testUtil from './lib/testUtil';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from 'hardhat-deploy-ethers/signers';
-import { Job, TestERC20, DaoTreasury } from '../typechain';
+import { Job, ERC20, DaoTreasury } from '../typechain';
 
 describe('DaoTreasury ', function () {
   let owner: SignerWithAddress,
@@ -34,7 +34,7 @@ describe('DaoTreasury ', function () {
     addr2: SignerWithAddress;
 
   let JobContract: Job;
-  let TestToken: TestERC20;
+  let TestToken: ERC20;
   let DaoTreasury: DaoTreasury;
 
   before(async () => {

@@ -1,9 +1,14 @@
-import { ERC20__factory, Job__factory } from 'contracts-typechain';
+import {
+  ERC20__factory,
+  TestERC20__factory,
+  Job__factory,
+} from 'contracts-typechain';
 import { SmartContractAddresses } from 'components/smart-contracts/SmartContractAddresses';
 import { createContext } from 'react';
 import { ethers } from 'ethers';
 import { ISmartContractState } from 'interfaces/ISmartContractState';
 import { IWalletState } from 'interfaces/IWalletState';
+import { isTestingEnvironment } from 'utils/testing';
 
 interface ISmartContractContext {
   contracts: ISmartContractState;
@@ -22,6 +27,12 @@ export const buildSmartContractState = (wallet: IWalletState) => {
       SmartContractAddresses.PaymentToken,
       walletProvider
     ),
+    TestERC20: isTestingEnvironment()
+      ? TestERC20__factory.connect(
+          SmartContractAddresses.PaymentToken,
+          walletProvider
+        )
+      : undefined,
     Job: Job__factory.connect(SmartContractAddresses.Job, walletProvider),
   };
 
