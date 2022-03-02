@@ -9,13 +9,7 @@ import {
 } from 'interfaces/Labels';
 import OptionsSummary from '../OptionsSummary';
 import PaymentSummary from '../PaymentSummary';
-import {
-  Formik,
-  Form,
-  FormikFormProps,
-  FormikConfig,
-  FormikProps,
-} from 'formik';
+import { Formik, Form, FormikProps } from 'formik';
 import { ICreateContractForm } from './ICreateContractForm';
 import { SubmitButton } from '../SubmitButton';
 import { PostJobModal } from '../../smart-contracts/modals/PostJobModal';
