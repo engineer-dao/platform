@@ -94,7 +94,7 @@ const config: HardhatUserConfig = {
             live: false,
         },
         ropsten: {
-            url: process.env.ROPSTEN_URL || '',
+            url: process.env.ROPSTEN_RPC_URL || '',
             live: false,
             chainId: 3,
         },
