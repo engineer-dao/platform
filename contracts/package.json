@@ -65,6 +65,7 @@
     "dependencies": {
         "@walletconnect/web3-provider": "^1.7.3",
         "eth-provider": "^0.10.0",
+        "react-app-rewired": "^2.2.1",
         "walletlink": "^2.5.0"
     }
 }
