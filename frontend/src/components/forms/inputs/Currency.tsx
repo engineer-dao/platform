@@ -24,7 +24,7 @@ const Currency: React.FC<ICurrencyProps> = (props) => {
 
         <Field
           type="number"
-          min="100"
+          min="1"
           label={label}
           name={id}
           className="block w-full rounded-md border-gray-300 pl-7 pr-12 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"

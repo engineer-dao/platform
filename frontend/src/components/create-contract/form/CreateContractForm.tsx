@@ -13,8 +13,6 @@ import { Formik, Form } from 'formik';
 import { ICreateContractForm } from './ICreateContractForm';
 import { SubmitButton } from '../SubmitButton';
 import { PostJobModal } from '../../smart-contracts/modals/PostJobModal';
-import { ApproveERC20Modal } from '../../smart-contracts/modals/ApproveERC20Modal';
-import { useSmartContracts } from '../../smart-contracts/hooks/useSmartContracts';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { createFormSchema } from './ValidationSchema';
@@ -33,11 +31,8 @@ const CreateContractForm = () => {
     endDate: '',
   };
 
-  const { contracts } = useSmartContracts();
-
   const history = useHistory();
 
-  const [showApproveERC20Modal, setShowApproveERC20Modal] = useState(false);
   const [showPostJobModal, setShowPostJobModal] = useState(false);
 
   const onJobPosted = (jobId: string) => {
@@ -141,10 +136,6 @@ const CreateContractForm = () => {
                 onError={onJobPostedError}
               />
             )}
-            <ApproveERC20Modal
-              show={showApproveERC20Modal && !contracts.isERC20Approved}
-              onFinish={() => setShowApproveERC20Modal(false)}
-            />
           </Form>
         );
       }}
@@ -152,11 +143,7 @@ const CreateContractForm = () => {
   );
 
   function handleSubmit() {
-    if (contracts.isERC20Approved) {
-      setShowPostJobModal(true);
-    } else {
-      setShowApproveERC20Modal(true);
-    }
+    setShowPostJobModal(true);
   }
 };
 
