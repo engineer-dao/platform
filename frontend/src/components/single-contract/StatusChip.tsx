@@ -3,37 +3,56 @@ import React from 'react';
 import { JobState, JobStateLabels } from 'enums/JobState';
 
 interface IStatusChipProps {
-  status: JobState;
+  state: JobState;
   color?: string;
-  size?: 'large' | 'small';
+  size?: 'large' | 'medium' | 'small';
 }
 
 const StatusChip: React.FC<IStatusChipProps> = (props) => {
-  const { status, color, size = 'large' } = props;
+  const { state, color, size = 'large' } = props;
 
   let _color = color;
 
-  switch (status) {
+  const red = 'bg-red-400 text-white';
+  const green = 'bg-green-200 text-green-800';
+  const blue = 'bg-blue-600 text-white';
+  const yellow = 'bg-yellow-600 text-white';
+  const darkGreen = 'bg-green-600 text-white';
+  const gray = 'bg-gray-600 text-white';
+
+  switch (state) {
     case JobState.Available:
-      _color = 'bg-green-200 text-green-800';
+      _color = green;
       break;
     case JobState.Started:
-      _color = 'bg-blue-600 text-white';
+      _color = blue;
       break;
     case JobState.Completed:
-      _color = 'bg-yellow-600 text-white';
-      break;
-    case JobState.FinalApproved:
-      _color = 'bg-gray-600 text-white';
+      _color = yellow;
       break;
     case JobState.Disputed:
-      _color = 'bg-red-400 text-white';
+      _color = red;
       break;
-    case JobState.FinalNoResponse:
-      _color = 'bg-red-100 text-red-800';
+    case JobState.FinalApproved:
+      _color = darkGreen;
+      break;
+    case JobState.FinalCanceledBySupplier:
+      _color = red;
       break;
     case JobState.FinalMutualClose:
-      _color = 'bg-red-300 text-white';
+      _color = gray;
+      break;
+    case JobState.FinalNoResponse:
+      _color = gray;
+      break;
+    case JobState.FinalDisputeResolvedForSupplier:
+      _color = gray;
+      break;
+    case JobState.FinalDisputeResolvedForEngineer:
+      _color = gray;
+      break;
+    case JobState.FinalDisputeResolvedWithSplit:
+      _color = gray;
       break;
   }
 
@@ -42,11 +61,12 @@ const StatusChip: React.FC<IStatusChipProps> = (props) => {
       className={classNames(
         'inline-flex items-center rounded-full font-medium',
         size === 'large' && 'px-4 py-1 text-lg',
+        size === 'medium' && 'text-md px-3 py-1',
         size === 'small' && 'px-2 py-0.5 text-sm',
         _color
       )}
     >
-      {JobStateLabels[status]}
+      {JobStateLabels[state]}
     </span>
   );
 };

@@ -1,3 +1,4 @@
+import { JobState } from '../enums/JobState';
 import { IListBoxItem } from './IListBoxItem';
 
 interface IAttachment {
@@ -17,7 +18,7 @@ interface IDataTableItem {
 }
 
 export interface IDataTableItemText extends IDataTableItem {
-  value: string;
+  value?: string;
 }
 
 export interface IDataTableItemChips extends IDataTableItem {
@@ -35,5 +36,4 @@ export interface IDataTableItemCurrency extends IDataTableItem {
 
 export interface IDataTableItemActions extends IDataTableItem {
   value: ICurrency;
-  button: React.ReactNode;
 }
