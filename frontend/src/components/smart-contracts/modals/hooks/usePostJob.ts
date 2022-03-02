@@ -1,4 +1,4 @@
-import { ICreateContractForm } from 'components/create-contract/ICreateContractForm';
+import { ICreateContractForm } from 'components/create-contract/form/ICreateContractForm';
 import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
 import { SmartContractAddresses } from 'components/smart-contracts/SmartContractAddresses';
 import { useWallet } from 'components/wallet/useWallet';

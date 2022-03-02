@@ -1,23 +1,23 @@
-import Currency from '../forms/inputs/Currency';
-import Dropzone from '../forms/inputs/Dropzone';
-import Input from '../forms/inputs/Input';
-import TextArea from '../forms/inputs/TextArea';
-import { ListBox } from '../ListBox';
+import Currency from '../../forms/inputs/Currency';
+import Input from '../../forms/inputs/Input';
+import TextArea from '../../forms/inputs/TextArea';
+import { ListBox } from '../../ListBox';
 import {
   acceptanceTestsItems,
   identityItems,
   labelItems,
 } from 'interfaces/Labels';
-import OptionsSummary from './OptionsSummary';
-import PaymentSummary from './PaymentSummary';
+import OptionsSummary from '../OptionsSummary';
+import PaymentSummary from '../PaymentSummary';
 import { Formik, Form } from 'formik';
 import { ICreateContractForm } from './ICreateContractForm';
-import { SubmitButton } from './SubmitButton';
-import { PostJobModal } from '../smart-contracts/modals/PostJobModal';
-import { ApproveERC20Modal } from '../smart-contracts/modals/ApproveERC20Modal';
-import { useSmartContracts } from '../smart-contracts/hooks/useSmartContracts';
+import { SubmitButton } from '../SubmitButton';
+import { PostJobModal } from '../../smart-contracts/modals/PostJobModal';
+import { ApproveERC20Modal } from '../../smart-contracts/modals/ApproveERC20Modal';
+import { useSmartContracts } from '../../smart-contracts/hooks/useSmartContracts';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
+import { createFormSchema } from './ValidationSchema';
 
 const CreateContractForm = () => {
   const tokenName = process.env.REACT_APP_PAYMENT_TOKEN_NAME;
@@ -48,8 +48,14 @@ const CreateContractForm = () => {
   };
 
   return (
-    <Formik initialValues={initialValues} onSubmit={handleSubmit}>
-      {({ values, isSubmitting, setSubmitting }) => {
+    <Formik
+      initialValues={initialValues}
+      validationSchema={createFormSchema}
+      onSubmit={handleSubmit}
+      validateOnBlur
+      validateOnChange
+    >
+      {({ values, isSubmitting, setSubmitting, isValid, dirty }) => {
         const onJobPostedError = () => {
           setSubmitting(false);
           setShowPostJobModal(false);
@@ -116,12 +122,6 @@ const CreateContractForm = () => {
                 <div className="col-span-2">
                   <Input id="endDate" label="End Date" type="date" />
                 </div>
-                <div className="col-span-6">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Attach Files
-                  </label>
-                  <Dropzone />
-                </div>
                 <div className="col-span-6 flex w-full bg-gray-50 px-4 py-5 sm:p-6">
                   <div className="w-1/2">
                     <PaymentSummary tokenName={tokenName} data={values} />
@@ -130,7 +130,7 @@ const CreateContractForm = () => {
                     <OptionsSummary data={values} />
                   </div>
                 </div>
-                <SubmitButton />
+                <SubmitButton disabled={!(isValid && dirty)} />
               </div>
             </div>
             {values && (

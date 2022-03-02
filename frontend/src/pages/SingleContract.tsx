@@ -7,24 +7,14 @@ import SingleContractHeading from 'components/single-contract/SingleContractHead
 import { useJob } from 'components/smart-contracts/hooks/useJob';
 import { useWallet } from 'components/wallet/useWallet';
 import { JobState } from 'enums/JobState';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { addressesMatch } from 'utils/ethereum';
 import Loader from '../components/full-screen-loader/FullScreenLoader';
-import { useSingleContract } from '../components/single-contract/context/useSingleContract';
 
 const SingleContract: React.FC = () => {
   const { job, isLoading } = useJob();
 
   const { account } = useWallet();
-
-  const { setSingleContract } = useSingleContract();
-
-  useEffect(() => {
-    if (job) {
-      setSingleContract(job);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [job]);
 
   const isEngineer = addressesMatch(account, job?.engineer);
   const isSupplier = addressesMatch(account, job?.supplier);

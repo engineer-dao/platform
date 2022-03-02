@@ -70,7 +70,6 @@ export const useWalletProvider = () => {
 
   const initWallet = async () => {
     const providerInfo = getInjectedProvider();
-    // console.log('providerInfo', providerInfo);
     if (providerInfo && providerInfo.name === 'MetaMask') {
       // try to autoconnect metamask
       if (window.ethereum) {

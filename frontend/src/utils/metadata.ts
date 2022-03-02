@@ -1,4 +1,4 @@
-import { ICreateContractForm } from 'components/create-contract/ICreateContractForm';
+import { ICreateContractForm } from 'components/create-contract/form/ICreateContractForm';
 import { IIPFSJobMetaData, IJobMetaData } from 'interfaces/IJobData';
 import { IListBoxItem } from 'interfaces/IListBoxItem';
 import {

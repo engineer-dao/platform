@@ -1,4 +1,4 @@
-import { ICreateContractForm } from './ICreateContractForm';
+import { ICreateContractForm } from './form/ICreateContractForm';
 
 const PaymentSummary = ({
   tokenName,

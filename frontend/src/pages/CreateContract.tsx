@@ -1,4 +1,4 @@
-import CreateContractForm from '../components/create-contract/CreateContractForm';
+import CreateContractForm from '../components/create-contract/form/CreateContractForm';
 
 export const CreateContract = () => {
   return (
