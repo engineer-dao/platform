@@ -2,6 +2,7 @@ import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartCont
 import { ApproveERC20Modal } from 'components/smart-contracts/modals/ApproveERC20Modal';
 import { RevokeERC20Modal } from 'components/smart-contracts/modals/RevokeERC20Modal';
 import { TransactionModal } from 'components/smart-contracts/modals/TransactionModal';
+import { useWalletProvider } from 'components/wallet/useWalletProvider';
 import { useState } from 'react';
 import { useNotifications } from '../components/notifications/useNotifications';
 import { clearLocalStorage } from '../utils/storage';
@@ -19,6 +20,8 @@ const Dashboard = () => {
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
     undefined
   );
+
+  const { walletContext } = useWalletProvider();
 
   return (
     <div>
@@ -113,6 +116,24 @@ const Dashboard = () => {
             className="focus:outline-none ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
           >
             Get {process.env.REACT_APP_PAYMENT_TOKEN_NAME || ''} Tokens
+          </button>
+        </div>
+
+        <div>
+          <button
+            onClick={async () => {
+              console.log('adding tokens', process.env);
+              walletContext.walletAddToken(
+                process.env.REACT_APP_PAYMENT_TOKEN_CONTRACT_ADDRESS as string,
+                process.env.REACT_APP_PAYMENT_TOKEN_NAME as string,
+                process.env.REACT_APP_PAYMENT_TOKEN_IMG_URL as string,
+                parseInt(process.env.REACT_APP_PAYMENT_TOKEN_DECIMALS as string)
+              );
+            }}
+            type="button"
+            className="focus:outline-none ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          >
+            Add {process.env.REACT_APP_PAYMENT_TOKEN_NAME || ''} Token to Wallet
           </button>
         </div>
         <TransactionModal
