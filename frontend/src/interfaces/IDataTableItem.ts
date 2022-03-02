@@ -1,4 +1,3 @@
-import { JobState } from '../enums/JobState';
 import { IListBoxItem } from './IListBoxItem';
 
 interface IAttachment {

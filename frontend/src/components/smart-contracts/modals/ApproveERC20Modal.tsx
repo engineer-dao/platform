@@ -5,7 +5,6 @@ import {
 } from 'components/smart-contracts/hooks/useSmartContracts';
 import { constants, ContractReceipt } from 'ethers';
 import { ITransactionModalProps } from 'interfaces/ITransactionModalProps';
-import React from 'react';
 
 export const ApproveERC20Modal = (props: ITransactionModalProps) => {
   const { show, onFinish, onError } = props;

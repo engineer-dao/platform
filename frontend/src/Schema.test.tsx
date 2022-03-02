@@ -43,22 +43,10 @@ test('catches errors for invalid json', () => {
     });
   };
 
-  testError(
-    { ...goodData, version: 2 },
-    'Schema version not found'
-  );
-  testError(
-    { ...goodData, version: 'x' },
-    'Schema version not found'
-  );
-  testError(
-    { ...goodData, version: NaN },
-    'Schema version not found'
-  );
-  testError(
-    { ...goodData, version: 0 },
-    'Schema version not found'
-  );
+  testError({ ...goodData, version: 2 }, 'Schema version not found');
+  testError({ ...goodData, version: 'x' }, 'Schema version not found');
+  testError({ ...goodData, version: NaN }, 'Schema version not found');
+  testError({ ...goodData, version: 0 }, 'Schema version not found');
   testError(
     removeKey('title', goodData),
     "must have required property 'title'"

@@ -4,13 +4,15 @@ import { Field } from 'formik';
 interface ICurrencyProps {
   id: string;
   label: string;
+  min?: number;
+  max?: number;
   tokenName?: string;
   placeholder?: string;
   prefix?: string;
 }
 
 const Currency: React.FC<ICurrencyProps> = (props) => {
-  const { id, label, tokenName, placeholder, prefix = '$' } = props;
+  const { id, label, tokenName, placeholder, prefix = '$', min, max } = props;
 
   const token = tokenName || process.env.REACT_APP_PAYMENT_TOKEN_NAME || '';
 
@@ -24,7 +26,8 @@ const Currency: React.FC<ICurrencyProps> = (props) => {
 
         <Field
           type="number"
-          min="1"
+          min={String(min)}
+          max={String(max)}
           label={label}
           name={id}
           className="block w-full rounded-md border-gray-300 pl-7 pr-12 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"

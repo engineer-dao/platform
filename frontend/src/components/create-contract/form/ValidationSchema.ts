@@ -13,7 +13,7 @@ export const createFormSchema = Yup.object().shape({
     .min(2, 'Too short')
     .max(3000, 'Too long')
     .required('Required'),
-  bounty: Yup.number().min(1, 'Amount too low').required('Required'),
+  bounty: Yup.number().min(50, 'Amount too low').required('Required'),
   labels: Yup.array().of(
     Yup.object().shape({ id: Yup.number(), name: Yup.string() })
   ),
@@ -23,7 +23,7 @@ export const createFormSchema = Yup.object().shape({
   acceptanceTests: Yup.array().of(
     Yup.object().shape({ id: Yup.number(), name: Yup.string() })
   ),
-  requiredDeposit: Yup.number().min(1, 'Amount too low').required('Required'),
+  requiredDeposit: Yup.number().min(50, 'Amount too low').required('Required'),
   endDate: Yup.date()
     .min(new Date(), 'Date cannot be in the past')
     .required('Required'),
