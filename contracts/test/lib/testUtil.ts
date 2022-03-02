@@ -82,7 +82,7 @@ export const deployERC20Token = async (): Promise<ERC20> => {
     return testToken;
 };
 
-export const deployJob = async (TestToken: ContractTypes.TestERC20, DaoTreasury: ContractTypes.DaoTreasury, resolver: string) => {
+export const deployJob = async (TestToken: ContractTypes.ERC20, DaoTreasury: ContractTypes.DaoTreasury, resolver: string) => {
     // deploy the contract
     const Job = await ethers.getContractFactory('Job');
     const job = await Job.deploy(TestToken.address, DaoTreasury.address, resolver);
