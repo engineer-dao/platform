@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import EventEmitter from 'events';
 import Fortmatic from 'fortmatic';
-// import WalletConnectProvider from '@walletconnect/web3-provider';
+import WalletConnectProvider from '@walletconnect/web3-provider';
 import WalletLink from 'walletlink';
 import {
   IWalletState,
@@ -17,16 +17,17 @@ const fortmaticNetworkOptions = {
   chainId: 137,
 };
 
+// this should be replaced by an env variable. I provided a dummy one for now
 const infuraId = 'f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8';
 
 const providerOptions = {
   /* See Provider Options Section */
-  // walletconnect: {
-  //   package: WalletConnectProvider,
-  //   options: {
-  //     infuraId: infuraId,
-  //   },
-  // },
+  walletconnect: {
+    package: WalletConnectProvider,
+    options: {
+      infuraId: infuraId,
+    },
+  },
   walletlink: {
     package: WalletLink, // Required
     options: {
