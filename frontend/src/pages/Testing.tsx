@@ -2,8 +2,8 @@ import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartCont
 import { ApproveERC20Modal } from 'components/smart-contracts/modals/ApproveERC20Modal';
 import { RevokeERC20Modal } from 'components/smart-contracts/modals/RevokeERC20Modal';
 import { TransactionModal } from 'components/smart-contracts/modals/TransactionModal';
-import { useWalletProvider } from 'components/wallet/useWalletProvider';
 import { useState } from 'react';
+import { walletAddToken } from 'utils/metamask';
 import { useNotifications } from '../components/notifications/useNotifications';
 import { clearLocalStorage } from '../utils/storage';
 
@@ -20,8 +20,6 @@ const Dashboard = () => {
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
     undefined
   );
-
-  const { walletContext } = useWalletProvider();
 
   return (
     <div>
@@ -122,8 +120,7 @@ const Dashboard = () => {
         <div>
           <button
             onClick={async () => {
-              console.log('adding tokens', process.env);
-              walletContext.walletAddToken(
+              walletAddToken(
                 process.env.REACT_APP_PAYMENT_TOKEN_CONTRACT_ADDRESS as string,
                 process.env.REACT_APP_PAYMENT_TOKEN_NAME as string,
                 process.env.REACT_APP_PAYMENT_TOKEN_IMG_URL as string,

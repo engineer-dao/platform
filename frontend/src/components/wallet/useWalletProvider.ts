@@ -11,14 +11,15 @@ import { useEffect, useMemo, useReducer, useState } from 'react';
 import Web3Modal, { getInjectedProvider, IProviderInfo } from 'web3modal';
 import { walletReducer } from './WalletReducer';
 
+// this should be replaced by an env variable. I provided a dummy one for now
+const infuraId = process.env.REACT_APP_INFURA_ID || 'dummy';
+const chainIdInt = parseInt(process.env.REACT_APP_SUPPORTED_CHAIN_ID as string);
+
 const ethProvider = require('eth-provider');
 const fortmaticNetworkOptions = {
-  rpcUrl: 'https://rpc-mainnet.maticvigil.com',
-  chainId: 137,
+  rpcUrl: process.env.REACT_APP_RPC_URL,
+  chainId: chainIdInt,
 };
-
-// this should be replaced by an env variable. I provided a dummy one for now
-const infuraId = 'f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8f8';
 
 const providerOptions = {
   /* See Provider Options Section */
@@ -31,10 +32,10 @@ const providerOptions = {
   walletlink: {
     package: WalletLink, // Required
     options: {
-      appName: 'My Awesome App', // Required
-      infuraId: infuraId, // Required unless you provide a JSON RPC url; see `rpc` below
-      rpc: '', // Optional if `infuraId` is provided; otherwise it's required
-      chainId: 1, // Optional. It defaults to 1 if not provided
+      appName: 'EngineerDAO', // Required
+      // infuraId: infuraId, // Required unless you provide a JSON RPC url; see `rpc` below
+      rpc: process.env.REACT_APP_RPC_URL, // Optional if `infuraId` is provided; otherwise it's required
+      chainId: chainIdInt, // Optional. It defaults to 1 if not provided
       appLogoUrl: null, // Optional. Application logo image URL. favicon is used if unspecified
       darkMode: false, // Optional. Use dark theme, defaults to false
     },
@@ -199,44 +200,12 @@ export const useWalletProvider = () => {
     });
   };
 
-  const walletAddToken = async (
-    tokenAddress: string,
-    tokenSymbol: string,
-    tokenImgUrl: string,
-    tokenDecimals: number
-  ) => {
-    try {
-      // wasAdded is a boolean. Like any RPC method, an error may be thrown.
-      const wasAdded = await window.ethereum.request({
-        method: 'wallet_watchAsset',
-        params: {
-          type: 'ERC20', // Initially only supports ERC20, but eventually more!
-          options: {
-            address: tokenAddress, // The address that the token is at.
-            symbol: tokenSymbol, // A ticker symbol or shorthand, up to 5 chars.
-            decimals: tokenDecimals, // The number of decimals in the token
-            image: tokenImgUrl, // A string url of the token logo
-          },
-        },
-      });
-
-      if (wasAdded) {
-        console.log('Added token', tokenSymbol, 'to wallet');
-      } else {
-        console.log('Cancelled adding', tokenSymbol, 'token to wallet');
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   const walletContext = useMemo(
     () => ({
       ...state,
       setWalletConnection,
       connectToWallet,
       disconnectWallet,
-      walletAddToken,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [state]
