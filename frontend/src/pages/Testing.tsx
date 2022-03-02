@@ -121,10 +121,10 @@ const Dashboard = () => {
           <button
             onClick={async () => {
               walletAddToken(
-                process.env.REACT_APP_PAYMENT_TOKEN_CONTRACT_ADDRESS as string,
-                process.env.REACT_APP_PAYMENT_TOKEN_NAME as string,
-                process.env.REACT_APP_PAYMENT_TOKEN_IMG_URL as string,
-                parseInt(process.env.REACT_APP_PAYMENT_TOKEN_DECIMALS as string)
+                String(process.env.REACT_APP_PAYMENT_TOKEN_CONTRACT_ADDRESS),
+                String(process.env.REACT_APP_PAYMENT_TOKEN_NAME),
+                String(process.env.REACT_APP_PAYMENT_TOKEN_IMG_URL),
+                parseInt(String(process.env.REACT_APP_PAYMENT_TOKEN_DECIMALS))
               );
             }}
             type="button"

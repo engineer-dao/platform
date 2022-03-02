@@ -13,7 +13,7 @@ import { walletReducer } from './WalletReducer';
 
 // this should be replaced by an env variable. I provided a dummy one for now
 const infuraId = process.env.REACT_APP_INFURA_ID || 'dummy';
-const chainIdInt = parseInt(process.env.REACT_APP_SUPPORTED_CHAIN_ID as string);
+const chainIdInt = parseInt(String(process.env.REACT_APP_SUPPORTED_CHAIN_ID));
 
 const ethProvider = require('eth-provider');
 const fortmaticNetworkOptions = {
