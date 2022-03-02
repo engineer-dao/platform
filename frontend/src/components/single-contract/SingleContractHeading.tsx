@@ -24,7 +24,7 @@ const SingleContractHeading: React.FC<ISingleContractHeadingProps> = (
           </h3>
         </div>
         <div className="mt-4 flex items-center justify-between sm:mt-0 sm:ml-6 sm:flex-shrink-0 sm:justify-start">
-          <StatusChip status={state} />
+          <StatusChip state={state} />
         </div>
       </div>
     </div>

@@ -28,7 +28,7 @@ export const StatusChange: React.FC<StatusChangeProps> = ({ activityItem }) => {
             {activityItem?.person?.name}
           </a>{' '}
           changed status to{' '}
-          <StatusChip status={activityItem.status} size="small" />{' '}
+          <StatusChip state={activityItem.status} size="small" />{' '}
           <span className="whitespace-nowrap">{activityItem.date}</span>
         </div>
       </div>

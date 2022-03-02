@@ -1,4 +1,4 @@
-import { ICreateContractForm } from 'components/create-contract/ICreateContractForm';
+import { ICreateContractForm } from 'components/create-contract/form/ICreateContractForm';
 import { Modal } from 'components/modals/Modal';
 import { usePostJob } from 'components/smart-contracts/modals/hooks/usePostJob';
 import { TransactionModal } from 'components/smart-contracts/modals/TransactionModal';

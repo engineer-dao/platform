@@ -4,10 +4,10 @@ import { ApproveERC20Modal } from 'components/smart-contracts/modals/ApproveERC2
 import { StartJobModal } from 'components/smart-contracts/modals/StartJobModal';
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { useSingleContract } from './context/useSingleContract';
+import { useJob } from '../smart-contracts/hooks/useJob';
 
 export const StartJobButton: React.FC = () => {
-  const { data } = useSingleContract();
+  const { job } = useJob();
 
   const history = useHistory();
 
@@ -20,7 +20,7 @@ export const StartJobButton: React.FC = () => {
     setShowStartJobModal(true);
   };
 
-  return data ? (
+  return job ? (
     contracts.isERC20Approved ? (
       <>
         <button
@@ -33,8 +33,8 @@ export const StartJobButton: React.FC = () => {
         </button>
 
         <StartJobModal
-          jobId={data.id}
-          deposit={data.requiredDeposit}
+          jobId={job?.id}
+          deposit={job?.requiredDeposit}
           show={showStartJobModal}
           onConfirmed={(jobId: string) => {
             setShowStartJobModal(false);

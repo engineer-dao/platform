@@ -5,7 +5,7 @@ import {
 } from '@heroicons/react/outline';
 import { IJobData } from 'interfaces/IJobData';
 import { Link } from 'react-router-dom';
-import ContractStatusLabel from './ContractStatusLabel';
+import StatusChip from '../single-contract/StatusChip';
 
 interface IJobDataItemProps {
   job: IJobData;
@@ -48,7 +48,7 @@ const ContractItem: React.FC<IJobDataItemProps> = ({ job }) => {
 
           {/* Right section */}
           <div className="flex-0 truncate">
-            <ContractStatusLabel status={state} />
+            <StatusChip state={state} size="medium" />
           </div>
           <div className="ml-5 flex-shrink-0">
             <ChevronRightIcon

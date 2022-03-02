@@ -1,46 +1,24 @@
 import DataTableItemChips from './row-types/DataTableItemChips';
-import DataTableItemFiles from './row-types/DataTableItemFiles';
 import DataTableItemText from './row-types/DataTableItemText';
 import { IJobData } from 'interfaces/IJobData';
 import { contractData as mockContractData } from 'mocks/contractData';
 import DataTableItemCurrency from './row-types/DataTableItemCurrency';
 import DataTableItemActions from './row-types/DataTableItemActions';
-import { useWallet } from 'components/wallet/useWallet';
-import { StartJobButton } from 'components/single-contract/StartJobButton';
-import { CancelJobButton } from 'components/single-contract/CancelJobButton';
-import { JobState } from 'enums/JobState';
 
 interface IDataTableProps {
   contract: IJobData;
-}
-
-interface IAttachment {
-  filename: string;
-  link: string;
 }
 
 const DataTable: React.FC<IDataTableProps> = (props) => {
   const { contract } = props;
   const tokenName = process.env.REACT_APP_PAYMENT_TOKEN_NAME || '';
 
-  const wallet = useWallet();
-  const isSupplier =
-    (wallet.account || '').toLowerCase() ===
-    (contract.supplier || '').toLowerCase();
-
-  // determine buttons
-  let button = <></>;
-  if (isSupplier && contract.state === JobState.Available) {
-    button = <CancelJobButton />;
-  } else if (contract.state === JobState.Available) {
-    button = <StartJobButton />;
-  }
-
   return (
     <div className="overflow-hidden bg-white shadow sm:rounded-lg">
       <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
         <dl className="sm:divide-y sm:divide-gray-200">
-          <DataTableItemText label="Supplier" value={contract.supplier} />
+          <DataTableItemText label="Supplier" value={contract?.supplier} />
+          <DataTableItemText label="Engineer" value={contract?.engineer} />
           <DataTableItemText label="Description" value={contract.description} />
           <DataTableItemText
             label="Acceptance Criteria"
@@ -62,10 +40,6 @@ const DataTable: React.FC<IDataTableProps> = (props) => {
             value={contract.acceptanceTests}
             chipColor="bg-cyan-200 text-cyan-800"
           />
-          <DataTableItemFiles
-            label={mockContractData[8].label}
-            value={mockContractData[8].value as IAttachment[]}
-          />
           <DataTableItemCurrency
             label="Bounty"
             value={{ crypto_value: contract.bounty, crypto_suffix: tokenName }}
@@ -83,7 +57,6 @@ const DataTable: React.FC<IDataTableProps> = (props) => {
               crypto_value: contract.bounty + contract.requiredDeposit,
               crypto_suffix: tokenName,
             }}
-            button={button}
           />
         </dl>
       </div>
