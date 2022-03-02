@@ -3,7 +3,7 @@ import { ContractTransaction } from 'ethers';
 import { Modal } from 'components/modals/Modal';
 import { ContractReceipt } from 'ethers';
 
-type CallContractCallback = () => Promise<ContractTransaction>;
+type CallContractCallback = () => Promise<ContractTransaction | undefined>;
 
 enum TXStatus {
   Ready = 'Ready',
@@ -46,7 +46,10 @@ export const TransactionModal = ({
       if (txStatus === TXStatus.Ready) {
         // call the smart contract function, then handle the response or error
         callContract()
-          .then((tx: ContractTransaction) => {
+          .then((tx: ContractTransaction | undefined) => {
+            if (!tx) {
+              return;
+            }
             tx.wait()
               .then((receipt: ContractReceipt) => {
                 // completed the transaction - callback and set to finished

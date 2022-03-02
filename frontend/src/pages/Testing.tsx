@@ -15,6 +15,7 @@ const Dashboard = () => {
   const [showRevokeERC20, setShowRevokeERC20] = useState(false);
   const [showSetDaoTreasury, setShowSetDaoTreasury] = useState(false);
   const [daoTreasuryAddress, setDaoTreasuryAddress] = useState('');
+  const [showFaucet, setShowFaucet] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
     undefined
   );
@@ -94,6 +95,35 @@ const Dashboard = () => {
           }}
           onFinish={() => {
             setShowSetDaoTreasury(false);
+          }}
+          onError={(error: string) => {
+            setErrorMessage(error);
+          }}
+        />
+      </div>
+
+      <div className="mt-5">
+        <div>Token Faucet</div>
+        <div>
+          <button
+            onClick={() => {
+              setShowFaucet(true);
+            }}
+            type="button"
+            className="focus:outline-none ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          >
+            Get {process.env.REACT_APP_PAYMENT_TOKEN_NAME || ''} Tokens
+          </button>
+        </div>
+        <TransactionModal
+          title="Get Tokens"
+          onConfirmed={() => {}}
+          show={showFaucet}
+          callContract={async () => {
+            return contracts.TestERC20?.requestTokens();
+          }}
+          onFinish={() => {
+            setShowFaucet(false);
           }}
           onError={(error: string) => {
             setErrorMessage(error);
