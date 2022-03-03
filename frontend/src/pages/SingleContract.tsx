@@ -2,12 +2,15 @@ import ActivityFeed from 'components/activity-feed/ActivityFeed';
 import { ApproveJobForm } from 'components/single-contract/ApproveJobForm';
 import { CloseJobForm } from 'components/single-contract/CloseJobForm';
 import { CompleteJobForm } from 'components/single-contract/CompleteJobForm';
+import { DisputeJobForm } from 'components/single-contract/DisputeJobForm';
+import { DisputeResolverForm } from 'components/single-contract/DisputeResolverForm';
 import SingleContractData from 'components/single-contract/SingleContractData';
 import SingleContractHeading from 'components/single-contract/SingleContractHeading';
 import { useJob } from 'components/smart-contracts/hooks/useJob';
 import { useWallet } from 'components/wallet/useWallet';
 import { JobState } from 'enums/JobState';
 import React from 'react';
+import { isDisputeResolver } from 'utils/admin';
 import { addressesMatch } from 'utils/ethereum';
 import Loader from '../components/full-screen-loader/FullScreenLoader';
 
@@ -28,6 +31,11 @@ const SingleContract: React.FC = () => {
       {job.state === JobState.Completed && isSupplier && <ApproveJobForm />}
       {job.state === JobState.Started && isEngineerOrSupplier && (
         <CloseJobForm />
+      )}
+      {(job.state === JobState.Started || job.state === JobState.Completed) &&
+        isSupplier && <DisputeJobForm />}
+      {job.state === JobState.Disputed && isDisputeResolver(account) && (
+        <DisputeResolverForm />
       )}
       <ActivityFeed />
     </>
