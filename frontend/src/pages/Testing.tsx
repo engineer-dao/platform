@@ -3,6 +3,7 @@ import { ApproveERC20Modal } from 'components/smart-contracts/modals/ApproveERC2
 import { RevokeERC20Modal } from 'components/smart-contracts/modals/RevokeERC20Modal';
 import { TransactionModal } from 'components/smart-contracts/modals/TransactionModal';
 import { useState } from 'react';
+import { walletAddToken } from 'utils/metamask';
 import { useNotifications } from '../components/notifications/useNotifications';
 import { clearLocalStorage } from '../utils/storage';
 
@@ -115,6 +116,24 @@ const Dashboard = () => {
             Get {process.env.REACT_APP_PAYMENT_TOKEN_NAME || ''} Tokens
           </button>
         </div>
+
+        <div>
+          <button
+            onClick={async () => {
+              walletAddToken(
+                String(process.env.REACT_APP_PAYMENT_TOKEN_CONTRACT_ADDRESS),
+                String(process.env.REACT_APP_PAYMENT_TOKEN_NAME),
+                String(process.env.REACT_APP_PAYMENT_TOKEN_IMG_URL),
+                parseInt(String(process.env.REACT_APP_PAYMENT_TOKEN_DECIMALS))
+              );
+            }}
+            type="button"
+            className="focus:outline-none ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          >
+            Add {process.env.REACT_APP_PAYMENT_TOKEN_NAME || ''} Token to Wallet
+          </button>
+        </div>
+
         <TransactionModal
           title="Get Tokens"
           onConfirmed={() => {}}
