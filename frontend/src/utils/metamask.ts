@@ -5,8 +5,8 @@ const walletAddToken = async (
   tokenDecimals: number
 ) => {
   try {
-    // wasAdded is a boolean. Like any RPC method, an error may be thrown.
-    const wasAdded = await window.ethereum.request({
+    // return value is a boolean. Like any RPC method, an error may be thrown.
+    await window.ethereum.request({
       method: 'wallet_watchAsset',
       params: {
         type: 'ERC20', // Initially only supports ERC20, but eventually more!
