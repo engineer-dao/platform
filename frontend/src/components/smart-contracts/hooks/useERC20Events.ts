@@ -45,7 +45,7 @@ export const lookupERC20Approval = async (
   erc20Contract: ERC20
 ) => {
   // query the blockchain contract to see if we have approval
-  if (account.length) {
+  if (account?.length) {
     const transactionResult = await erc20Contract.allowance(
       account,
       SmartContractAddresses.Job

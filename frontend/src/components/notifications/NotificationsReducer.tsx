@@ -8,7 +8,7 @@ export const notificationsReducer = (
   switch (action.type) {
     case 'push_notification': {
       const notification = {
-        id: state.notifications.length + 1,
+        id: state?.notifications?.length + 1,
         ...action.payload,
       };
 

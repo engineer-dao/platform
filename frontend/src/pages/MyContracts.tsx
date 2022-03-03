@@ -14,7 +14,7 @@ export const MyContracts = () => {
       <SortFilterHeading heading="My Contracts" />
       {isLoading ? (
         <Loader />
-      ) : jobs.length > 0 ? (
+      ) : jobs?.length > 0 ? (
         <ContractsContainer jobs={jobs} />
       ) : (
         <div>
