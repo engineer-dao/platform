@@ -10,7 +10,7 @@ import { useEffect, useMemo, useReducer, useState } from 'react';
 import Web3Modal, { getInjectedProvider, IProviderInfo } from 'web3modal';
 import { walletReducer } from './WalletReducer';
 
-const ethProvider = require('eth-provider');
+import * as ethProvider from 'eth-provider';
 
 // comment out if you need the infura id
 // const infuraId = String(process.env.REACT_APP_INFURA_ID);
