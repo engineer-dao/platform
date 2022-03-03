@@ -18,12 +18,6 @@ const walletAddToken = async (
         },
       },
     });
-
-    if (wasAdded) {
-      console.log('Added token', tokenSymbol, 'to wallet');
-    } else {
-      console.log('Cancelled adding', tokenSymbol, 'token to wallet');
-    }
   } catch (error) {
     console.log(error);
   }
