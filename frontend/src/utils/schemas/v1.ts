@@ -12,6 +12,7 @@ export const schema_v1: JSONSchemaType<IIPFSJobMetaData> = {
     version: { type: 'integer', minimum: 1 },
     title: { type: 'string', minLength: 3, maxLength: 120 },
     description: { type: 'string', minLength: 3, maxLength: 24576 },
+    contactInformation: { type: 'string', minLength: 1, maxLength: 2457 },
     acceptanceCriteria: { type: 'string', minLength: 3, maxLength: 24576 },
     labels: {
       type: 'array',

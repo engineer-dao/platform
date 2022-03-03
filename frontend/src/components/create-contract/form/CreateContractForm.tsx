@@ -24,6 +24,7 @@ const CreateContractForm = () => {
     title: '',
     description: '',
     acceptanceCriteria: '',
+    contactInformation: '',
     bounty: '',
     labels: [],
     identity: [],
@@ -85,6 +86,12 @@ const CreateContractForm = () => {
                       id="acceptanceCriteria"
                       label="Acceptance Criteria"
                       rows={5}
+                    />
+                  </div>
+                  <div className="col-span-6">
+                    <Input
+                      id="contactInformation"
+                      label="Contact Information"
                     />
                   </div>
                   <div className="col-span-2">

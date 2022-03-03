@@ -19,12 +19,18 @@ const DataTable: React.FC<IDataTableProps> = (props) => {
         <dl className="sm:divide-y sm:divide-gray-200">
           <DataTableItemText label="Supplier" value={contract?.supplier} />
           <DataTableItemText label="Engineer" value={contract?.engineer} />
-          <DataTableItemText label="Description" value={contract.description} />
+          <DataTableItemText
+            label="Description"
+            value={contract?.description}
+          />
           <DataTableItemText
             label="Acceptance Criteria"
             value={contract.acceptanceCriteria}
           />
-          <DataTableItemText label="Contact Information" value="-" />
+          <DataTableItemText
+            label="Contact Information"
+            value={contract?.contactInformation}
+          />
           <DataTableItemText
             label={mockContractData[4].label}
             value={mockContractData[4].value as string}

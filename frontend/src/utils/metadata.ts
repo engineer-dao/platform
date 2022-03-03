@@ -14,6 +14,7 @@ export const createIFPSMetaDataFromFormData = (
   return {
     title: formData.title,
     description: formData.description,
+    contactInformation: formData.contactInformation,
     acceptanceCriteria: formData.acceptanceCriteria,
     labels: transformLabelsToIpfsData(formData.labels),
     identity: transformLabelsToIpfsData(formData.identity),
@@ -31,7 +32,7 @@ export const createJobMetaDataFromIPFSData = (
     title: metadata.title,
     description: metadata.description,
     acceptanceCriteria: metadata.acceptanceCriteria,
-
+    contactInformation: metadata.contactInformation,
     labels: transformIpfsDataToLabels(metadata.labels, labelItems),
     identity: transformIpfsDataToLabels(metadata.identity, identityItems),
     acceptanceTests: transformIpfsDataToLabels(
