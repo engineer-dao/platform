@@ -1,11 +1,11 @@
 import { PlayIcon } from '@heroicons/react/solid';
+import { useJob } from 'components/smart-contracts/hooks/useJob';
 import { CancelJobModal } from 'components/smart-contracts/modals/CancelJobModal';
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { useSingleContract } from './context/useSingleContract';
 
 export const CancelJobButton: React.FC = () => {
-  const { data } = useSingleContract();
+  const { job, isLoading } = useJob();
 
   const history = useHistory();
 
@@ -15,7 +15,7 @@ export const CancelJobButton: React.FC = () => {
     setShowCancelJobModal(true);
   };
 
-  return data ? (
+  return job && !isLoading ? (
     <>
       <button
         type="submit"
@@ -27,7 +27,7 @@ export const CancelJobButton: React.FC = () => {
       </button>
 
       <CancelJobModal
-        jobId={data.id}
+        jobId={job.id}
         show={showCancelJobModal}
         onConfirmed={(jobId: string) => {
           setShowCancelJobModal(false);
