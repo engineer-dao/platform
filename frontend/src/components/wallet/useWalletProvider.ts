@@ -12,7 +12,7 @@ import { walletReducer } from './WalletReducer';
 
 const ethProvider = require('eth-provider');
 
-// comment out if you need the infura id 
+// comment out if you need the infura id
 // const infuraId = String(process.env.REACT_APP_INFURA_ID);
 const rpcUrl = String(process.env.REACT_APP_RPC_URL);
 const chainIdInt = Number(process.env.REACT_APP_CHAIN_ID);
