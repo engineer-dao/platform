@@ -12,7 +12,8 @@ import { walletReducer } from './WalletReducer';
 
 const ethProvider = require('eth-provider');
 
-const infuraId = String(process.env.REACT_APP_INFURA_ID);
+// comment out if you need the infura id 
+// const infuraId = String(process.env.REACT_APP_INFURA_ID);
 const rpcUrl = String(process.env.REACT_APP_RPC_URL);
 const chainIdInt = Number(process.env.REACT_APP_CHAIN_ID);
 
@@ -33,7 +34,6 @@ const providerOptions = {
     package: WalletLink, // Required
     options: {
       appName: 'EngineerDAO', // Required
-      // infuraId: infuraId, // Required unless you provide a JSON RPC url; see `rpc` below
       rpc: rpcUrl, // Optional if `infuraId` is provided; otherwise it's required
       chainId: chainIdInt, // Optional. It defaults to 1 if not provided
       appLogoUrl: null, // Optional. Application logo image URL. favicon is used if unspecified
