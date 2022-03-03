@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 import EventEmitter from 'events';
 import Fortmatic from 'fortmatic';
+import WalletLink from 'walletlink';
 import {
   IWalletState,
   WalletStateActionPayload,
@@ -9,9 +10,15 @@ import { useEffect, useMemo, useReducer, useState } from 'react';
 import Web3Modal, { getInjectedProvider, IProviderInfo } from 'web3modal';
 import { walletReducer } from './WalletReducer';
 
+const ethProvider = require('eth-provider');
+
+const infuraId = String(process.env.REACT_APP_INFURA_ID);
+const rpcUrl = String(process.env.REACT_APP_RPC_URL);
+const chainIdInt = Number(process.env.REACT_APP_CHAIN_ID);
+
 const fortmaticNetworkOptions = {
-  rpcUrl: 'https://rpc-mainnet.maticvigil.com',
-  chainId: 137,
+  rpcUrl: rpcUrl,
+  chainId: chainIdInt,
 };
 
 const providerOptions = {
@@ -21,6 +28,20 @@ const providerOptions = {
       key: process.env.REACT_APP_FORTMATIC_KEY || 'INVALID_KEY',
       network: fortmaticNetworkOptions,
     },
+  },
+  walletlink: {
+    package: WalletLink, // Required
+    options: {
+      appName: 'EngineerDAO', // Required
+      // infuraId: infuraId, // Required unless you provide a JSON RPC url; see `rpc` below
+      rpc: rpcUrl, // Optional if `infuraId` is provided; otherwise it's required
+      chainId: chainIdInt, // Optional. It defaults to 1 if not provided
+      appLogoUrl: null, // Optional. Application logo image URL. favicon is used if unspecified
+      darkMode: false, // Optional. Use dark theme, defaults to false
+    },
+  },
+  frame: {
+    package: ethProvider, // required
   },
 };
 
