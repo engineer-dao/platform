@@ -1,8 +1,9 @@
 import { JobState } from 'enums/JobState';
+import { ActivityType } from 'enums/ActivityType';
 
 export interface IActivityFeedItem {
   id: string;
-  type: 'message' | 'status';
+  type: ActivityType;
   person?: {
     name?: string;
     href?: string;

@@ -1,15 +1,15 @@
+import { ChatAltIcon, UserCircleIcon } from '@heroicons/react/solid';
 import { IActivityFeedItem } from 'interfaces/IActivityFeedItem';
-import { UserCircleIcon } from '@heroicons/react/solid';
-import { ChatAltIcon } from '@heroicons/react/solid';
-import StatusChip from 'components/single-contract/StatusChip';
 import { randomChars } from 'utils/random';
 
-interface StatusChangeProps {
+interface ContractUpdateProps {
   activityItem: IActivityFeedItem;
 }
 
-export const StatusChange: React.FC<StatusChangeProps> = ({ activityItem }) => {
-  return activityItem.status ? (
+export const ContractUpdate: React.FC<ContractUpdateProps> = ({
+  activityItem,
+}) => {
+  return activityItem.message ? (
     <>
       {activityItem?.address ? (
         <div className="relative">
@@ -43,30 +43,25 @@ export const StatusChange: React.FC<StatusChangeProps> = ({ activityItem }) => {
       )}
 
       <div className="min-w-0 flex-1 py-1.5">
-        <div className="text-sm text-gray-500">
-          {activityItem?.person?.name || activityItem?.address ? (
-            <>
-              <a
-                href={activityItem?.person?.href}
-                className="font-medium text-gray-900"
-              >
-                {activityItem?.person?.name || activityItem?.address}
-              </a>
-            </>
-          ) : (
-            <></>
+        <div>
+          <div className="text-sm">
+            <a
+              href={activityItem?.person?.href}
+              className="font-medium text-gray-900"
+            >
+              {activityItem?.person?.name || activityItem?.address}
+            </a>
+          </div>
+          {activityItem?.date && (
+            <p className="mt-0.5 text-sm text-gray-500">
+              Updated on {activityItem.date}
+            </p>
           )}
         </div>
-        {activityItem?.date && (
-          <p className="mt-0.5 text-sm text-gray-500">
-            Changed status on {activityItem?.date}
-          </p>
-        )}
-        <div className="mt-2 text-sm text-gray-700">
-          <p>{activityItem?.message}</p>
-        </div>
-        <div className="mt-2 text-sm text-gray-700">
-          <StatusChip state={activityItem.status} size="small" />
+        <div className="mt-2 text-sm text-gray-900">
+          <span className="text-md inline-flex items-center rounded-full bg-gray-600 px-3 py-1 px-2 py-0.5 text-sm font-medium text-white">
+            {activityItem?.message}
+          </span>
         </div>
       </div>
     </>

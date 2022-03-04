@@ -28,13 +28,21 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
 
 task(
     'copy-compiled',
-    'Adds compiled typechain factories to the frontend code',
+    'Adds compiled typechain factories to the frontend and backend directories',
     async (taskArguments, hre) => {
         try {
             await fs.copy('./typechain', '../frontend/src/contracts-typechain');
-            console.log('Copy completed!');
+            console.log('Copy to frontend completed');
         } catch (err) {
-            console.log('An error occurred while copying the folder.');
+            console.log('An error occurred while copying the folder to the frontend.');
+            return console.error(err);
+        }
+
+        try {
+            await fs.copy('./typechain', '../backend/contracts-typechain');
+            console.log('Copy to backend completed');
+        } catch (err) {
+            console.log('An error occurred while copying the folder to the backend.');
             return console.error(err);
         }
     }
