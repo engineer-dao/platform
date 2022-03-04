@@ -8,14 +8,18 @@ import {
 } from 'interfaces/IWalletState';
 import { useEffect, useMemo, useReducer, useState } from 'react';
 import Web3Modal, { getInjectedProvider, IProviderInfo } from 'web3modal';
+import WalletConnectProvider from '@walletconnect/web3-provider';
 import { walletReducer } from './WalletReducer';
 
 import * as ethProvider from 'eth-provider';
 
 // comment out if you need the infura id
-// const infuraId = String(process.env.REACT_APP_INFURA_ID);
+const infuraId = String(process.env.REACT_APP_INFURA_ID);
 const rpcUrl = String(process.env.REACT_APP_RPC_URL);
-const chainIdInt = Number(process.env.REACT_APP_CHAIN_ID);
+
+const chainIdInt = Number(process.env.REACT_APP_SUPPORTED_CHAIN_ID);
+const rpcObject: { [key: string]: string } = {};
+rpcObject[chainIdInt.toString()] = rpcUrl;
 
 const fortmaticNetworkOptions = {
   rpcUrl: rpcUrl,
@@ -23,6 +27,18 @@ const fortmaticNetworkOptions = {
 };
 
 const providerOptions = {
+  walletconnect: {
+    package: WalletConnectProvider,
+    options: {
+      infuraId: infuraId,
+      rpc: {
+        1: 'https://mainnet.mycustomnode.com',
+        3: 'https://ropsten.mycustomnode.com',
+        100: 'https://dai.poa.network',
+        137: 'https://rpc-mainnet.maticvigil.com',
+      },
+    },
+  },
   fortmatic: {
     package: Fortmatic,
     options: {
@@ -44,6 +60,8 @@ const providerOptions = {
     package: ethProvider, // required
   },
 };
+
+console.log('providerOptions', providerOptions, chainIdInt, process.env);
 
 const web3Modal = new Web3Modal({
   network: 'mainnet',
