@@ -14,7 +14,7 @@ import { walletReducer } from './WalletReducer';
 import * as ethProvider from 'eth-provider';
 
 // comment out if you need the infura id
-const infuraId = String(process.env.REACT_APP_INFURA_ID);
+// const infuraId = String(process.env.REACT_APP_INFURA_ID);
 const rpcUrl = String(process.env.REACT_APP_RPC_URL);
 
 const chainIdInt = Number(process.env.REACT_APP_SUPPORTED_CHAIN_ID);
@@ -30,7 +30,6 @@ const providerOptions = {
   walletconnect: {
     package: WalletConnectProvider,
     options: {
-      infuraId: infuraId,
       rpc: {
         1: 'https://mainnet.mycustomnode.com',
         3: 'https://ropsten.mycustomnode.com',
@@ -61,7 +60,6 @@ const providerOptions = {
   },
 };
 
-console.log('providerOptions', providerOptions, chainIdInt, process.env);
 
 const web3Modal = new Web3Modal({
   network: 'mainnet',
