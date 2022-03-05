@@ -25,7 +25,7 @@ const ActivityFeed = () => {
             return (
               <li key={snapshot.key}>
                 <div className="relative pb-8">
-                  {index !== snapshots.length - 1 ? (
+                  {index !== snapshots?.length - 1 ? (
                     <span
                       className="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200"
                       aria-hidden="true"

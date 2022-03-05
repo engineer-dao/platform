@@ -19,6 +19,7 @@ export interface IJobMetaData {
   version: number;
   title: string;
   description: string;
+  contactInformation: string;
   acceptanceCriteria: string;
   labels: IListBoxItem[];
   identity: IListBoxItem[];
@@ -49,6 +50,7 @@ export interface IIPFSJobMetaData {
   version: number;
   title: string;
   description: string;
+  contactInformation: string;
   acceptanceCriteria: string;
   labels: string[];
   identity: string[];

@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { ISingleContractRouteParams } from '../../interfaces/routes/ISingleContractRouteParams';
 import { postComment } from '../../services/activityFeed';
+import { useNotifications } from '../notifications/useNotifications';
 import { useWallet } from '../wallet/useWallet';
 
 interface IMessageForm {
@@ -14,6 +15,7 @@ interface IMessageForm {
 const NewMessage = () => {
   const { id } = useParams<ISingleContractRouteParams>();
   const { provider, account } = useWallet();
+  const { pushNotification } = useNotifications();
 
   const signer = useMemo(() => provider?.getSigner(), [provider]);
 
@@ -22,7 +24,18 @@ const NewMessage = () => {
     const address = utils.getAddress(account || '');
 
     if (sig && address) {
-      await postComment({ sig, address, message, contract_id: id });
+      try {
+        await postComment({ sig, address, message, contract_id: id });
+        pushNotification({
+          heading: 'Success',
+          content: 'Message posted successfully.',
+        });
+      } catch (e) {
+        pushNotification({
+          heading: 'Error',
+          content: `There was an error: ${e}`,
+        });
+      }
     }
   };
 

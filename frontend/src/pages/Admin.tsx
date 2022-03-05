@@ -70,8 +70,11 @@ export default function Admin() {
         />
         <Sidebar navigation={navigation} />
         <Content reportSidebarOpen={setSidebarOpen} />
-        {notifications.map((notification) => (
-          <Notification notification={notification} />
+        {notifications.map((notification, index) => (
+          <Notification
+            notification={notification}
+            key={`notification-${index}`}
+          />
         ))}
       </div>
     </SmartContractsProvider>
