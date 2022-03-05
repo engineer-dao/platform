@@ -31,7 +31,7 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         </p>
         <button
           type="button"
-          className="focus:outline-none -ml-0.5 -mt-0.5 inline-flex h-12 w-12 items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+          className="focus:outline-none mt-3 inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           onClick={walletSwitchDefaultEthereumChain}
         >
           Switch Network
