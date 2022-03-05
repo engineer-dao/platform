@@ -13,6 +13,7 @@ export const createFormSchema = Yup.object().shape({
     .min(2, 'Too short')
     .max(3000, 'Too long')
     .required('Required'),
+  contactInformation: Yup.string().min(1, 'Too short').max(250, 'Too long'),
   bounty: Yup.number().min(50, 'Amount too low').required('Required'),
   labels: Yup.array().of(
     Yup.object().shape({ id: Yup.number(), name: Yup.string() })

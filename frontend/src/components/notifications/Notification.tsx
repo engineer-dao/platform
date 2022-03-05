@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Transition } from '@headlessui/react';
 import { CheckCircleIcon } from '@heroicons/react/outline';
 import { XIcon } from '@heroicons/react/solid';
@@ -10,10 +10,16 @@ interface INotificationProps {
 }
 
 export const Notification: React.FC<INotificationProps> = (props) => {
-  const { heading, open, content, id } = props?.notification || {};
+  const { heading, open = true, content, id } = props?.notification || {};
 
   const [show, setShow] = useState(open);
   const { removeNotification } = useNotifications();
+
+  useEffect(() => {
+    setTimeout(() => {
+      setShow(false);
+    }, 2500);
+  }, []);
 
   return (
     <div key={id}>
