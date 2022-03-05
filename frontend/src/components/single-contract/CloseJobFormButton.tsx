@@ -1,8 +1,8 @@
+import { useJob } from 'components/smart-contracts/hooks/useJob';
 import { CloseJobModal } from 'components/smart-contracts/modals/CloseJobModal';
 import { Form, Formik } from 'formik';
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { useSingleContract } from './context/useSingleContract';
 
 interface ICloseJobFormButtonProps {
   label?: string;
@@ -12,11 +12,11 @@ export const CloseJobFormButton: React.FC<ICloseJobFormButtonProps> = (
   props
 ) => {
   const { label } = props;
-  const { data: job } = useSingleContract();
+  const { job, isLoading } = useJob();
   const [showCloseJobModal, setShowCloseJobModal] = useState(false);
   const history = useHistory();
 
-  return job ? (
+  return job && !isLoading ? (
     <Formik
       initialValues={{}}
       onSubmit={(values) => {
