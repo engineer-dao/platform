@@ -81,7 +81,7 @@ export const useWalletProvider = () => {
           method: 'eth_accounts',
         });
 
-        if (result?.length > 0) {
+        if (result.length > 0) {
           // metamask is already connected
           const account = result[0];
           connectToInjectedMetamask(providerInfo, account, chainId);
