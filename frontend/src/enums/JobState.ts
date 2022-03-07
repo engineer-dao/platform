@@ -20,7 +20,7 @@ export const JobStateLabels = {
   [JobState.FinalApproved]: 'Paid',
   [JobState.FinalCanceledBySupplier]: 'Canceled',
   [JobState.FinalMutualClose]: 'Closed',
-  [JobState.FinalNoResponse]: 'Abandoned',
+  [JobState.FinalNoResponse]: 'Paid',
   [JobState.FinalDisputeResolvedForSupplier]: 'Dispute Resolved',
   [JobState.FinalDisputeResolvedForEngineer]: 'Dispute Resolved',
   [JobState.FinalDisputeResolvedWithSplit]: 'Dispute Resolved',

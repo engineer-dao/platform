@@ -43,7 +43,7 @@ const StatusChip: React.FC<IStatusChipProps> = (props) => {
       _color = gray;
       break;
     case JobState.FinalNoResponse:
-      _color = gray;
+      _color = darkGreen;
       break;
     case JobState.FinalDisputeResolvedForSupplier:
       _color = gray;
