@@ -11,6 +11,7 @@ import 'solidity-coverage';
 import '@atixlabs/hardhat-time-n-mine';
 import 'hardhat-deploy';
 import 'solidity-coverage';
+import { TestERC20__factory } from './typechain';
 
 import "./tasks/test-tokens";
 
@@ -47,6 +48,32 @@ task(
         }
     }
 );
+
+task(
+    'send-tokens',
+    'Sends test tokens',
+    async (taskArguments, hre) => {
+        const { ethers, getNamedAccounts } = hre;
+        const [ deployer ] = await ethers.getSigners();
+
+        const token = (taskArguments as any).token || 'ETH';
+        if (token === 'ETH') {
+            const tx = await deployer.sendTransaction({
+                to: (taskArguments as any).recipient,
+                value: ethers.utils.parseEther((taskArguments as any).amount || '5.0')
+            });
+        } else {
+            const TestERC20__factory = await ethers.getContractFactory('TestERC20', deployer);
+            const TestERC20 = TestERC20__factory.attach((taskArguments as any).token);
+            await TestERC20.transfer((taskArguments as any).recipient, ethers.utils.parseEther((taskArguments as any).amount || '5000'));
+        }
+
+    }
+)
+    .addParam("recipient", "The recipient")
+    .addParam("amount", "The amount")
+    .addParam("token", "Token address or ETH");
+
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
