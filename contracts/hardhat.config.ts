@@ -11,7 +11,6 @@ import 'solidity-coverage';
 import '@atixlabs/hardhat-time-n-mine';
 import 'hardhat-deploy';
 import 'solidity-coverage';
-import { TestERC20__factory } from './typechain';
 
 import "./tasks/test-tokens";
 
