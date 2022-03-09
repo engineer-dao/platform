@@ -1,4 +1,4 @@
-import { formatDateTime } from 'components/activity-feed/hooks/utils/date';
+import { formatDateTime } from 'utils/date';
 import { useJob } from 'components/smart-contracts/hooks/useJob';
 import { useSmartContractCallback } from 'components/smart-contracts/hooks/useSmartContractCall';
 import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
