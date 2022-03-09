@@ -18,7 +18,6 @@ export const TimeoutJobForm = () => {
     useSmartContractCallback<BigNumber>(() => {
       return contracts.Job.COMPLETED_TIMEOUT_SECONDS();
     });
-  console.log('rendering TimeoutJobForm');
 
   // do job timeout math
   const jobTimeoutMs =
