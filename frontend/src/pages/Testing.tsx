@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { walletAddToken } from 'utils/metamask';
 import { useNotifications } from '../components/notifications/useNotifications';
 import { clearLocalStorage } from '../utils/storage';
+import { syncEvents } from 'services/activityFeed';
 
 const Dashboard = () => {
   const { pushNotification } = useNotifications();
@@ -161,6 +162,21 @@ const Dashboard = () => {
             className="focus:outline-none ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
           >
             Clear Cache
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-5">
+        <div>Test Refresh</div>
+        <div>
+          <button
+            onClick={() => {
+              syncEvents();
+            }}
+            type="button"
+            className="focus:outline-none ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          >
+            Refresh Contract Events
           </button>
         </div>
       </div>

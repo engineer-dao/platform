@@ -1,3 +1,4 @@
+import { contractDatabaseRef } from 'services/db';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import Cors from 'cors';
 import { utils } from 'ethers';
@@ -34,19 +35,17 @@ export default async function handler(
 ) {
   await runMiddleware(req, res, cors);
 
-  const { sig, address, message, contract_id, type } = req?.body || {};
+  const { sig, address, message, contract_id } = req?.body || {};
 
   const _address = utils.verifyMessage(message, sig);
 
-  const reference = ref(database, `messages/${contract_id}`);
-
-  const postRef = push(reference);
-
   if (address === _address) {
+    const reference = contractDatabaseRef(`${contract_id}/messages`);
+    const postRef = push(reference);
+
     await set(postRef, {
       address,
       message,
-      type,
       created_at: new Date().toISOString(),
     });
     res.status(200).json({ message: 'Success' });

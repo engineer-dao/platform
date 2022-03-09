@@ -14,7 +14,10 @@ const Comment: React.FC<CommentProps> = ({ activityItem }) => {
           className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-400 ring-8 ring-white"
           src={
             activityItem?.imageUrl ||
-            `https://avatars.dicebear.com/api/micah/${randomChars(4)}.svg`
+            `https://avatars.dicebear.com/api/micah/${randomChars(
+              4,
+              activityItem?.address
+            )}.svg`
           }
           alt="Anon Avatar"
         />
@@ -33,9 +36,9 @@ const Comment: React.FC<CommentProps> = ({ activityItem }) => {
               {activityItem?.person?.name || activityItem?.address}
             </a>
           </div>
-          {activityItem?.created_at && (
+          {activityItem?.date && (
             <p className="mt-0.5 text-sm text-gray-500">
-              Commented {new Date(activityItem?.created_at).toDateString()}
+              Commented {activityItem.date}
             </p>
           )}
         </div>
