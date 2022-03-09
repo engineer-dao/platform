@@ -1,5 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref } from 'firebase/database';
+import { getSmartContractId } from 'utils/contract';
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -19,12 +20,5 @@ export const database = getDatabase(app);
 // make all database key selectors relative to the deployed smart contract
 //   Deploying a new contract will create a fresh database
 export const contractDatabaseRef = (selector: string) => {
-  const smartContractId = getSmartContractId();
-  return ref(database, `${smartContractId}/${selector}`);
-};
-
-// the last 8 characters of the deployed job contract
-const getSmartContractId = () => {
-  const address = String(process.env.REACT_APP_JOB_CONTRACT_ADDRESS);
-  return address.substring(address.length - 8).toLowerCase();
+  return ref(database, `${getSmartContractId()}/${selector}`);
 };

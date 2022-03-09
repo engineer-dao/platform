@@ -1,10 +1,10 @@
+import { IActivityFeedById } from 'components/activity-feed/interfaces/IActivityFeedById';
 import { ActivityType } from 'enums/ActivityType';
 import { DataSnapshot } from 'firebase/database';
-import { ActivityFeedById } from '../activity';
-import { formatDateTime } from './date';
+import { formatDateTime } from 'utils/date';
 
 export const applyMessagesToActivityFeedById = (
-  activityFeedById: ActivityFeedById,
+  activityFeedById: IActivityFeedById,
   messageSnapshots: DataSnapshot[]
 ) => {
   messageSnapshots.forEach((snapshot) => {

@@ -1,13 +1,19 @@
+import { IActivityFeedById } from 'components/activity-feed/interfaces/IActivityFeedById';
 import { ActivityType } from 'enums/ActivityType';
 import { JobState } from 'enums/JobState';
 import { DataSnapshot } from 'firebase/database';
 import { IActivityFeedItem } from 'interfaces/IActivityFeedItem';
 import { IJobData } from 'interfaces/IJobData';
-import { ActivityFeedById, IEventActivity } from '../activity';
-import { formatDateTime } from './date';
+import { formatDateTime } from 'utils/date';
+
+export interface IEventActivity {
+  type: string;
+  created_at: string;
+  args?: any;
+}
 
 export const applyEventsToActivityFeedById = (
-  activityFeedById: ActivityFeedById,
+  activityFeedById: IActivityFeedById,
   job: IJobData,
   eventSnapshots: DataSnapshot[]
 ) => {
@@ -187,23 +193,18 @@ const buildAddressFromJobEvent = (
 ): string | undefined => {
   switch (type) {
     case 'JobPosted':
-      return job.supplier;
-    case 'JobStarted':
-      return job.engineer;
-    case 'JobCompleted':
-      return job.engineer;
     case 'JobApproved':
-      return job.supplier;
     case 'JobDisputed':
-      return job.supplier;
     case 'JobCanceled':
-      return job.supplier;
     case 'JobClosedBySupplier':
       return job.supplier;
+
+    case 'JobStarted':
+    case 'JobCompleted':
     case 'JobClosedByEngineer':
-      return job.engineer;
     case 'JobTimeoutPayout':
       return job.engineer;
   }
+
   return undefined;
 };

@@ -1,13 +1,14 @@
+import { IActivityFeedById } from 'components/activity-feed/interfaces/IActivityFeedById';
+import { applyMessagesToActivityFeedById } from 'components/activity-feed/utils/commentActivity';
+import { applyEventsToActivityFeedById } from 'components/activity-feed/utils/eventActivity';
+import { sortActivityFeedByIdToArray } from 'components/activity-feed/utils/sortActivity';
 import { useJob } from 'components/smart-contracts/hooks/useJob';
 import { useList } from 'react-firebase-hooks/database';
 import { contractDatabaseRef } from 'services/firebase';
-import { ActivityFeedById } from './activity';
-import { applyMessagesToActivityFeedById } from './utils/commentActivity';
-import { applyEventsToActivityFeedById } from './utils/eventActivity';
 
 export const useActivityFeed = () => {
   const { job, isLoading: jobIsLoading } = useJob();
-  const activityFeedById: ActivityFeedById = {};
+  const activityFeedById: IActivityFeedById = {};
 
   // load events from firebase
   const eventsDbRef = job ? contractDatabaseRef(`${job.id}/events`) : null;
@@ -37,21 +38,4 @@ export const useActivityFeed = () => {
     error: eventListError || messageListError,
     activityItems,
   };
-};
-
-const sortActivityFeedByIdToArray = (activityFeedById: ActivityFeedById) => {
-  return Object.keys(activityFeedById)
-    .map((uuid) => activityFeedById[uuid])
-    .sort((a, b) => {
-      const a_date = a.date || '';
-      const b_date = b.date || '';
-      if (a_date > b_date) {
-        return 1;
-      } else if (a_date < b_date) {
-        return -1;
-      } else {
-        // when dates are the same, sort StatusChange (2) before ContractUpdate (3)
-        return b.type - a.type;
-      }
-    });
 };
