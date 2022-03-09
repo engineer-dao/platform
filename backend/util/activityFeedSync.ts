@@ -15,17 +15,20 @@ import {
   JobStartedEvent,
   JobTimeoutPayoutEvent,
 } from 'contracts-typechain/Job';
+import crypto from 'crypto';
 import { get, set } from 'firebase/database';
-import { WasmHighwayHash as HighwayHash } from 'highwayhasher';
 import { loadAllEvents } from 'services/contract';
 import { contractDatabaseRef } from 'services/db';
 import { getBlockTimestamp, getLatestBlockHeight } from 'services/ethereum';
+import { getLock } from 'util/lock';
 
 // after this many blocks, assume finality on the blockchain
-const FINALITY_BLOCK_COUNT = 25;
+const FINALITY_BLOCK_COUNT = parseInt(process.env.FINALITY_BLOCK_COUNT || '25');
 
 // Sync this many blocks at a time
-const SYNC_BLOCK_CHUNK_SIZE = 50;
+const SYNC_BLOCK_CHUNK_SIZE = parseInt(
+  process.env.SYNC_BLOCK_CHUNK_SIZE || '1000'
+);
 
 interface IContractEvent {
   blockNumber: number;
@@ -38,10 +41,15 @@ interface IContractEvent {
 }
 
 export const syncContractEvents = async () => {
+  if (!(await getLock('sync-timestamp'))) {
+    return;
+  }
+
   // sync as long as is needed
   let { lastSyncedBlock, latestBlockHeight } = await getPendingSyncRange();
+
   while (latestBlockHeight > lastSyncedBlock) {
-    syncContractEventsInBlockRange(
+    await syncContractEventsInBlockRange(
       Math.max(0, lastSyncedBlock - FINALITY_BLOCK_COUNT),
       latestBlockHeight
     );
@@ -92,7 +100,9 @@ const getLatestSyncedBlock = async () => {
   const syncedBlockRef = contractDatabaseRef(`latest-synced-block`);
 
   const snapshot = await get(syncedBlockRef);
-  return parseInt(snapshot.val() || '0');
+  return parseInt(
+    snapshot.val() || process.env.JOB_CONTRACT_STARTING_BLOCK_HEIGHT || '0'
+  );
 };
 
 const storeLatestSyncedBlock = async (blockNumber: number) => {
@@ -240,8 +250,5 @@ const createUuid = async (messageParameters: IContractEvent) => {
     ].join('/')
   );
 
-  const emptyKey = Uint8Array.from(new Array(32).fill(1));
-  const hasher = await HighwayHash.loadModule();
-  const out = hasher.hash64(emptyKey, input);
-  return Buffer.from(out).toString('hex');
+  return crypto.createHash('md5').update(input).digest('hex');
 };
