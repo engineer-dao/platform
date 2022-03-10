@@ -16,19 +16,16 @@ import {
   JobTimeoutPayoutEvent,
 } from 'contracts-typechain/Job';
 import crypto from 'crypto';
-import { get, set } from 'firebase/database';
+import { get, remove, set } from 'firebase/database';
+import { IBlockchainEventRef } from 'interfaces/IBlockchainEventRef';
 import { loadAllEvents } from 'services/contract';
 import { contractDatabaseRef } from 'services/db';
 import { getBlockTimestamp, getLatestBlockHeight } from 'services/ethereum';
+import { blockNumberToBlockEpoch, groupBlocksByEpoch } from 'util/epochSync';
 import { getLock } from 'util/lock';
 
 // after this many blocks, assume finality on the blockchain
 const FINALITY_BLOCK_COUNT = parseInt(process.env.FINALITY_BLOCK_COUNT || '25');
-
-// Sync this many blocks at a time
-const SYNC_BLOCK_CHUNK_SIZE = parseInt(
-  process.env.SYNC_BLOCK_CHUNK_SIZE || '1000'
-);
 
 interface IContractEvent {
   blockNumber: number;
@@ -45,12 +42,13 @@ export const syncContractEvents = async () => {
     return;
   }
 
-  // sync as long as is needed
   let { lastSyncedBlock, latestBlockHeight } = await getPendingSyncRange();
 
+  // sync as long as is needed
   while (latestBlockHeight > lastSyncedBlock) {
+    // sync all blocks in this epoch
     await syncContractEventsInBlockRange(
-      Math.max(0, lastSyncedBlock - FINALITY_BLOCK_COUNT),
+      lastSyncedBlock - FINALITY_BLOCK_COUNT,
       latestBlockHeight
     );
 
@@ -71,37 +69,85 @@ const syncContractEventsInBlockRange = async (
   fromBlock: number,
   toBlock: number
 ) => {
-  let startingBlock = fromBlock + 1;
+  const epochBlocks = groupBlocksByEpoch(fromBlock, toBlock);
+  for (let [epochBlock, epochEndBlock] of epochBlocks) {
+    // track all found blockchain events
+    const blockchainEventRefs: IBlockchainEventRef[] = [];
 
-  // process events in chunks
-  while (startingBlock <= toBlock) {
-    const chunkSize = Math.min(
-      toBlock - startingBlock + 1,
-      SYNC_BLOCK_CHUNK_SIZE
-    );
-    const endingBlock = startingBlock + chunkSize - 1;
-
-    const allEvents = await loadAllEvents(startingBlock, endingBlock);
-    allEvents.forEach(async (event) => {
+    // load all events in this epoch from the blockchain
+    //   1-1000, 1001-2000, etc...
+    for (const event of await loadAllEvents(epochBlock + 1, epochEndBlock)) {
       const messageParameters = buildEventMessageParameters(event);
       if (messageParameters) {
-        addEvent(messageParameters);
+        const uuid = await addEventToFirebase(messageParameters, epochBlock);
+        if (uuid) {
+          blockchainEventRefs.push({
+            uuid,
+            id: messageParameters.jobId,
+            epoch: blockNumberToBlockEpoch(messageParameters.blockNumber),
+          });
+        }
       }
-    });
+    }
+
+    // remove all events that were not found
+    await removeMissingBlockchainEvents(
+      epochBlock,
+      epochEndBlock,
+      blockchainEventRefs
+    );
 
     // remember the last synced block
-    await storeLatestSyncedBlock(endingBlock);
-
-    // update the starting block for the next chunk
-    startingBlock = endingBlock + 1;
+    await storeLatestSyncedBlock(epochEndBlock);
   }
 };
+
+export const removeMissingBlockchainEvents = async (
+  epochBlock: number,
+  epochEndBlock: number,
+  blockchainEventRefs: IBlockchainEventRef[]
+) => {
+  // load db uuids
+  const allDbEpochBlockRefs = contractDatabaseRef(`epochs/${epochBlock}`);
+  const allDbEpochBlockEventReferences = (await get(allDbEpochBlockRefs)).val();
+  const dbUuids = Object.keys(allDbEpochBlockEventReferences || {});
+
+  // uuids in the blockchain
+  const blockchainUuids = blockchainEventRefs.map(
+    (event: IBlockchainEventRef) => {
+      return event.uuid;
+    }
+  );
+
+  // find any db events that are not in the blockchain
+  const invalidDbUuids = dbUuids.filter(
+    (uuid) => !blockchainUuids.includes(uuid)
+  );
+
+  // remove all invalid uuids
+  for (const invalidUuid of invalidDbUuids) {
+    // remove the event first
+    const jobId = allDbEpochBlockEventReferences[invalidUuid].id || undefined;
+    if (jobId) {
+      const eventRef = contractDatabaseRef(`${jobId}/events/${invalidUuid}`);
+      await remove(eventRef);
+    }
+
+    // now remove the reference
+    const epochBlockRef = contractDatabaseRef(
+      `epochs/${epochBlock}/${invalidUuid}`
+    );
+    await remove(epochBlockRef);
+  }
+};
+
 const getLatestSyncedBlock = async () => {
   const syncedBlockRef = contractDatabaseRef(`latest-synced-block`);
 
   const snapshot = await get(syncedBlockRef);
-  return parseInt(
-    snapshot.val() || process.env.JOB_CONTRACT_STARTING_BLOCK_HEIGHT || '0'
+  return (
+    snapshot.val() ||
+    parseInt(process.env.JOB_CONTRACT_STARTING_BLOCK_HEIGHT || '1') - 1
   );
 };
 
@@ -114,61 +160,61 @@ const storeLatestSyncedBlock = async (blockNumber: number) => {
 const buildEventMessageParameters = (untypedEvent: TypedEvent<any>) => {
   switch (untypedEvent.event) {
     case 'JobPosted':
-      return eventParameters(
+      return buildContractEvent(
         untypedEvent,
         (untypedEvent as JobPostedEvent).args.jobId.toString()
       );
 
     case 'JobStarted':
-      return eventParameters(
+      return buildContractEvent(
         untypedEvent,
         (untypedEvent as JobStartedEvent).args.jobId.toString()
       );
 
     case 'JobCompleted':
-      return eventParameters(
+      return buildContractEvent(
         untypedEvent,
         (untypedEvent as JobCompletedEvent).args.jobId.toString()
       );
 
     case 'JobApproved':
-      return eventParameters(
+      return buildContractEvent(
         untypedEvent,
         (untypedEvent as JobApprovedEvent).args.jobId.toString()
       );
 
     case 'JobCanceled':
-      return eventParameters(
+      return buildContractEvent(
         untypedEvent,
         (untypedEvent as JobCanceledEvent).args.jobId.toString()
       );
 
     case 'JobClosed':
-      return eventParameters(
+      return buildContractEvent(
         untypedEvent,
         (untypedEvent as JobClosedEvent).args.jobId.toString()
       );
 
     case 'JobClosedByEngineer':
-      return eventParameters(
+      return buildContractEvent(
         untypedEvent,
         (untypedEvent as JobClosedByEngineerEvent).args.jobId.toString()
       );
 
     case 'JobClosedBySupplier':
-      return eventParameters(
+      return buildContractEvent(
         untypedEvent,
         (untypedEvent as JobClosedBySupplierEvent).args.jobId.toString()
       );
 
     case 'JobDelisted':
-      return eventParameters(
+      return buildContractEvent(
         untypedEvent,
         (untypedEvent as JobDelistedEvent).args.jobId.toString()
       );
 
     case 'JobDisputeResolved':
-      return eventParameters(
+      return buildContractEvent(
         untypedEvent,
         (untypedEvent as JobDisputeResolvedEvent).args.jobId.toString(),
         {
@@ -177,32 +223,32 @@ const buildEventMessageParameters = (untypedEvent: TypedEvent<any>) => {
       );
 
     case 'JobDisputed':
-      return eventParameters(
+      return buildContractEvent(
         untypedEvent,
         (untypedEvent as JobDisputedEvent).args.jobId.toString()
       );
 
     case 'JobReported':
-      return eventParameters(
+      return buildContractEvent(
         untypedEvent,
         (untypedEvent as JobReportedEvent).args.jobId.toString()
       );
 
     case 'JobReportDeclined':
-      return eventParameters(
+      return buildContractEvent(
         untypedEvent,
         (untypedEvent as JobReportDeclinedEvent).args.jobId.toString()
       );
 
     case 'JobTimeoutPayout':
-      return eventParameters(
+      return buildContractEvent(
         untypedEvent,
         (untypedEvent as JobTimeoutPayoutEvent).args.jobId.toString()
       );
   }
 };
 
-const eventParameters = (
+const buildContractEvent = (
   genericEvent: TypedEvent<any>,
   jobId: string,
   eventArgs?: any
@@ -218,21 +264,33 @@ const eventParameters = (
   };
 };
 
-const addEvent = async (contractEvent: IContractEvent) => {
+const addEventToFirebase = async (
+  contractEvent: IContractEvent,
+  epochBlock: number
+) => {
   const uuid = await createUuid(contractEvent);
 
   // add to events
-  const blockTimestmap = await getBlockTimestamp(contractEvent.blockNumber);
+  const blockNumber = contractEvent.blockNumber;
+  const blockTimestamp = await getBlockTimestamp(blockNumber);
 
   const eventRef = contractDatabaseRef(`${contractEvent.jobId}/events/${uuid}`);
+  const epochBlockRef = contractDatabaseRef(`epochs/${epochBlock}/${uuid}`);
 
   try {
+    // add the id to the epoch
+    await set(epochBlockRef, {
+      id: contractEvent.jobId,
+    });
+
     // set the event by uuid
     await set(eventRef, {
       type: contractEvent.event,
-      created_at: new Date(blockTimestmap * 1000).toISOString(),
+      created_at: new Date(blockTimestamp * 1000).toISOString(),
       args: contractEvent.args || null,
     });
+
+    return uuid;
   } catch (e) {
     // an error occurred
     console.error('error: ', e);
@@ -241,12 +299,12 @@ const addEvent = async (contractEvent: IContractEvent) => {
 
 // hash the parameters to a uuid hex
 //  this is a fast, non-cryptographically secure hash
-const createUuid = async (messageParameters: IContractEvent) => {
+const createUuid = async (contractEvent: IContractEvent) => {
   const input = Buffer.from(
     [
-      messageParameters.blockHash,
-      messageParameters.transactionHash,
-      messageParameters.logIndex,
+      contractEvent.blockHash,
+      contractEvent.transactionHash,
+      contractEvent.logIndex,
     ].join('/')
   );
 
