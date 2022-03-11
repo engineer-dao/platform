@@ -4,6 +4,7 @@ import { getIPFSData, pinata } from '../../../services/ipfs';
 import { validate } from '../../../services/schema/validate';
 import { transformIPFStoJob } from '../../../services/schema/transform';
 import { middleware } from '../../../middleware/middleware';
+import { IIPFSJobMetaData } from '../../../interfaces/IJobData';
 
 const cors = Cors({
   methods: ['GET', 'HEAD'],
@@ -41,10 +42,10 @@ export default async function handler(
       .json({ message: `IPFS error`, detail: String(response?.body) });
   }
 
-  let raw: any;
+  let raw: IIPFSJobMetaData;
 
   try {
-    raw = (await response.json()) as Record<string, any>;
+    raw = (await response.json()) as IIPFSJobMetaData;
   } catch (e) {
     return res.status(500).json({ message: `IPFS error`, detail: String(e) });
   }
