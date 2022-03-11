@@ -1,7 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import Cors from 'cors';
 import { utils } from 'ethers';
-import { pinata } from '../../../services/pinata';
+import { pinata } from '../../../services/ipfs';
+import { transformJobToIPFS } from '../../../services/schema/transform';
+import { validate } from '../../../services/schema/validate';
+import { middleware } from '../../../middleware/middleware';
 
 const MAX_MESSAGE_SIZE = parseInt(process.env.MAX_MESSAGE_SIZE || '4096');
 
@@ -12,46 +15,32 @@ const cors = Cors({
 type Data = {
   ipfsCid?: string;
   ipfsUrl?: string;
-  message: string;
+  message?: string;
+  detail?: string;
 };
-
-function runMiddleware(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>,
-  fn: any
-) {
-  return new Promise((resolve, reject) => {
-    fn(req, res, (result: any) => {
-      if (result instanceof Error) {
-        return reject(result);
-      }
-
-      return resolve(result);
-    });
-  });
-}
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>
 ) {
-  await runMiddleware(req, res, cors);
+  await middleware(req, res, cors);
 
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { address: addressString, sig, metadata } = req?.body || {};
+  const { address: addressString, sig, metadata: raw } = req?.body || {};
 
-  // basic validation of message
-  if (!metadata) {
+  if (!raw) {
     return res.status(422).json({ message: 'No message' });
   }
   // validate maximum size to prevent abuse
-  const metadataJSONString = JSON.stringify(metadata);
+  const metadataJSONString = JSON.stringify(raw);
+
   if (metadataJSONString.length > MAX_MESSAGE_SIZE) {
     return res.status(422).json({ message: 'Message too long' });
   }
+
   if (metadataJSONString.length === 0) {
     return res.status(422).json({ message: 'No message' });
   }
@@ -62,15 +51,25 @@ export default async function handler(
   }
   const address = utils.getAddress(addressString);
 
-  // TODO - verify user signature to the address
+  // Transform to IPFS format to validate
+  const transformedRaw = transformJobToIPFS(raw);
+
+  const { isValid, error } = validate(transformedRaw);
+
+  if (!isValid) {
+    return res.status(400).json({
+      message: 'Invalid form data',
+      detail: error,
+    });
+  }
 
   // pin the content to IPFS
-  const result = await pinata.pinJSONToIPFS(metadata, {
+  const result = await pinata.pinJSONToIPFS(transformedRaw, {
     pinataOptions: {
       cidVersion: 1,
     },
     pinataMetadata: {
-      name: `${address}`,
+      name: address,
       // @ts-ignore
       keyvalues: {
         address: address,

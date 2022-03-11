@@ -1,4 +1,4 @@
-import * as schema from 'utils/schema';
+import { validate } from './validate';
 
 const SCHEMA_VERSION = 1;
 
@@ -21,7 +21,7 @@ const validateJson = (json: any) => {
     parsedJson = json;
   }
 
-  return schema.validateMetaData(parsedJson);
+  return validate(parsedJson);
 };
 
 test('validates and parses json', () => {

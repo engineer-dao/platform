@@ -5,7 +5,6 @@ import { useWallet } from 'components/wallet/useWallet';
 import { ContractReceipt, ethers } from 'ethers';
 import { useEffect, useState } from 'react';
 import { pinIpfsMetaData } from 'services/ipfs';
-import { createIFPSMetaDataFromFormData } from 'utils/metadata';
 
 interface UsePostJobProps {
   formData: ICreateContractForm;
@@ -58,13 +57,11 @@ export const usePostJob = (props: UsePostJobProps) => {
   // upload IPFS data once
   useEffect(() => {
     const createIPFSData = async () => {
-      const metadata = createIFPSMetaDataFromFormData(formData);
-
       // push to the backend service
       const result = await pinIpfsMetaData({
         address: wallet.account || '',
         sig: '',
-        metadata,
+        metadata: formData,
       });
 
       setIPFSCid(result.ipfsCid);

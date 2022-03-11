@@ -7,8 +7,11 @@ const LoadingDataTable = () => {
     <div className="overflow-hidden bg-white shadow sm:rounded-lg">
       <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
         <dl className="sm:divide-y sm:divide-gray-200">
-          {opacityMap.map((opacity) => (
-            <DataTableItemLoading opacity={opacity} />
+          {opacityMap.map((opacity, index) => (
+            <DataTableItemLoading
+              key={`data-table-item-loading-${index}`}
+              opacity={opacity}
+            />
           ))}
         </dl>
       </div>
