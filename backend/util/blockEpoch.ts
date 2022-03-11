@@ -30,22 +30,3 @@ export const groupBlocksByEpoch = (startingBlock: number, toBlock: number) => {
   }
   return epochBlocks;
 };
-
-// group a block range into an array of epochs
-const groupByEventRefsByEpoch = (
-  startingBlock: number,
-  toBlock: number,
-  blockchainEventRefs: IBlockchainEventRef[]
-) => {
-  const eventsByEpoch = groupBlocksByEpoch(startingBlock, toBlock).map(
-    ([epoch, toBlock]) => {
-      // extract all found events for this epoch
-      const epochBlockchainEventRefs = blockchainEventRefs.filter((event) => {
-        return event.epoch === epoch;
-      });
-
-      return [startingBlock, toBlock, epochBlockchainEventRefs];
-    }
-  );
-  return eventsByEpoch;
-};

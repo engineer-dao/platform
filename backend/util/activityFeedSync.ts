@@ -21,7 +21,7 @@ import { IBlockchainEventRef } from 'interfaces/IBlockchainEventRef';
 import { loadAllEvents } from 'services/contract';
 import { contractDatabaseRef } from 'services/db';
 import { getBlockTimestamp, getLatestBlockHeight } from 'services/ethereum';
-import { blockNumberToBlockEpoch, groupBlocksByEpoch } from 'util/epochSync';
+import { blockNumberToBlockEpoch, groupBlocksByEpoch } from 'util/blockEpoch';
 import { getLock } from 'util/lock';
 
 // after this many blocks, assume finality on the blockchain
