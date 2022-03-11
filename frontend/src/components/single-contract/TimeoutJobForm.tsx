@@ -56,13 +56,13 @@ export const TimeoutJobForm = () => {
               disabled={!jobIsTimedOut || showTimeoutJobModal}
               type="submit"
               className={
-                'focus:outline-none inline-flex items-center rounded-md border border-transparent px-4 py-2 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2' +
+                'focus:outline-none inline-flex items-center rounded-md border border-transparent px-4 py-2 shadow-sm focus:ring-2 focus:ring-green-500 focus:ring-offset-2' +
                 (!jobIsTimedOut || showTimeoutJobModal
-                  ? ' bg-indigo-100 hover:bg-indigo-100'
-                  : ' bg-indigo-600 hover:bg-indigo-700')
+                  ? ' bg-green-100 hover:bg-green-100'
+                  : ' bg-green-600 hover:bg-green-700')
               }
             >
-              Receive Timed Out Job Payment
+              Receive Payment
             </button>
 
             <TimeoutJobModal

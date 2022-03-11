@@ -37,7 +37,7 @@ export const TimeoutJobModal = (props: IProps) => {
   // render the transaction modal
   return (
     <TransactionModal
-      title="Receive Timed Out Job Payment"
+      title="Receive Payment"
       onConfirmed={jobTxConfirmed}
       {...{ show, callContract, onFinish, onError }}
     />
