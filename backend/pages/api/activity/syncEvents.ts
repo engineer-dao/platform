@@ -1,6 +1,5 @@
 import Cors from 'cors';
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { throttle } from 'throttle-debounce';
 import { syncContractEvents } from 'util/activityFeedSync';
 
 const cors = Cors({
@@ -10,13 +9,6 @@ const cors = Cors({
 type ResponseMessage = {
   message: string;
 };
-
-// Wait at least 3 seconds between refresh requests
-const THROTTLE_DELAY = 3000;
-const syncContractEventsWithThrottle = throttle(
-  THROTTLE_DELAY,
-  syncContractEvents
-);
 
 function runMiddleware(
   req: NextApiRequest,
@@ -40,8 +32,8 @@ export default async function handler(
 ) {
   await runMiddleware(req, res, cors);
 
-  // refresh contract events in the background
-  syncContractEventsWithThrottle();
+  // refresh contract events
+  await syncContractEvents();
 
   res.status(200).json({ message: 'Success' });
 }

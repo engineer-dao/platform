@@ -2,7 +2,6 @@ import { contractDatabaseRef } from 'services/db';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import Cors from 'cors';
 import { utils } from 'ethers';
-import { database } from '../../../services/db';
 import { ref, set, push } from 'firebase/database';
 
 const cors = Cors({
