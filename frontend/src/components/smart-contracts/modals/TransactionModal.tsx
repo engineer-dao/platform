@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { ContractTransaction } from 'ethers';
 import { Modal } from 'components/modals/Modal';
-import { ContractReceipt } from 'ethers';
+import { ContractReceipt, ContractTransaction } from 'ethers';
+import React, { useEffect, useState } from 'react';
+import { syncEvents } from 'services/activityFeed';
 
 type CallContractCallback = () => Promise<ContractTransaction | undefined>;
 
@@ -22,6 +22,7 @@ export const TransactionModal = ({
   show,
   title,
   callContract,
+  syncOnConfirm,
   onConfirmed,
   onFinish,
   onError,
@@ -29,6 +30,7 @@ export const TransactionModal = ({
   show: boolean;
   title: string;
   callContract: CallContractCallback;
+  syncOnConfirm?: boolean;
   onConfirmed?: OnConfirmedCallback;
   onFinish?: () => void;
   onError?: (arg0: string) => void;
@@ -52,6 +54,12 @@ export const TransactionModal = ({
             }
             tx.wait()
               .then((receipt: ContractReceipt) => {
+                // trigger a background sync unless this is explicitly false
+                if (syncOnConfirm || syncOnConfirm === undefined) {
+                  // this will happen asynchronously - don't wait
+                  syncEvents();
+                }
+
                 // completed the transaction - callback and set to finished
                 onConfirmed && onConfirmed(receipt);
                 setTxStatus(TXStatus.Finished);
@@ -106,6 +114,7 @@ export const TransactionModal = ({
     onConfirmed,
     onFinish,
     onError,
+    syncOnConfirm,
     show,
     showModal,
     setShowModal,

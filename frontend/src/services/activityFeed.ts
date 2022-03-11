@@ -25,3 +25,12 @@ export const postComment = async ({
     }),
   });
 };
+
+export const syncEvents = async () => {
+  return await fetch(`${process.env.REACT_APP_API}/api/activity/syncEvents`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+};
