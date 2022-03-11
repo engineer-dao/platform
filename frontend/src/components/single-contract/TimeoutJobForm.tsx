@@ -1,23 +1,20 @@
-import { formatDateTime } from 'utils/date';
 import { useJob } from 'components/smart-contracts/hooks/useJob';
-import { useSmartContractCallback } from 'components/smart-contracts/hooks/useSmartContractCall';
-import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
+import { useJobContractVariable } from 'components/smart-contracts/hooks/useJobContractVariable';
 import { TimeoutJobModal } from 'components/smart-contracts/modals/TimeoutJobModal';
+import { JobVariables } from 'enums/JobVariables';
 import { BigNumber } from 'ethers';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
+import { formatDateTime } from 'utils/date';
 
 export const TimeoutJobForm = () => {
   const { job } = useJob();
   const history = useHistory();
 
-  const { contracts } = useSmartContracts();
-
   // get the job timeout
-  const [jobTimeoutSeconds, timeoutLoading] =
-    useSmartContractCallback<BigNumber>(() => {
-      return contracts.Job.COMPLETED_TIMEOUT_SECONDS();
-    });
+  const [jobTimeoutSeconds, timeoutLoading] = useJobContractVariable<BigNumber>(
+    JobVariables.COMPLETED_TIMEOUT_SECONDS
+  );
 
   // do job timeout math
   const jobTimeoutMs =
@@ -58,7 +55,7 @@ export const TimeoutJobForm = () => {
               className={
                 'focus:outline-none inline-flex items-center rounded-md border border-transparent px-4 py-2 shadow-sm focus:ring-2 focus:ring-green-500 focus:ring-offset-2' +
                 (!jobIsTimedOut || showTimeoutJobModal
-                  ? ' bg-green-100 hover:bg-green-100'
+                  ? ' bg-green-300 hover:bg-green-300'
                   : ' bg-green-600 hover:bg-green-700')
               }
             >
