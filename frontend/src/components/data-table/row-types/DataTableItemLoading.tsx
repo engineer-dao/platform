@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 
-const DataTableItemLoading = (props: { opacity?: string }) => {
+const DataTableItemLoading = (props: { opacity?: string | number }) => {
   const { opacity } = props || {};
 
   return (
@@ -8,7 +8,7 @@ const DataTableItemLoading = (props: { opacity?: string }) => {
       className={classNames(
         'w-full animate-pulse py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-6 sm:px-6',
         {
-          [`opacity-${opacity}`]: opacity,
+          [`opacity-${String(opacity)}`]: opacity,
         }
       )}
     >
