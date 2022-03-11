@@ -4,9 +4,11 @@ import Comment from './activity-types/Comment';
 import { ContractUpdate } from './activity-types/ContractUpdate';
 import { StatusChange } from './activity-types/StatusChange';
 import NewMessage from './NewMessage';
+import { useAccountCanPostNewMessage } from 'components/activity-feed/hooks/useNewMessage';
 
 const ActivityFeed = () => {
   const { loading, error, activityItems } = useActivityFeed();
+  const [canPost] = useAccountCanPostNewMessage();
 
   return (
     <div className="mt-4 flow-root overflow-hidden border-t border-gray-200 bg-white p-4 shadow sm:rounded-lg sm:px-6 sm:py-5">
@@ -39,7 +41,7 @@ const ActivityFeed = () => {
             );
           })}
       </ul>
-      <NewMessage />
+      {canPost && <NewMessage />}
     </div>
   );
 };

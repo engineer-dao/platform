@@ -25,11 +25,36 @@ const NewMessage = () => {
 
     if (sig && address) {
       try {
-        await postComment({ sig, address, message, contract_id: id });
+        const response = await postComment({
+          sig,
+          address,
+          message,
+          contract_id: id,
+        });
+
+        if (response.status !== 200) {
+          // handle 403 unauthorized
+          if (response.status === 403) {
+            const json = await response.json();
+            if (json?.message) {
+              pushNotification({
+                heading: 'Error',
+                content: json.message,
+              });
+            }
+            return false;
+          }
+
+          // some other error
+          throw new Error(`${response.status} Error`);
+        }
+
+        // success
         pushNotification({
           heading: 'Success',
           content: 'Message posted successfully.',
         });
+        return true;
       } catch (e) {
         pushNotification({
           heading: 'Error',
@@ -37,6 +62,8 @@ const NewMessage = () => {
         });
       }
     }
+
+    return false;
   };
 
   const initialValues: IMessageForm = { message: '' };
@@ -47,7 +74,12 @@ const NewMessage = () => {
         <Formik
           enableReinitialize
           initialValues={initialValues}
-          onSubmit={(values) => handleSubmit(values.message)}
+          onSubmit={async (values, { resetForm }) => {
+            const submitted = await handleSubmit(values.message);
+            if (submitted) {
+              resetForm();
+            }
+          }}
         >
           {({ values, isSubmitting }) => {
             const isDisabled = isSubmitting && !values.message;

@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import Cors from 'cors';
 import { utils } from 'ethers';
 import { ref, set, push } from 'firebase/database';
+import { addressesMatch, addressIsValidForJobId } from 'util/verification';
 
 const cors = Cors({
   methods: ['GET', 'HEAD'],
@@ -34,12 +35,17 @@ export default async function handler(
 ) {
   await runMiddleware(req, res, cors);
 
-  const { sig, address, message, contract_id } = req?.body || {};
+  const { sig, address, message, contract_id: jobId } = req?.body || {};
 
-  const _address = utils.verifyMessage(message, sig);
+  // verify that the signatiure is valid
+  const verifiedAddress = utils.verifyMessage(message, sig);
+  const addressSignatureIsValid = addressesMatch(address, verifiedAddress);
 
-  if (address === _address) {
-    const reference = contractDatabaseRef(`${contract_id}/messages`);
+  if (
+    addressSignatureIsValid &&
+    (await addressIsValidForJobId(verifiedAddress, jobId))
+  ) {
+    const reference = contractDatabaseRef(`${jobId}/messages`);
     const postRef = push(reference);
 
     await set(postRef, {
@@ -49,6 +55,6 @@ export default async function handler(
     });
     res.status(200).json({ message: 'Success' });
   } else {
-    res.status(403).json({ message: 'Invalid message for address' });
+    res.status(403).json({ message: 'Invalid address for message' });
   }
 }
