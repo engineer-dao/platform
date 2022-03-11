@@ -22,14 +22,12 @@ const firebaseConfig = {
   appId: process.env.FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
-
-// Get a reference to the database service
-export const database = getDatabase(app);
 
 // make all database key selectors relative to the deployed smart contract
 //   Deploying a new contract will create a fresh database
 export const contractDatabaseRef = (selector: string) => {
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
   const smartContractId = getSmartContractId();
   return ref(database, `${smartContractId}/${selector}`);
 };
