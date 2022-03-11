@@ -1,19 +1,21 @@
 import { useJob } from 'components/smart-contracts/hooks/useJob';
-import { useJobContractVariable } from 'components/smart-contracts/hooks/useJobContractVariable';
+import {
+  useSmartContractCall,
+  useSmartContracts,
+} from 'components/smart-contracts/hooks/useSmartContracts';
 import { TimeoutJobModal } from 'components/smart-contracts/modals/TimeoutJobModal';
-import { JobVariables } from 'enums/JobVariables';
-import { BigNumber } from 'ethers';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { formatDateTime } from 'utils/date';
 
 export const TimeoutJobForm = () => {
+  const { contracts } = useSmartContracts();
   const { job } = useJob();
   const history = useHistory();
 
   // get the job timeout
-  const [jobTimeoutSeconds, timeoutLoading] = useJobContractVariable<BigNumber>(
-    JobVariables.COMPLETED_TIMEOUT_SECONDS
+  const [jobTimeoutSeconds, timeoutLoading] = useSmartContractCall(
+    contracts.Job.COMPLETED_TIMEOUT_SECONDS
   );
 
   // do job timeout math
