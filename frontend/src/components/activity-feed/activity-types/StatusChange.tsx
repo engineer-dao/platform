@@ -53,21 +53,22 @@ export const StatusChange: React.FC<StatusChangeProps> = ({ activityItem }) => {
                 {activityItem?.person?.name || activityItem?.address}
               </a>
             </>
-          ) : (
-            <></>
-          )}
+          ) : null}
         </div>
-        {activityItem?.date && (
-          <p className="mt-0.5 text-sm text-gray-500">
-            Changed status on {activityItem?.date}
-          </p>
+        {!!activityItem?.date && (
+          <div className="mt-0.5 flex align-middle text-sm text-gray-500">
+            <p className="mt-0.5 mr-1">Changed status to</p>
+            <div className="text-sm text-gray-700">
+              <StatusChip state={activityItem.status} size="small" />
+            </div>
+            <p className="ml-1 mt-0.5">on {activityItem?.date}</p>
+          </div>
         )}
-        <div className="mt-2 text-sm text-gray-700">
-          <p>{activityItem?.message}</p>
-        </div>
-        <div className="mt-2 text-sm text-gray-700">
-          <StatusChip state={activityItem.status} size="small" />
-        </div>
+        {!!activityItem?.message && (
+          <div className="mt-2 text-sm text-gray-700">
+            <p>{activityItem?.message}</p>
+          </div>
+        )}
       </div>
     </>
   ) : null;

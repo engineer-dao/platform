@@ -2,6 +2,7 @@ import { useActivityFeed } from 'components/activity-feed/hooks/useActivityFeed'
 import { ActivityType } from 'enums/ActivityType';
 import Comment from './activity-types/Comment';
 import { ContractUpdate } from './activity-types/ContractUpdate';
+import LoadingSkeleton from './activity-types/Loading';
 import { StatusChange } from './activity-types/StatusChange';
 import NewMessage from './NewMessage';
 import { useAccountCanPostNewMessage } from 'components/activity-feed/hooks/useNewMessage';
@@ -10,7 +11,9 @@ const ActivityFeed = () => {
   const { loading, error, activityItems } = useActivityFeed();
   const [canPost] = useAccountCanPostNewMessage();
 
-  return (
+  return loading ? (
+    <LoadingSkeleton />
+  ) : (
     <div className="mt-4 flow-root overflow-hidden border-t border-gray-200 bg-white p-4 shadow sm:rounded-lg sm:px-6 sm:py-5">
       <ul className="-mb-8">
         {!loading &&

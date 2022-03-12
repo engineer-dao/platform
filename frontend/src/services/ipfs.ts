@@ -1,9 +1,9 @@
-import { IIPFSJobMetaData } from 'interfaces/IJobData';
+import { ICreateContractForm } from '../components/create-contract/form/ICreateContractForm';
 
 interface IPostMetaData {
   address: string;
   sig: string;
-  metadata: IIPFSJobMetaData;
+  metadata: ICreateContractForm;
 }
 
 interface IPostMetaDataResponse {
@@ -33,12 +33,16 @@ export const pinIpfsMetaData = async ({
   return apiResponse as IPostMetaDataResponse;
 };
 
-export const fetchIpfsMetaData = async (cidString: string) => {
-  const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${cidString}`;
-  const response = await fetch(ipfsUrl, {
-    method: 'GET',
-  });
+export const fetchIpfsMetaData = async (cid: string) => {
+  const response = await fetch(
+    `${process.env.REACT_APP_API}/api/ipfs/get?cid=${cid}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  );
 
-  const apiResponse = await response.json();
-  return apiResponse;
+  return (await response.json()).data;
 };

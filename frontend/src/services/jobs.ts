@@ -9,8 +9,6 @@ import {
 } from '../interfaces/IJobData';
 import { IJobFilter } from '../interfaces/IJobFilter';
 import { ISmartContractState } from '../interfaces/ISmartContractState';
-import { createJobMetaDataFromIPFSData } from '../utils/metadata';
-import { validateMetaData } from '../utils/schema';
 import {
   loadJobMetaDataFromCache,
   CACHE_VERSION,
@@ -26,18 +24,10 @@ export const fetchJobMetaData = async (
   const results = await contracts.Job.queryFilter(filter);
   const event = results[0];
   const cidString = event.args.metadataCid;
-  const ipfsMetaData = await fetchIpfsMetaData(cidString);
 
-  // validate the job meta data
-  const parseResult = validateMetaData(ipfsMetaData);
-  if (!parseResult.isValid) {
-    return undefined;
-  }
+  const data = await fetchIpfsMetaData(cidString);
 
-  // convert IPFS metadata into local metadata
-  const jobMetaData = createJobMetaDataFromIPFSData(ipfsMetaData);
-
-  return jobMetaData;
+  return data;
 };
 
 export const filterJobs = (jobs: IJobData[], jobFilter?: IJobFilter) => {

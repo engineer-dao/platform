@@ -35,6 +35,7 @@ export const useJobs = (jobFilter?: IJobFilter) => {
     if (account && chainIsSupported) {
       fetchJobs()
         .then((jobs) => setJobs(jobs))
+        .catch(console.error)
         .finally(() => setIsLoading(false));
     }
   }, [account, chainIsSupported, contracts, jobFilter]);
