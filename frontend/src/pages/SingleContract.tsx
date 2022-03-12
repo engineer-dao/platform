@@ -2,7 +2,6 @@ import ActivityFeed from 'components/activity-feed/ActivityFeed';
 import { ApproveJobForm } from 'components/single-contract/ApproveJobForm';
 import { CloseJobForm } from 'components/single-contract/CloseJobForm';
 import { CompleteJobForm } from 'components/single-contract/CompleteJobForm';
-import { TimeoutJobForm } from 'components/single-contract/TimeoutJobForm';
 import { DisputeJobForm } from 'components/single-contract/DisputeJobForm';
 import { DisputeResolverForm } from 'components/single-contract/DisputeResolverForm';
 import SingleContractData from 'components/single-contract/SingleContractData';
@@ -39,7 +38,7 @@ const SingleContract: React.FC = () => {
       )}
       {(job?.state === JobState.Started || job?.state === JobState.Completed) &&
         isSupplier && <DisputeJobForm />}
-      {job.state === JobState.Disputed && isDisputeResolver && (
+      {job?.state === JobState.Disputed && isDisputeResolver && (
         <DisputeResolverForm />
       )}
       <ActivityFeed />
