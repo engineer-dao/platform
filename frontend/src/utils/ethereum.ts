@@ -21,5 +21,8 @@ export const addressesMatch = (
   address1: string | undefined | null,
   address2: string | undefined | null
 ): boolean => {
+  if (!address1 || !address2) {
+    return false;
+  }
   return address1?.toLowerCase() === address2?.toLowerCase();
 };

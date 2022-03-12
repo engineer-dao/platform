@@ -12,7 +12,6 @@ export const useJob = (
 ): { job: IJobData | undefined; isLoading: boolean } => {
   const { id } = useParams<ISingleContractRouteParams>();
   const { contracts } = useSmartContracts();
-  const { account } = useWallet();
   const [job, setJob] = useState<IJobData>();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -20,12 +19,12 @@ export const useJob = (
     const fetchJob = async () =>
       await loadJobFromJobId(jobId || id || '', contracts);
 
-    if ((jobId || id) && account && contracts) {
+    if ((jobId || id) && contracts) {
       fetchJob()
         .then((job) => setJob(job))
         .finally(() => setIsLoading(false));
     }
-  }, [jobId, account, contracts, id]);
+  }, [jobId, contracts, id]);
 
   return {
     job,

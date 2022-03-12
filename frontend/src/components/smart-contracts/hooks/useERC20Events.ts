@@ -1,11 +1,11 @@
-import { ERC20 } from 'contracts-typechain';
-import { useState, useMemo } from 'react';
+import { Listener } from '@ethersproject/providers';
 import { useBlockchainEventFilter } from 'components/smart-contracts/hooks/useBlockchainEvents';
 import { SmartContractAddresses } from 'components/smart-contracts/SmartContractAddresses';
-import { BigNumber } from 'ethers';
-import { Listener } from '@ethersproject/providers';
-import { IWalletState } from 'interfaces/IWalletState';
+import { ERC20 } from 'contracts-typechain';
+import { BigNumber, ethers } from 'ethers';
 import { ISmartContractState } from 'interfaces/ISmartContractState';
+import { IWalletState } from 'interfaces/IWalletState';
+import { useMemo, useState } from 'react';
 
 export const useERC20Approval = (
   wallet: IWalletState,
@@ -25,25 +25,27 @@ export const useERC20Approval = (
       contracts.ERC20
     );
     if (approved !== isERC20Approved) {
+      console.log('calling isERC20Approved ', approved);
       setIsERC20Approved(approved);
     }
     setApprovalQueryComplete(true);
   };
 
   useMemo(() => {
-    if (wallet.chainIsSupported) {
+    if (contracts.chainIsSupported && wallet.account) {
       lookupERC20ApprovalOnce();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wallet.account, wallet.chainIsSupported, contracts.ERC20]);
+  }, [wallet.account, contracts.chainIsSupported, contracts.ERC20]);
 
   return { isERC20Approved, setIsERC20Approved, queryComplete };
 };
 
-export const lookupERC20Approval = async (
-  account: string,
-  erc20Contract: ERC20
-) => {
+const lookupERC20Approval = async (account: string, erc20Contract: ERC20) => {
+  if (!account) {
+    return false;
+  }
+
   const transactionResult = await erc20Contract.allowance(
     account,
     SmartContractAddresses.Job
@@ -64,7 +66,7 @@ const useERC20ApprovalEventsFilter = (
 
   // listen for events
   const filter = contracts.ERC20.filters.Approval(
-    wallet.account,
+    wallet.account || ethers.constants.AddressZero,
     SmartContractAddresses.Job
   );
   useBlockchainEventFilter(contracts.ERC20, filter, onApprovalEventHandler);

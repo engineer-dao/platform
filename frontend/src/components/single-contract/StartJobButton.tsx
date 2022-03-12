@@ -46,7 +46,7 @@ export const StartJobButton: React.FC = () => {
           }}
         />
       </>
-    ) : (
+    ) : contracts.walletIsConnected ? (
       <>
         <button
           onClick={() => {
@@ -64,6 +64,6 @@ export const StartJobButton: React.FC = () => {
           onFinish={() => setShowApproveERC20Modal(false)}
         />
       </>
-    )
+    ) : null
   ) : null;
 };
