@@ -95,6 +95,7 @@ const buildStatusChangeOrContractUpdate = (
       break;
 
     case 'JobTimeoutPayout':
+      contractUpdateMessage = 'Engineer requested timed out job payment.';
       newState = JobState.FinalNoResponse;
       break;
 
