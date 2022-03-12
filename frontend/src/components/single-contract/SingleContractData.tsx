@@ -7,10 +7,12 @@ interface ISingleContractDataProps {
 }
 
 const SingleContractData: React.FC<ISingleContractDataProps> = (props) => {
-  const { job } = useJob();
+  const { job, isLoading } = useJob();
   const { contract = job } = props;
 
-  return contract ? <DataTable contract={contract} /> : null;
+  return contract ? (
+    <DataTable contract={contract} loading={isLoading} />
+  ) : null;
 };
 
 export default SingleContractData;

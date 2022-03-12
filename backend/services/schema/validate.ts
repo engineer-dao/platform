@@ -1,23 +1,22 @@
 import Ajv, { DefinedError, JSONSchemaType } from 'ajv';
 import { IIPFSJobMetaData } from 'interfaces/IJobData';
-import { schema_v1 } from 'utils/schemas/v1';
+import { CURRENT_SCHEMA_VERSION } from '../../constants/schema';
+import { v1 } from './schema';
 
 const ajv = new Ajv();
 
-export const CURRENT_SCHEMA_VERSION = 1;
-
-// load all historical schema versions
-let schemas: JSONSchemaType<IIPFSJobMetaData>[] = [schema_v1];
+let schemas: JSONSchemaType<IIPFSJobMetaData>[] = [v1];
 
 export interface IValidationResult {
   isValid: boolean;
   error: string | undefined;
 }
 
-export const validateMetaData = (metadata: any): IValidationResult => {
-  // determine schema version
+export const validate = (metadata: Record<string, any>): IValidationResult => {
   const schemaVersion = parseInt(metadata.version || '0') || 0;
+
   const schema = loadSchemaByVersionNumber(schemaVersion);
+
   if (!schema) {
     return {
       isValid: false,
@@ -27,8 +26,10 @@ export const validateMetaData = (metadata: any): IValidationResult => {
 
   const validator = ajv.compile(schema);
   const isValid = validator(metadata);
+
   if (!isValid) {
     const errorMessages: string[] = [];
+
     for (const err of validator.errors as DefinedError[]) {
       let errorMessage = '';
       if (err.instancePath) {

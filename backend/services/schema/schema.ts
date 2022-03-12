@@ -1,47 +1,44 @@
 import { JSONSchemaType } from 'ajv';
 import { IIPFSJobMetaData } from 'interfaces/IJobData';
 import {
-  acceptanceTestsItems,
-  identityItems,
-  labelItems,
-} from 'interfaces/Labels';
+  ACCEPTANCE_TEST_ITEMS,
+  IDENTITY_ITEMS,
+  LABEL_ITEMS,
+} from '../../constants/form';
 
-export const schema_v1: JSONSchemaType<IIPFSJobMetaData> = {
+export const v1: JSONSchemaType<IIPFSJobMetaData> = {
   type: 'object',
   properties: {
     version: { type: 'integer', minimum: 1 },
     title: { type: 'string', minLength: 3, maxLength: 120 },
     description: { type: 'string', minLength: 3, maxLength: 24576 },
-    contactInformation: { type: 'string', minLength: 1, maxLength: 250 },
+    contactInformation: { type: 'string', maxLength: 250 },
     acceptanceCriteria: { type: 'string', minLength: 3, maxLength: 24576 },
     labels: {
       type: 'array',
-      minItems: 1,
-      maxItems: labelItems.length,
+      maxItems: LABEL_ITEMS.length,
       uniqueItems: true,
       items: {
         type: 'string',
-        enum: labelItems.map((item) => item.name),
+        enum: LABEL_ITEMS.map((item) => item.name),
       },
     },
     identity: {
       type: 'array',
-      minItems: 1,
-      maxItems: identityItems.length,
+      maxItems: IDENTITY_ITEMS.length,
       uniqueItems: true,
       items: {
         type: 'string',
-        enum: identityItems.map((item) => item.name),
+        enum: IDENTITY_ITEMS.map((item) => item.name),
       },
     },
     acceptanceTests: {
       type: 'array',
-      minItems: 1,
-      maxItems: acceptanceTestsItems.length,
+      maxItems: ACCEPTANCE_TEST_ITEMS.length,
       uniqueItems: true,
       items: {
         type: 'string',
-        enum: acceptanceTestsItems.map((item) => item.name),
+        enum: ACCEPTANCE_TEST_ITEMS.map((item) => item.name),
       },
     },
 

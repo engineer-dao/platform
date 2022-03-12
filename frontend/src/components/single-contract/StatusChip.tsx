@@ -3,7 +3,7 @@ import React from 'react';
 import { JobState, JobStateLabels } from 'enums/JobState';
 
 interface IStatusChipProps {
-  state: JobState;
+  state?: JobState;
   color?: string;
   size?: 'large' | 'medium' | 'small';
 }
@@ -19,6 +19,7 @@ const StatusChip: React.FC<IStatusChipProps> = (props) => {
   const yellow = 'bg-yellow-600 text-white';
   const darkGreen = 'bg-green-600 text-white';
   const gray = 'bg-gray-600 text-white';
+  const lightGray = 'bg-gray-200 text-white';
 
   switch (state) {
     case JobState.Available:
@@ -54,6 +55,9 @@ const StatusChip: React.FC<IStatusChipProps> = (props) => {
     case JobState.FinalDisputeResolvedWithSplit:
       _color = gray;
       break;
+    default:
+      _color = lightGray;
+      break;
   }
 
   return (
@@ -66,7 +70,7 @@ const StatusChip: React.FC<IStatusChipProps> = (props) => {
         _color
       )}
     >
-      {JobStateLabels[state]}
+      {state ? JobStateLabels[state] : '...'}
     </span>
   );
 };

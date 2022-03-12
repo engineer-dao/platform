@@ -12,10 +12,9 @@ import { JobState } from 'enums/JobState';
 import React from 'react';
 import { isDisputeResolver } from 'utils/admin';
 import { addressesMatch } from 'utils/ethereum';
-import Loader from '../components/full-screen-loader/FullScreenLoader';
 
 const SingleContract: React.FC = () => {
-  const { job, isLoading } = useJob();
+  const { job } = useJob();
 
   const { account } = useWallet();
 
@@ -23,26 +22,22 @@ const SingleContract: React.FC = () => {
   const isSupplier = addressesMatch(account, job?.supplier);
   const isEngineerOrSupplier = isEngineer || isSupplier;
 
-  return job && !isLoading ? (
+  return (
     <>
       <SingleContractHeading />
       <SingleContractData />
-      {job.state === JobState.Started && isEngineer && <CompleteJobForm />}
-      {job.state === JobState.Completed && isSupplier && <ApproveJobForm />}
-      {job.state === JobState.Started && isEngineerOrSupplier && (
+      {job?.state === JobState.Started && isEngineer && <CompleteJobForm />}
+      {job?.state === JobState.Completed && isSupplier && <ApproveJobForm />}
+      {job?.state === JobState.Started && isEngineerOrSupplier && (
         <CloseJobForm />
       )}
-      {(job.state === JobState.Started || job.state === JobState.Completed) &&
+      {(job?.state === JobState.Started || job?.state === JobState.Completed) &&
         isSupplier && <DisputeJobForm />}
-      {job.state === JobState.Disputed && isDisputeResolver(account) && (
+      {job?.state === JobState.Disputed && isDisputeResolver(account) && (
         <DisputeResolverForm />
       )}
       <ActivityFeed />
     </>
-  ) : isLoading ? (
-    <Loader />
-  ) : (
-    <div>Invalid or missing job</div>
   );
 };
 
