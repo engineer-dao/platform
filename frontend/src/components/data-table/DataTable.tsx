@@ -4,16 +4,20 @@ import { IJobData } from 'interfaces/IJobData';
 import { contractData as mockContractData } from 'mocks/contractData';
 import DataTableItemCurrency from './row-types/DataTableItemCurrency';
 import DataTableItemActions from './row-types/DataTableItemActions';
+import LoadingDataTable from './LoadingDataTable';
 
 interface IDataTableProps {
   contract: IJobData;
+  loading?: boolean;
 }
 
 const DataTable: React.FC<IDataTableProps> = (props) => {
-  const { contract } = props;
+  const { contract, loading } = props;
   const tokenName = process.env.REACT_APP_PAYMENT_TOKEN_NAME || '';
 
-  return (
+  return loading ? (
+    <LoadingDataTable />
+  ) : (
     <div className="overflow-hidden bg-white shadow sm:rounded-lg">
       <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
         <dl className="sm:divide-y sm:divide-gray-200">
