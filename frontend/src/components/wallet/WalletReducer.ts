@@ -17,10 +17,6 @@ export const walletReducer = (
       const { account, connected, provider, providerInfo, chainId } =
         action?.payload;
 
-      const chainIsSupported = !!(
-        chainId && chainId === process.env.REACT_APP_SUPPORTED_CHAIN_ID
-      );
-
       return {
         ...state,
         account,
@@ -28,7 +24,6 @@ export const walletReducer = (
         provider,
         providerInfo,
         chainId,
-        chainIsSupported,
       };
     }
     default: {

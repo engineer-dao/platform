@@ -36,7 +36,6 @@ const initialState: IWalletState = {
   provider: null,
   providerInfo: null,
   chainId: null,
-  chainIsSupported: false,
 };
 
 const resetWalletAction: WalletStateActionPayload = {

@@ -13,9 +13,9 @@ const ActivityFeed = () => {
 
   return loading ? (
     <LoadingSkeleton />
-  ) : (
+  ) : activityItems.length || canPost ? (
     <div className="mt-4 flow-root overflow-hidden border-t border-gray-200 bg-white p-4 shadow sm:rounded-lg sm:px-6 sm:py-5">
-      <ul className="-mb-8">
+      <ul className="mb-8">
         {!loading &&
           !error &&
           activityItems.map((activityItem, index) => {
@@ -46,7 +46,7 @@ const ActivityFeed = () => {
       </ul>
       {canPost && <NewMessage />}
     </div>
-  );
+  ) : null;
 };
 
 export default ActivityFeed;

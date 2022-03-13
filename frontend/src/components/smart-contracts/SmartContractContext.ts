@@ -16,24 +16,51 @@ interface ISmartContractContext {
 }
 
 export const buildSmartContractState = (wallet: IWalletState) => {
-  const walletProvider =
-    wallet.provider !== null
-      ? wallet.provider.getSigner()
-      : new ethers.providers.BaseProvider('any');
+  // build a default provider when the wallet is not connected
+  const defaultSmartContractProvider = process.env
+    .REACT_APP_ETHERS_PROVIDER_CHAIN_RPC_HOST
+    ? new ethers.providers.JsonRpcProvider(
+        process.env.REACT_APP_ETHERS_PROVIDER_CHAIN_RPC_HOST,
+        ethers.BigNumber.from(
+          process.env.REACT_APP_SUPPORTED_CHAIN_ID
+        ).toNumber()
+      )
+    : new ethers.providers.BaseProvider('any');
+
+  let smartContractProvider, chainIsSupported, walletIsConnected;
+  if (wallet.provider !== null) {
+    // when using a wallet, require the wallet's chain matches the application chain (e.g. Polygon)
+    chainIsSupported = !!(
+      wallet.chainId &&
+      wallet.chainId === process.env.REACT_APP_SUPPORTED_CHAIN_ID
+    );
+    smartContractProvider = wallet.provider.getSigner();
+    walletIsConnected = chainIsSupported;
+  } else {
+    // no wallet - use the RPC host
+    smartContractProvider = defaultSmartContractProvider;
+    chainIsSupported = true;
+    walletIsConnected = false;
+  }
 
   const contracts: ISmartContractState = {
+    chainIsSupported,
+    walletIsConnected,
     isERC20Approved: false,
     ERC20: ERC20__factory.connect(
       SmartContractAddresses.PaymentToken,
-      walletProvider
+      smartContractProvider
     ),
     TestERC20: isTestingEnvironment()
       ? TestERC20__factory.connect(
           SmartContractAddresses.PaymentToken,
-          walletProvider
+          smartContractProvider
         )
       : undefined,
-    Job: Job__factory.connect(SmartContractAddresses.Job, walletProvider),
+    Job: Job__factory.connect(
+      SmartContractAddresses.Job,
+      smartContractProvider
+    ),
   };
 
   return contracts;
@@ -45,7 +72,6 @@ const initialWalletState: IWalletState = {
   provider: null,
   providerInfo: null,
   chainId: null,
-  chainIsSupported: false,
 };
 
 const initialSmartContractsState = buildSmartContractState(initialWalletState);

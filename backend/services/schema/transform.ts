@@ -34,9 +34,9 @@ export const transformJobToIPFS = (
     description: formData.description,
     contactInformation: formData.contactInformation,
     acceptanceCriteria: formData.acceptanceCriteria,
-    labels: transformLabelsToIpfsData(formData.labels),
-    identity: transformLabelsToIpfsData(formData.identity),
-    acceptanceTests: transformLabelsToIpfsData(formData.acceptanceTests),
+    labels: transformLabelsToIpfsData(formData.labels || []),
+    identity: transformLabelsToIpfsData(formData.identity || []),
+    acceptanceTests: transformLabelsToIpfsData(formData.acceptanceTests || []),
     endDate: formData.endDate,
     version: CURRENT_SCHEMA_VERSION,
   };
