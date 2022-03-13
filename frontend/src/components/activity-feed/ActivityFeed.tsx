@@ -5,9 +5,11 @@ import { ContractUpdate } from './activity-types/ContractUpdate';
 import LoadingSkeleton from './activity-types/Loading';
 import { StatusChange } from './activity-types/StatusChange';
 import NewMessage from './NewMessage';
+import { useAccountCanPostNewMessage } from 'components/activity-feed/hooks/useNewMessage';
 
 const ActivityFeed = () => {
   const { loading, error, activityItems } = useActivityFeed();
+  const [canPost] = useAccountCanPostNewMessage();
 
   return loading ? (
     <LoadingSkeleton />
@@ -42,7 +44,7 @@ const ActivityFeed = () => {
             );
           })}
       </ul>
-      <NewMessage />
+      {canPost && <NewMessage />}
     </div>
   );
 };
