@@ -1,11 +1,10 @@
 import React, { useMemo } from 'react';
-import {
-  SmartContractContext,
-  buildSmartContractState,
-} from 'components/smart-contracts/SmartContractContext';
+import { SmartContractContext } from 'components/smart-contracts/SmartContractContext';
+import { buildSmartContractState } from 'components/smart-contracts/utils/smartContracts';
 import { ISmartContractState } from 'interfaces/ISmartContractState';
 import { useWallet } from 'components/wallet/useWallet';
 import { useERC20Approval } from 'components/smart-contracts/hooks/useERC20Events';
+import { useContractEvents } from 'components/smart-contracts/hooks/useContractEvents';
 
 export const SmartContractsProvider = ({
   children,
@@ -26,8 +25,15 @@ export const SmartContractsProvider = ({
     initialContracts
   );
 
+  // listen for any blockchain events on the smart contract address
+  const { latestContractEvent } = useContractEvents(initialContracts);
+
   // merge in the ERC20 status
-  const contracts = { ...initialContracts, isERC20Approved };
+  const contracts = {
+    ...initialContracts,
+    isERC20Approved,
+    latestContractEvent,
+  };
 
   // create a context to pass down
   const smartContractsContext = {

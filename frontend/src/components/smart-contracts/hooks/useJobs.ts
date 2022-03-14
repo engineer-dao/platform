@@ -20,7 +20,10 @@ export const useJobs = (jobFilter?: IJobFilter) => {
         jobIdInteger <= highestJobCount;
         ++jobIdInteger
       ) {
-        const jobData = await loadJobFromJobId(String(jobIdInteger), contracts);
+        const jobData = await loadJobFromJobId(
+          String(jobIdInteger),
+          contracts.Job
+        );
 
         if (jobData) {
           allJobs.push(jobData);
@@ -36,7 +39,13 @@ export const useJobs = (jobFilter?: IJobFilter) => {
         .catch(console.error)
         .finally(() => setIsLoading(false));
     }
-  }, [contracts.chainIsSupported, contracts, jobFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    jobFilter,
+    contracts.chainIsSupported,
+    contracts.Job,
+    contracts.latestContractEvent,
+  ]);
 
   return {
     jobs,
