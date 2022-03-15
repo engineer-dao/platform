@@ -11,6 +11,7 @@ import {
   useAccountIsJobContractDisputeResolver,
   useJob,
 } from 'components/smart-contracts/hooks/useJob';
+import { JobProvider } from 'components/smart-contracts/JobProvider';
 import { useWallet } from 'components/wallet/useWallet';
 import { JobState } from 'enums/JobState';
 import React from 'react';
@@ -27,7 +28,7 @@ const SingleContract: React.FC = () => {
   const isEngineerOrSupplier = isEngineer || isSupplier;
 
   return (
-    <>
+    <JobProvider>
       <SingleContractHeading />
       <SingleContractData />
       {job?.state === JobState.Started && isEngineer && <CompleteJobForm />}
@@ -42,7 +43,7 @@ const SingleContract: React.FC = () => {
         <DisputeResolverForm />
       )}
       <ActivityFeed />
-    </>
+    </JobProvider>
   );
 };
 

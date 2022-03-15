@@ -1,27 +1,26 @@
+import { Job } from 'contracts-typechain';
 import { BigNumber, ethers } from 'ethers';
 import { CacheKeys } from '../enums/CacheKeys';
 import { IJobCacheEntry } from '../interfaces/IJobCacheEntry';
 import {
-  IJobMetaData,
   IJobData,
+  IJobMetaData,
   IJobSmartContractData,
-  IFormattedJobSmartContractData,
 } from '../interfaces/IJobData';
 import { IJobFilter } from '../interfaces/IJobFilter';
-import { ISmartContractState } from '../interfaces/ISmartContractState';
 import {
-  loadJobMetaDataFromCache,
   CACHE_VERSION,
+  loadJobMetaDataFromCache,
   saveJobToCache,
 } from '../utils/storage';
 import { fetchIpfsMetaData } from './ipfs';
 
 export const fetchJobMetaData = async (
   jobId: string,
-  contracts: ISmartContractState
+  Job: Job
 ): Promise<IJobMetaData | undefined> => {
-  const filter = contracts.Job.filters.JobPosted(BigNumber.from(jobId));
-  const results = await contracts.Job.queryFilter(filter);
+  const filter = Job.filters.JobPosted(BigNumber.from(jobId));
+  const results = await Job.queryFilter(filter);
   const event = results[0];
   const cidString = event.args.metadataCid;
 
@@ -63,22 +62,17 @@ export const filterJobs = (jobs: IJobData[], jobFilter?: IJobFilter) => {
   return filteredJobs;
 };
 
-export const loadJobFromJobId = async (
-  jobId: string,
-  contracts: ISmartContractState
-) => {
+export const loadJobFromJobId = async (jobId: string, Job: Job) => {
   // load cached information
   const cachedJobMetaData = loadJobMetaDataFromCache(jobId);
 
   // always get the job data from the contract as it can change
-  const jobContractData: IFormattedJobSmartContractData = formatJobContractData(
-    await contracts.Job.jobs(jobId)
-  );
+  const jobContractData = formatJobContractData(await Job.jobs(jobId));
 
   // load job meta data from IPFS if needed
   const jobMetaData = cachedJobMetaData
     ? cachedJobMetaData
-    : await fetchJobMetaData(jobId, contracts);
+    : await fetchJobMetaData(jobId, Job);
 
   if (jobMetaData === undefined) {
     return undefined;

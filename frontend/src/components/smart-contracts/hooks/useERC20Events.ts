@@ -25,7 +25,6 @@ export const useERC20Approval = (
       contracts.ERC20
     );
     if (approved !== isERC20Approved) {
-      console.log('calling isERC20Approved ', approved);
       setIsERC20Approved(approved);
     }
     setApprovalQueryComplete(true);

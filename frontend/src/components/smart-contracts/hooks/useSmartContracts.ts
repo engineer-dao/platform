@@ -29,6 +29,4 @@ export const useSmartContractCall = <ResultType>(
   return [callResult, isLoading];
 };
 
-export const getEventLogEntry = async () => {};
-
 export { SmartContractAddresses } from 'components/smart-contracts/SmartContractAddresses';

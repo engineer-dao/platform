@@ -1,34 +1,15 @@
 import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
+import { JobContext } from 'components/smart-contracts/JobContext';
 import { useWallet } from 'components/wallet/useWallet';
 import { IJobData } from 'interfaces/IJobData';
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useContext, useEffect, useState } from 'react';
 import { addressesMatch } from 'utils/ethereum';
-import { ISingleContractRouteParams } from '../../../interfaces/routes/ISingleContractRouteParams';
-import { loadJobFromJobId } from '../../../services/jobs';
 
-export const useJob = (
-  jobId?: string
-): { job: IJobData | undefined; isLoading: boolean } => {
-  const { id } = useParams<ISingleContractRouteParams>();
-  const { contracts } = useSmartContracts();
-  const [job, setJob] = useState<IJobData>();
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchJob = async () =>
-      await loadJobFromJobId(jobId || id || '', contracts);
-
-    if ((jobId || id) && contracts) {
-      fetchJob()
-        .then((job) => setJob(job))
-        .finally(() => setIsLoading(false));
-    }
-  }, [jobId, contracts, id]);
-
+export const useJob = (): { job: IJobData | undefined; isLoading: boolean } => {
+  const jobContext = useContext(JobContext);
   return {
-    job,
-    isLoading,
+    job: jobContext.job,
+    isLoading: jobContext.loading,
   };
 };
 

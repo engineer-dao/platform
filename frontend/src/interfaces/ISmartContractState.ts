@@ -4,6 +4,7 @@ export interface ISmartContractState {
   isERC20Approved: boolean;
   chainIsSupported: boolean;
   walletIsConnected: boolean;
+  latestContractEvent: string;
   Job: Job;
   ERC20: ERC20;
   TestERC20?: TestERC20;
