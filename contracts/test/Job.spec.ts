@@ -7,7 +7,6 @@ import {
     ONE_HUND_TOKENS,
     resolveDisputeWithCustomSplit,
     STATE_FinalDisputeResolvedWithSplit,
-    STATE_DoesntExist,
     deployERC20Token,
     deployDaoTreasury, deployJob, updatePaymentTokens, getAllowedTokens
 } from "./lib/testUtil";
@@ -127,7 +126,7 @@ describe("JobContract ", function() {
 
             // should revert with no approval
             await expect(testUtil.postSampleJob()(JobContract, TestToken)).to.be.revertedWith(
-                'Spending approval is required'
+                'ERC20: transfer amount exceeds allowance'
             );
         });
 
@@ -240,8 +239,13 @@ describe("JobContract ", function() {
             ).to.be.revertedWith('Minimum deposit not provided');
         });
 
-        it('should revert if jobMetaData is not a valid ipfs hash', async function() {
-            // TODO:
+
+        it('requires a whitelisted token', async function() {
+            const OtherToken = await deployERC20Token();
+
+            await expect(
+                testUtil.postSampleJob()(JobContract, OtherToken)
+            ).to.be.revertedWith('Not Whitelisted !');
         });
 
     });
@@ -1405,6 +1409,20 @@ describe("JobContract ", function() {
             const daoValue = await getBalanceOf(TestToken, DaoTreasury.address);
             expect(daoValue).to.equal(forDao);
         });
+
+        it('may not be resolved with bad custom split amount', async function() {
+            await testUtil.postSampleJob()(JobContract, TestToken);
+            await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
+            await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
+
+            await expect(
+                testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 0)
+            ).to.be.revertedWith('Percentage too low');
+            await expect(
+                testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 10000)
+            ).to.be.revertedWith('Percentage too high');
+        });
+
     });
 
     ///////////////////////////////////////////////////////////////////////////////////
@@ -1419,17 +1437,14 @@ describe("JobContract ", function() {
             const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
             const reportOne = await JobContract.reports(testUtil.JOB_ID_1);
 
-            // check state
+            // check state is now reported
             expect(jobOne.state).to.equal(
-                testUtil.STATE_Available
+                testUtil.STATE_Reported
             );
-            expect(jobOne.isReported).to.equal(true);
-
             expect(reportOne.reporter).to.equal(addr1.address);
-            expect(reportOne.metadataCid).to.equal(testUtil.DEFAULT_REPORT_META_CID);
         });
 
-        it('may not reported in Disputed state', async function() {
+        it('may not be reported in Disputed state', async function() {
             await testUtil.postSampleJob()(JobContract, TestToken);
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.disputeJob(JobContract, testUtil.JOB_ID_1);
@@ -1503,7 +1518,7 @@ describe("JobContract ", function() {
 
             // check state
             expect(jobOne.state).to.equal(
-                testUtil.STATE_DoesntExist
+                testUtil.STATE_FinalDelisted
             );
         });
 
@@ -1610,22 +1625,22 @@ describe("JobContract ", function() {
             // === ACCEPT ===
             await testUtil.acceptReport(JobContract, testUtil.JOB_ID_1);
 
-            // check contract (no change "")
+            // check contract (no change)
             const contractBalance = await getBalanceOf(depositToken, JobContract.address);
             expect(contractBalance).to.equal(contractInitialBalance);
 
-            // check Dao funds (+ deposit)
+            // check Dao funds (no change)
             const daoBalance = await getBalanceOf(depositToken, DaoTreasury.address);
-            expect(daoBalance).to.equal(daoInitialBalance.add(depositAmount));
+            expect(daoBalance).to.equal(daoInitialBalance);
 
             const reward = jobOne.bounty.mul(rewardPecent).div(10000);
             const refund = jobOne.bounty.sub(reward);
 
-            // check reporter (+reward)
+            // check reporter (deposit + reward)
             expect(await getBalanceOf(TestToken, reporter.address))
-                .to.equal(reporterInitialAmount.add(reward));
+                .to.equal(reporterInitialAmount.add(reward).add(depositAmount));
 
-            // check supplier (+bounty - reward)
+            // check supplier (+bounty)
             const supplierAmount = await getBalanceOf(TestToken, supplier.address);
             expect(supplierAmount).to.equal(supplierInitialAmount.add(refund));
 
@@ -1657,26 +1672,26 @@ describe("JobContract ", function() {
             // === ACCEPT ===
             await testUtil.acceptReport(JobContract, testUtil.JOB_ID_1);
 
-            // check contract (no change "")
+            // check contract (no change)
             const contractBalance = await getBalanceOf(depositToken, JobContract.address);
             expect(contractBalance).to.equal(contractInitialBalance);
 
-            // check Dao funds (+ deposit)
+            // check Dao funds (no change)
             const daoBalance = await getBalanceOf(depositToken, DaoTreasury.address);
-            expect(daoBalance).to.equal(daoInitialBalance.add(depositAmount));
+            expect(daoBalance).to.equal(daoInitialBalance);
 
             const reward = jobOne.bounty.mul(rewardPecent).div(10000);
             const refund = jobOne.bounty.sub(reward);
 
-            // check reporter (+reward)
+            // check reporter (deposit + reward)
             expect(await getBalanceOf(TestToken, reporter.address))
-                .to.equal(reporterInitialAmount.add(reward));
+                .to.equal(reporterInitialAmount.add(reward).add(depositAmount));
 
-            // check supplier (+bounty - reward)
+            // check supplier (+bounty)
             const supplierAmount = await getBalanceOf(TestToken, supplier.address);
             expect(supplierAmount).to.equal(supplierInitialAmount.add(refund));
 
-            // check engineer (+deposit)
+            // check engineer (no change)
             expect(await getBalanceOf(TestToken, engineer.address))
                 .to.equal(engineerInitialAmount);
         });
@@ -1698,6 +1713,22 @@ describe("JobContract ", function() {
             // check state
             expect(jobOne.state).to.equal(
                 testUtil.STATE_Available
+            );
+        });
+
+        it('can be declined when started', async function() {
+            await testUtil.postSampleJob()(JobContract, TestToken);
+            await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
+
+            await testUtil.reportJob(JobContract, testUtil.JOB_ID_1, addr1)
+            await testUtil.declineReport(JobContract, testUtil.JOB_ID_1)
+
+            // get the job & report
+            const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
+
+            // check state
+            expect(jobOne.state).to.equal(
+                testUtil.STATE_Started
             );
         });
 
@@ -1808,7 +1839,18 @@ describe("JobContract ", function() {
             expect(tokens).to.contain(Token.address);
         })
 
-        it("should be able to remove tokens", async function() {
+        it("don't remove a token if none exist", async function() {
+            const Token = await deployERC20Token();
+            await updatePaymentTokens(JobContract, TestToken.address, false);
+
+            const tokensAfter = await testUtil.getAllowedTokens(JobContract);
+            expect(tokensAfter).to.have.length(0);
+
+            await updatePaymentTokens(JobContract, TestToken.address, false);
+            expect(await testUtil.getAllowedTokens(JobContract)).to.have.length(0);
+        })
+
+        it("should be able to remove the last token", async function() {
             const Token = await deployERC20Token();
             await updatePaymentTokens(JobContract, Token.address, true);
 
@@ -1819,6 +1861,40 @@ describe("JobContract ", function() {
 
             const tokensAfter = await testUtil.getAllowedTokens(JobContract);
             expect(tokensAfter).to.not.contain(Token.address);
+            expect(tokensAfter).to.have.length(1);
+
+            // try to remove the token again
+            await updatePaymentTokens(JobContract, Token.address, false);
+            expect(tokensAfter).to.have.length(1);
+        })
+
+        it("should be able to remove the second to last token", async function() {
+            const Token = await deployERC20Token();
+            await updatePaymentTokens(JobContract, Token.address, true);
+            const Token2 = await deployERC20Token();
+            await updatePaymentTokens(JobContract, Token2.address, true);
+
+            const tokens = await testUtil.getAllowedTokens(JobContract);
+            expect(tokens).to.contain(Token.address);
+
+            await updatePaymentTokens(JobContract, Token.address, false);
+
+            const tokensAfter = await testUtil.getAllowedTokens(JobContract);
+            expect(tokensAfter).to.not.contain(Token.address);
+            expect(tokensAfter).to.contain(Token2.address);
+            expect(tokensAfter).to.contain(TestToken.address);
+        })
+
+        it("should be able to remove a token that does not exist", async function() {
+            const Token = await deployERC20Token();
+            await updatePaymentTokens(JobContract, Token.address, true);
+            const Token2 = await deployERC20Token();
+            await updatePaymentTokens(JobContract, Token2.address, true);
+            const Token3 = await deployERC20Token();
+            await updatePaymentTokens(JobContract, Token3.address, false);
+
+            const tokensAfter = await testUtil.getAllowedTokens(JobContract);
+            expect(tokensAfter).to.have.length(3);
         })
 
         it("should not be able to add the same token twice", async function() {
@@ -1835,8 +1911,71 @@ describe("JobContract ", function() {
         })
     })
 
-    describe('Setter Functions', function() {
-        // TODO
+    describe('The setter functions', function() {
+        it("should change setable values", async function() {
+            // minimum bounty
+            expect(await JobContract.MINIMUM_BOUNTY()).to.equal(testUtil.toBigNum(50));
+            await JobContract.setMinBounty(testUtil.toBigNum(65))
+            expect(await JobContract.MINIMUM_BOUNTY()).to.equal(testUtil.toBigNum(65));
+
+            // dao fee
+            expect(await JobContract.DAO_FEE()).to.equal(1000);
+            await JobContract.setDaoFee(1100)
+            expect(await JobContract.DAO_FEE()).to.equal(1100);
+            await expect(
+                JobContract.setDaoFee(2501)
+            ).to.be.revertedWith('Value is too high');
+
+            // resolution fee
+            expect(await JobContract.RESOLUTION_FEE_PERCENTAGE()).to.equal(600);
+            await JobContract.setResolutionFee(700)
+            expect(await JobContract.RESOLUTION_FEE_PERCENTAGE()).to.equal(700);
+            await expect(
+                JobContract.setResolutionFee(2501)
+            ).to.be.revertedWith('Value is too high');
+
+            // job timeout
+            expect(await JobContract.COMPLETED_TIMEOUT_SECONDS()).to.equal(86400 * 7);
+            await JobContract.setJobTimeout(86400 * 3)
+            expect(await JobContract.COMPLETED_TIMEOUT_SECONDS()).to.equal(86400 * 3);
+            await expect(
+                JobContract.setJobTimeout(86400 * 2)
+            ).to.be.revertedWith('Value is too low');
+
+            // report deposit
+            expect(await JobContract.REPORT_DEPOSIT()).to.equal(testUtil.toBigNum(50));
+            await JobContract.setReportDeposit(testUtil.toBigNum(55))
+            expect(await JobContract.REPORT_DEPOSIT()).to.equal(testUtil.toBigNum(55));
+            await expect(
+                JobContract.setReportDeposit(testUtil.toBigNum(201))
+            ).to.be.revertedWith('Value is too high');
+
+            // report token
+            expect(await JobContract.REPORT_TOKEN()).to.equal(TestToken.address);
+            const otherToken = await deployERC20Token();
+            expect(TestToken.address).to.not.equal(otherToken.address);
+            await JobContract.setReportToken(otherToken.address)
+            expect(await JobContract.REPORT_TOKEN()).to.equal(otherToken.address);
+
+            // report reward percent
+            expect(await JobContract.REPORT_REWARD_PERCENT()).to.equal(1000);
+            await JobContract.setReportReward(1200)
+            expect(await JobContract.REPORT_REWARD_PERCENT()).to.equal(1200);
+            await expect(
+                JobContract.setReportReward(2501)
+            ).to.be.revertedWith('Value is too high');
+        })
+    });
+
+    describe('The contract', function() {
+        it("is not payable", async function() {
+            await expect(
+                owner.sendTransaction({
+                  to: JobContract.address,
+                  value: ethers.utils.parseEther("1.0"), // Sends exactly 1.0 ether
+                })
+            ).to.be.revertedWith('Native token not accepted');
+        });
     });
 
 })

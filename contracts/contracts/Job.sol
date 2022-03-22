@@ -25,19 +25,25 @@ contract Job is IJob, Ownable {
     // 50 paymentTokens ($50) - TODO: Should we make this a pct with a hard floor?
     uint256 public MINIMUM_DEPOSIT = 50e18;
 
-    // TODO: yet to be decided
     // 10%
     uint256 public DAO_FEE = 1000;
+    uint256 constant MAX_DAO_FEE = 2500;
     // 6%
     uint256 public RESOLUTION_FEE_PERCENTAGE = 600;
-    // 1%
-    uint256 public MINIMUM_SPLIT_CHUNK_PERCENTAGE = 100;
+    uint256 constant MAX_RESOLUTION_FEE_PERCENTAGE = 2500;
+    // 1% - this is not configurable
+    uint256 constant MINIMUM_SPLIT_CHUNK_PERCENTAGE = 100;
     // Number of seconds after job is completed before job is awarded to engineer
     uint256 public COMPLETED_TIMEOUT_SECONDS = 7 days;
+    uint256 constant MAX_COMPLETED_TIMEOUT_SECONDS = 3 days;
+
 
     uint256 public REPORT_DEPOSIT = 50e18;
+    uint256 constant MIN_REPORT_DEPOSIT = 10e18;
+    uint256 constant MAX_REPORT_DEPOSIT = 200e18;
     IERC20 public REPORT_TOKEN;
     uint256 public REPORT_REWARD_PERCENT = 1000;
+    uint256 constant MAX_REPORT_REWARD_PERCENT = 2500;
 
     // @notice DAO_FEE send to this address
     address public daoTreasury;
@@ -64,12 +70,11 @@ contract Job is IJob, Ownable {
         uint256 bounty;
         uint256 startTime;
         uint256 completedTime;
-        bool isReported;
     }
 
     struct Report {
         address reporter;
-        string metadataCid;
+        States previousState;
     }
 
     enum States {
@@ -78,13 +83,15 @@ contract Job is IJob, Ownable {
         Started,
         Completed,
         Disputed,
+        Reported,
         FinalApproved,
         FinalCanceledBySupplier,
         FinalMutualClose,
         FinalNoResponse,
         FinalDisputeResolvedForSupplier,
         FinalDisputeResolvedForEngineer,
-        FinalDisputeResolvedWithSplit
+        FinalDisputeResolvedWithSplit,
+        FinalDelisted
     }
 
     uint256 public jobCount;
@@ -110,8 +117,8 @@ contract Job is IJob, Ownable {
     event PaymentTokensUpdated(IERC20 indexed token, bool indexed value);
 
     event JobReported(uint256 indexed jobId, address reporter, string metadataCid);
-    event JobReportDeclined(uint256 indexed jobId, address reporter, string reasonCid);
-    event JobDelisted(uint256 indexed jobId, address reporter, string reasonCid);
+    event JobReportDeclined(uint256 indexed jobId, address reporter, string metadataCid);
+    event JobDelisted(uint256 indexed jobId, address reporter, string metadataCid);
 
     /***************
      * Constructor *
@@ -142,26 +149,8 @@ contract Job is IJob, Ownable {
         _;
     }
 
-    // TODO: Do we really need this ?
-    modifier requiresApproval(IERC20 _paymentToken, uint256 amount) {
-        require(_paymentToken.allowance(msg.sender, address(this)) >= amount, "Spending approval is required");
-        _;
-    }
-
     modifier requiresJobState(uint256 jobId, States requiredState) {
         require(jobs[jobId].state == requiredState, "Method not available for job state");
-        _;
-    }
-
-    modifier requiresOneOfJobStates(
-        uint256 jobId,
-        States requiredState1,
-        States requiredState2
-    ) {
-        require(
-            jobs[jobId].state == requiredState1 || jobs[jobId].state == requiredState2,
-            "Method not available for job state"
-        );
         _;
     }
 
@@ -191,7 +180,7 @@ contract Job is IJob, Ownable {
         uint256 bountyValue,
         uint256 requiredDeposit,
         string memory metadataCid
-    ) external onlyWhitelisted(paymentToken) requiresApproval(paymentToken, bountyValue) {
+    ) external onlyWhitelisted(paymentToken) {
         require(bountyValue >= MINIMUM_BOUNTY, "Minimum bounty not provided");
         require(requiredDeposit >= MINIMUM_DEPOSIT, "Minimum deposit not provided");
         require(requiredDeposit <= bountyValue, "Deposit too large");
@@ -257,9 +246,6 @@ contract Job is IJob, Ownable {
     function cancelJob(uint256 jobId) public onlySupplier(jobId) requiresJobState(jobId, States.Available) {
         JobData memory job = jobs[jobId];
 
-        // TODO: delete jobs[jobId] first ? Do we need to store all the data ??
-        // TODO: How would the supplier-reopen flow work  ?
-        // TODO: Should the metadata be stored in events ?
         jobs[jobId].state = States.FinalCanceledBySupplier;
 
         sendJobRefund(job);
@@ -365,54 +351,47 @@ contract Job is IJob, Ownable {
     function reportJob(uint256 jobId, string memory metadataCid) external {
         JobData memory job = jobs[jobId];
 
-        // TODO: Should we also allow Disputed state ?
         require(job.state == States.Available || job.state == States.Started, "Method not available for job state");
 
-        jobs[jobId].isReported = true;
         reports[jobId].reporter = msg.sender;
-        reports[jobId].metadataCid = metadataCid;
+        reports[jobId].previousState = job.state;
+
+        jobs[jobId].state = States.Reported;
 
         receiveFunds(REPORT_TOKEN, msg.sender, REPORT_DEPOSIT);
 
         emit JobReported(jobId, msg.sender, metadataCid);
     }
 
-    function declineReport(uint256 jobId, string memory reasonCid) external onlyResolver {
-        require(jobs[jobId].isReported, "Method not available for job state");
-
+    function declineReport(uint256 jobId, string memory metadataCid) external onlyResolver requiresJobState(jobId, States.Reported) {
         address reporter = reports[jobId].reporter;
 
-        delete jobs[jobId].isReported;
+        // move the job back to the previous state
+        jobs[jobId].state = reports[jobId].previousState;
 
         sendFunds(REPORT_TOKEN, daoTreasury, REPORT_DEPOSIT);
-        emit JobReportDeclined(jobId, reporter, reasonCid);
+        emit JobReportDeclined(jobId, reporter, metadataCid);
     }
 
-    function acceptReport(uint256 jobId, string memory reasonCid) external onlyResolver {
+    function acceptReport(uint256 jobId, string memory metadataCid) external onlyResolver requiresJobState(jobId, States.Reported) {
         JobData memory job = jobs[jobId];
-
-        require(job.isReported, "Method not available for job state");
 
         address reporter = reports[jobId].reporter;
 
-        delete jobs[jobId];
+        jobs[jobId].state = States.FinalDelisted;
 
         uint256 rewardAmount = (job.bounty * REPORT_REWARD_PERCENT) / BASE_PERCENTAGE;
         uint256 refundAmount = job.bounty - rewardAmount;
 
-        sendFunds(job.token, reporter, rewardAmount);
+        sendFunds(job.token, reporter, REPORT_DEPOSIT + rewardAmount);
         sendFunds(job.token, job.supplier, refundAmount);
 
         if (job.deposit > 0) {
             sendFunds(job.token, job.engineer, job.deposit);
         }
 
-        sendFunds(REPORT_TOKEN, daoTreasury, REPORT_DEPOSIT);
-
-        emit JobDelisted(jobId, reporter, reasonCid);
+        emit JobDelisted(jobId, reporter, metadataCid);
     }
-
-    // TODO: Do we need any other convenient getters ?
 
     function getAllPaymentTokens() external view returns (IERC20[] memory tokens) {
         uint256 l = tokensList.length;
@@ -471,19 +450,17 @@ contract Job is IJob, Ownable {
     }
 
     function setDaoFee(uint256 newValue) external onlyOwner {
+        require(newValue <= MAX_DAO_FEE, "Value is too high");
         DAO_FEE = newValue;
     }
 
     function setResolutionFee(uint256 newValue) external onlyOwner {
+        require(newValue <= MAX_RESOLUTION_FEE_PERCENTAGE, "Value is too high");
         RESOLUTION_FEE_PERCENTAGE = newValue;
     }
 
-    function setMinChunk(uint256 newValue) external onlyOwner {
-        MINIMUM_SPLIT_CHUNK_PERCENTAGE = newValue;
-    }
-
     function setJobTimeout(uint256 newValue) external onlyOwner {
-        require(newValue >= 3 days, "Constrains !");
+        require(newValue >= MAX_COMPLETED_TIMEOUT_SECONDS, "Value is too low");
         COMPLETED_TIMEOUT_SECONDS = newValue;
     }
 
@@ -496,6 +473,7 @@ contract Job is IJob, Ownable {
     }
 
     function setReportDeposit(uint256 newValue) external onlyOwner {
+        require(newValue <= MAX_REPORT_DEPOSIT, "Value is too high");
         REPORT_DEPOSIT = newValue;
     }
 
@@ -504,6 +482,7 @@ contract Job is IJob, Ownable {
     }
 
     function setReportReward(uint256 newPercent) external onlyOwner {
+        require(newPercent <= MAX_REPORT_REWARD_PERCENT, "Value is too high");
         REPORT_REWARD_PERCENT = newPercent;
     }
 
@@ -642,6 +621,6 @@ contract Job is IJob, Ownable {
     }
 
     receive() external payable {
-        revert("Don't lock your MATIC !");
+        revert("Native token not accepted");
     }
 }
