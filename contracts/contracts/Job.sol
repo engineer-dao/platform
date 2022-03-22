@@ -25,7 +25,6 @@ contract Job is IJob, Ownable {
     // 50 paymentTokens ($50) - TODO: Should we make this a pct with a hard floor?
     uint256 public MINIMUM_DEPOSIT = 50e18;
 
-    // TODO: yet to be decided
     // 10%
     uint256 public DAO_FEE = 1000;
     uint256 constant MAX_DAO_FEE = 2500;
@@ -247,9 +246,6 @@ contract Job is IJob, Ownable {
     function cancelJob(uint256 jobId) public onlySupplier(jobId) requiresJobState(jobId, States.Available) {
         JobData memory job = jobs[jobId];
 
-        // TODO: delete jobs[jobId] first ? Do we need to store all the data ??
-        // TODO: How would the supplier-reopen flow work  ?
-        // TODO: Should the metadata be stored in events ?
         jobs[jobId].state = States.FinalCanceledBySupplier;
 
         sendJobRefund(job);
