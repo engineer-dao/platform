@@ -2,6 +2,8 @@
 import StatusChip from './StatusChip';
 import { IJobData } from 'interfaces/IJobData';
 import { useJob } from '../smart-contracts/hooks/useJob';
+import OptionsDropdown from './OptionsDropdown';
+import { JobState } from '../../enums/JobState';
 
 interface ISingleContractHeadingProps {
   contract?: IJobData;
@@ -32,6 +34,7 @@ const SingleContractHeading: React.FC<ISingleContractHeadingProps> = (
             </h3>
           </div>
           <div className="mt-4 flex items-center justify-between sm:mt-0 sm:ml-6 sm:flex-shrink-0 sm:justify-start">
+            {state !== JobState.Reported && <OptionsDropdown />}
             <StatusChip state={state} />
           </div>
         </div>

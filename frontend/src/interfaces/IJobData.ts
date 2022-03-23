@@ -42,7 +42,7 @@ export interface IFormattedJobSmartContractData {
 
 export interface IJobData extends IJobMetaData, IFormattedJobSmartContractData {
   id: string;
-
+  ipfsCid?: string;
   paymentTokenName: string;
 }
 
