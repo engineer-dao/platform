@@ -1,10 +1,7 @@
 import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
-import { useState } from 'react';
 import { useJob } from '../../hooks/useJob';
 
 export const useReportJob = () => {
-  const [error, setError] = useState('');
-
   const { job } = useJob();
 
   const { contracts } = useSmartContracts();
@@ -18,5 +15,5 @@ export const useReportJob = () => {
 
   const isDisabled = !(job?.id && job?.ipfsCid);
 
-  return { callContract, error, isDisabled };
+  return { callContract, isDisabled };
 };
