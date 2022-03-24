@@ -72,6 +72,7 @@ export default async function handler(
       name: address,
       // @ts-ignore
       keyvalues: {
+        type: 'job',
         address: address,
       },
     },
