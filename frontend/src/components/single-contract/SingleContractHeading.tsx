@@ -34,7 +34,9 @@ const SingleContractHeading: React.FC<ISingleContractHeadingProps> = (
             </h3>
           </div>
           <div className="mt-4 flex items-center justify-between sm:mt-0 sm:ml-6 sm:flex-shrink-0 sm:justify-start">
-            {state !== JobState.Reported && <OptionsDropdown />}
+            {(state === JobState.Started || state === JobState.Available) && (
+              <OptionsDropdown />
+            )}
             <StatusChip state={state} />
           </div>
         </div>

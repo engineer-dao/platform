@@ -61,6 +61,7 @@ const ReportModal: React.FC<IReportModal> = (props) => {
           <textarea
             id="reportReason"
             rows={5}
+            placeholder="State your case!"
             className="mb-4 block w-full rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
               setReason(e.target.value)
