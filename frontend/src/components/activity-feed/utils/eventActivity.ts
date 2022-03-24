@@ -207,6 +207,9 @@ const buildAddressFromJobEvent = (
     case 'JobClosedByEngineer':
     case 'JobTimeoutPayout':
       return job.engineer;
+
+    case 'JobReported':
+      return job.reporter;
   }
 
   return undefined;
