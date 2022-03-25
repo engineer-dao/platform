@@ -1,5 +1,6 @@
 import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
 import { pinIpfsReportMetaData } from '../../../../services/ipfs';
+import { clearJobFromCache } from '../../../../utils/storage';
 import { useWallet } from '../../../wallet/useWallet';
 import { useJob } from '../../hooks/useJob';
 
@@ -21,6 +22,8 @@ export const useReportJob = ({ reason }: { reason: string }) => {
     });
 
     if (job?.id && cid) {
+      clearJobFromCache(job.id);
+
       return contracts.Job.reportJob(job.id, cid.ipfsCid);
     }
   };

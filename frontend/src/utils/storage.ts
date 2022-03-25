@@ -29,6 +29,12 @@ export const saveJobToCache = (
   storage.setItem(jobCacheKey, JSON.stringify(newCachedJobEntry));
 };
 
+export const clearJobFromCache = (jobId: string) => {
+  const storage = window.localStorage;
+  const jobCacheKey = buildJobCacheKey(jobId);
+  storage.removeItem(jobCacheKey);
+};
+
 export const clearLocalStorage = () => {
   window.localStorage.clear();
 };

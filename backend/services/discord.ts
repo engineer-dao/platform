@@ -11,11 +11,9 @@ export const postToSupportChannel = async (message: string) => {
     throw new Error('Missing Discord API key.');
   }
 
-  const client = new Client({
-    intents: [Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES],
-  });
+  const client = new Client();
 
-  client.on('ready', (client) => {
+  client.on('ready', () => {
     client.channels.fetch('956396990076444752').then((channel: any) => {
       return (channel as TextChannel)?.send(message);
     });
