@@ -12,6 +12,12 @@ interface IPostMetaDataResponse {
   message: string;
 }
 
+interface IReportMetaData {
+  reason: string;
+  jobId: string;
+  jobUrl: string;
+}
+
 const postToIPFS = async (path: string, body: Record<string, any>) => {
   const response = await fetch(`${process.env.REACT_APP_API}${path}`, {
     method: 'POST',
@@ -40,7 +46,7 @@ export const pinIpfsReportMetaData = async ({
   address,
   sig,
   metadata,
-}: IPostMetaData<string>) =>
+}: IPostMetaData<IReportMetaData>) =>
   postToIPFS('/api/ipfs/add-report', {
     address,
     sig,

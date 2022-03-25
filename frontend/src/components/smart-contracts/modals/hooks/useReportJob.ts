@@ -13,7 +13,11 @@ export const useReportJob = ({ reason }: { reason: string }) => {
     const cid = await pinIpfsReportMetaData({
       address: wallet.account || '',
       sig: '',
-      metadata: reason,
+      metadata: {
+        reason,
+        jobId: job?.id || 'Unknown',
+        jobUrl: window.location.href,
+      },
     });
 
     if (job?.id && cid) {
