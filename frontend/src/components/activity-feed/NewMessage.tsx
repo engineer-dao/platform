@@ -69,7 +69,7 @@ const NewMessage = () => {
   const initialValues: IMessageForm = { message: '' };
 
   return (
-    <div className="mt-8 flex items-start space-x-4">
+    <div className="mt-6 flex items-start space-x-4">
       <div className="min-w-0 flex-1">
         <Formik
           enableReinitialize

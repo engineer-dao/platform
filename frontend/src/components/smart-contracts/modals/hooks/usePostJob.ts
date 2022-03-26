@@ -4,7 +4,7 @@ import { SmartContractAddresses } from 'components/smart-contracts/SmartContract
 import { useWallet } from 'components/wallet/useWallet';
 import { ContractReceipt, ethers } from 'ethers';
 import { useEffect, useState } from 'react';
-import { pinIpfsMetaData } from 'services/ipfs';
+import { pinIpfsJobMetaData } from '../../../../services/ipfs';
 
 interface UsePostJobProps {
   formData: ICreateContractForm;
@@ -58,7 +58,7 @@ export const usePostJob = (props: UsePostJobProps) => {
   useEffect(() => {
     const createIPFSData = async () => {
       // push to the backend service
-      const result = await pinIpfsMetaData({
+      const result = await pinIpfsJobMetaData({
         address: wallet.account || '',
         sig: '',
         metadata: formData,

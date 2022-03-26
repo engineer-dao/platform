@@ -18,6 +18,16 @@ type TransactionError = {
   message: string;
 };
 
+interface ITransactionModal {
+  show: boolean;
+  title: string;
+  callContract: CallContractCallback;
+  syncOnConfirm?: boolean;
+  onConfirmed?: OnConfirmedCallback;
+  onFinish?: () => void;
+  onError?: (arg0: string) => void;
+}
+
 export const TransactionModal = ({
   show,
   title,
@@ -26,15 +36,7 @@ export const TransactionModal = ({
   onConfirmed,
   onFinish,
   onError,
-}: {
-  show: boolean;
-  title: string;
-  callContract: CallContractCallback;
-  syncOnConfirm?: boolean;
-  onConfirmed?: OnConfirmedCallback;
-  onFinish?: () => void;
-  onError?: (arg0: string) => void;
-}) => {
+}: ITransactionModal) => {
   const [txStatus, setTxStatus] = useState<TXStatus>(TXStatus.Ready);
   const [showModal, setShowModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);

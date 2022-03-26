@@ -100,11 +100,11 @@ const buildStatusChangeOrContractUpdate = (
       break;
 
     case 'JobClosedBySupplier':
-      contractUpdateMessage = 'Supplier requested close';
+      contractUpdateMessage = 'Supplier requested close.';
       break;
 
     case 'JobClosedByEngineer':
-      contractUpdateMessage = 'Engineer requested close';
+      contractUpdateMessage = 'Engineer requested close.';
       break;
 
     case 'JobClosed':
@@ -126,12 +126,14 @@ const buildStatusChangeOrContractUpdate = (
       newState = JobState.FinalDisputeResolvedForSupplier;
       break;
 
-    // TODO: handle reporting methods based on
     case 'JobReportDeclined':
+      contractUpdateMessage = 'Report was declined.';
       break;
     case 'JobReported':
+      newState = JobState.Reported;
       break;
     case 'JobDelisted':
+      newState = JobState.FinalDelisted;
       break;
 
     default:
@@ -205,6 +207,9 @@ const buildAddressFromJobEvent = (
     case 'JobClosedByEngineer':
     case 'JobTimeoutPayout':
       return job.engineer;
+
+    case 'JobReported':
+      return job.reporter;
   }
 
   return undefined;

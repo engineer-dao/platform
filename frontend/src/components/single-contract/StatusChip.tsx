@@ -34,6 +34,9 @@ const StatusChip: React.FC<IStatusChipProps> = (props) => {
     case JobState.Disputed:
       _color = red;
       break;
+    case JobState.Reported:
+      _color = red;
+      break;
     case JobState.FinalApproved:
       _color = darkGreen;
       break;

@@ -21,12 +21,17 @@ export const fetchJobMetaData = async (
 ): Promise<IJobMetaData | undefined> => {
   const filter = Job.filters.JobPosted(BigNumber.from(jobId));
   const results = await Job.queryFilter(filter);
-  const event = results[0];
-  const cidString = event.args.metadataCid;
+  const event = results?.[0];
+  const ipfsCid = event.args.metadataCid;
 
-  const data = await fetchIpfsMetaData(cidString);
+  const reportFilter = Job.filters.JobReported(BigNumber.from(jobId));
+  const reportResults = await Job.queryFilter(reportFilter);
+  const reportEvent = reportResults?.[0];
+  const reporter = reportEvent?.args?.reporter;
 
-  return data;
+  const data = await fetchIpfsMetaData(ipfsCid);
+
+  return { ...data, ipfsCid, reporter };
 };
 
 export const filterJobs = (jobs: IJobData[], jobFilter?: IJobFilter) => {
