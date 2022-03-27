@@ -1932,6 +1932,9 @@ describe("JobContract ", function() {
             await expect(
                 JobContract.setJobTimeout(86400 * 2)
             ).to.be.revertedWith('Value is too low');
+            await expect(
+                JobContract.setJobTimeout(86400 * 31)
+            ).to.be.revertedWith('Value is too high');
 
             // report deposit
             expect(await JobContract.REPORT_DEPOSIT()).to.equal(testUtil.toBigNum(50));
