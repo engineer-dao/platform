@@ -1043,11 +1043,8 @@ describe("JobContract ", function() {
 
             await expect(testUtil.resolveDisputeForSupplier(JobContract, testUtil.JOB_ID_1))
                 .to.emit(JobContract, 'JobDisputeResolved')
-                .withArgs(
-                    testUtil.JOB_ID_1,
-                    testUtil.STATE_FinalDisputeResolvedForSupplier
-                );
-        });
+                .withArgs(testUtil.JOB_ID_1, 0);
+            });
 
         it('sends funds and updates balances when resolved', async function() {
             await testUtil.postSampleJob()(JobContract, TestToken);
@@ -1194,11 +1191,8 @@ describe("JobContract ", function() {
 
             await expect(testUtil.resolveDisputeForEngineer(JobContract, testUtil.JOB_ID_1))
                 .to.emit(JobContract, 'JobDisputeResolved')
-                .withArgs(
-                    testUtil.JOB_ID_1,
-                    testUtil.STATE_FinalDisputeResolvedForEngineer
-                );
-        });
+                .withArgs(testUtil.JOB_ID_1, testUtil.BASE_PERCENT);
+          });
 
         it('sends funds and updates balances when resolved', async function() {
             await testUtil.postSampleJob()(JobContract, TestToken);
@@ -1347,10 +1341,7 @@ describe("JobContract ", function() {
 
             await expect(testUtil.resolveDisputeWithCustomSplit(JobContract, testUtil.JOB_ID_1, 2000))
                 .to.emit(JobContract, 'JobDisputeResolved')
-                .withArgs(
-                    testUtil.JOB_ID_1,
-                    testUtil.STATE_FinalDisputeResolvedWithSplit
-                );
+                .withArgs(testUtil.JOB_ID_1, 2000);
         });
 
         it('sends funds and updates balances when resolved 50%', async function() {
