@@ -218,7 +218,7 @@ const buildEventMessageParameters = (untypedEvent: TypedEvent<any>) => {
         untypedEvent,
         (untypedEvent as JobDisputeResolvedEvent).args.jobId.toString(),
         {
-          finalState: (untypedEvent as JobDisputeResolvedEvent).args.finalState,
+          engineerAmountPct: (untypedEvent as JobDisputeResolvedEvent).args.engineerAmountPct,
         }
       );
 

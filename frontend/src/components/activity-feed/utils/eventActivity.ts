@@ -112,11 +112,11 @@ const buildStatusChangeOrContractUpdate = (
       break;
 
     case 'JobDisputeResolved':
-      switch (eventActivityItem.args?.finalState) {
-        case JobState.FinalDisputeResolvedForSupplier:
+      switch (eventActivityItem.args?.engineerAmountPct) {
+        case 0:
           contractUpdateMessage = 'Dispute was resolved for the supplier.';
           break;
-        case JobState.FinalDisputeResolvedForEngineer:
+        case 10000:
           contractUpdateMessage = 'Dispute was resolved for the engineer.';
           break;
         default:
