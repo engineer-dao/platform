@@ -5,6 +5,7 @@ import { DataSnapshot } from 'firebase/database';
 import { IActivityFeedItem } from 'interfaces/IActivityFeedItem';
 import { IJobData } from 'interfaces/IJobData';
 import { formatDateTime } from 'utils/date';
+import { BigNumber } from 'ethers';
 
 export interface IEventActivity {
   type: string;
@@ -112,18 +113,22 @@ const buildStatusChangeOrContractUpdate = (
       break;
 
     case 'JobDisputeResolved':
-      switch (eventActivityItem.args?.finalState) {
-        case JobState.FinalDisputeResolvedForSupplier:
+      const BASE_PERCENT = 10000;
+      if (eventActivityItem.args?.engineerAmountPct) {
+        const engineerAmountPct = BigNumber.from(
+          eventActivityItem.args?.engineerAmountPct
+        );
+        if (engineerAmountPct.isZero()) {
           contractUpdateMessage = 'Dispute was resolved for the supplier.';
-          break;
-        case JobState.FinalDisputeResolvedForEngineer:
+          newState = JobState.FinalDisputeResolvedForSupplier;
+        } else if (engineerAmountPct.eq(BASE_PERCENT)) {
           contractUpdateMessage = 'Dispute was resolved for the engineer.';
-          break;
-        default:
-          contractUpdateMessage = 'Dispute was resolved with a split amount.';
-          break;
+          newState = JobState.FinalDisputeResolvedForEngineer;
+        } else {
+          contractUpdateMessage = 'Dispute was resolved with a split amount';
+          newState = JobState.FinalDisputeResolvedWithSplit;
+        }
       }
-      newState = JobState.FinalDisputeResolvedForSupplier;
       break;
 
     case 'JobReportDeclined':

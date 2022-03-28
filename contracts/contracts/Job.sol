@@ -35,13 +35,16 @@ contract Job is IJob, Ownable {
     uint256 constant MINIMUM_SPLIT_CHUNK_PERCENTAGE = 100;
     // Number of seconds after job is completed before job is awarded to engineer
     uint256 public COMPLETED_TIMEOUT_SECONDS = 7 days;
-    uint256 constant MAX_COMPLETED_TIMEOUT_SECONDS = 3 days;
+    uint256 constant MIN_COMPLETED_TIMEOUT_SECONDS = 3 days;
+    uint256 constant MAX_COMPLETED_TIMEOUT_SECONDS = 30 days;
 
-
+    // Deposit required to report a job
     uint256 public REPORT_DEPOSIT = 50e18;
     uint256 constant MIN_REPORT_DEPOSIT = 10e18;
     uint256 constant MAX_REPORT_DEPOSIT = 200e18;
+    // Type of token used for reporting a job
     IERC20 public REPORT_TOKEN;
+    // 10% - Reward of the bounty given to a successful reporter
     uint256 public REPORT_REWARD_PERCENT = 1000;
     uint256 constant MAX_REPORT_REWARD_PERCENT = 2500;
 
@@ -113,7 +116,7 @@ contract Job is IJob, Ownable {
     event JobClosedByEngineer(uint256 indexed jobId);
     event JobClosed(uint256 indexed jobId);
     event JobDisputed(uint256 indexed jobId);
-    event JobDisputeResolved(uint256 indexed jobId, States finalState);
+    event JobDisputeResolved(uint256 indexed jobId, uint256 engineerAmountPct);
     event PaymentTokensUpdated(IERC20 indexed token, bool indexed value);
 
     event JobReported(uint256 indexed jobId, address reporter, string metadataCid);
@@ -309,7 +312,7 @@ contract Job is IJob, Ownable {
         );
         sendJobPayout(jobs[jobId].token, payoutAmount, daoTakeAmount, jobs[jobId].supplier);
 
-        emit JobDisputeResolved(jobId, States.FinalDisputeResolvedForSupplier);
+        emit JobDisputeResolved(jobId, 0);
     }
 
     function resolveDisputeForEngineer(uint256 jobId) external onlyResolver requiresJobState(jobId, States.Disputed) {
@@ -321,7 +324,7 @@ contract Job is IJob, Ownable {
         );
         sendJobPayout(jobs[jobId].token, payoutAmount, daoTakeAmount, jobs[jobId].engineer);
 
-        emit JobDisputeResolved(jobId, States.FinalDisputeResolvedForEngineer);
+        emit JobDisputeResolved(jobId, BASE_PERCENTAGE);
     }
 
     function resolveDisputeWithCustomSplit(uint256 jobId, uint256 engineerAmountPct)
@@ -343,8 +346,7 @@ contract Job is IJob, Ownable {
         ) = calculateSplitDisputeResolutionPayout(job.bounty, job.deposit, engineerAmountPct);
         sendSplitJobPayout(job, supplierPayoutAmount, engineerPayoutAmount, daoTakeAmount);
 
-        // TODO: should we add split % ?
-        emit JobDisputeResolved(jobId, States.FinalDisputeResolvedWithSplit);
+        emit JobDisputeResolved(jobId, engineerAmountPct);
     }
 
     // Used to prevent illegal activity
@@ -460,7 +462,8 @@ contract Job is IJob, Ownable {
     }
 
     function setJobTimeout(uint256 newValue) external onlyOwner {
-        require(newValue >= MAX_COMPLETED_TIMEOUT_SECONDS, "Value is too low");
+        require(newValue >= MIN_COMPLETED_TIMEOUT_SECONDS, "Value is too low");
+        require(newValue <= MAX_COMPLETED_TIMEOUT_SECONDS, "Value is too high");
         COMPLETED_TIMEOUT_SECONDS = newValue;
     }
 
