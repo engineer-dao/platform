@@ -1,12 +1,13 @@
 import { MenuIcon } from '@heroicons/react/outline';
+import { JobProvider } from 'components/smart-contracts/JobProvider';
 import { Route, Switch } from 'react-router-dom';
 import { SectionPath } from '../enums/admin/Sections';
 import Community from '../pages/Community';
 import Contracts from '../pages/Contracts';
+import { CreateContract } from '../pages/CreateContract';
 import Dashboard from '../pages/Dashboard';
 import { MyContracts } from '../pages/MyContracts';
 import SingleContract from '../pages/SingleContract';
-import { CreateContract } from '../pages/CreateContract';
 import Testing from '../pages/Testing';
 import { isTestingEnvironment } from '../utils/testing';
 
@@ -46,7 +47,9 @@ const Content = (props: IContent) => {
                   <Community />
                 </Route>
                 <Route path={SectionPath.contract}>
-                  <SingleContract />
+                  <JobProvider>
+                    <SingleContract />
+                  </JobProvider>
                 </Route>
                 <Route path={SectionPath.createContract} exact>
                   <CreateContract />
