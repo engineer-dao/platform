@@ -245,7 +245,7 @@ export const postSampleJob = (signer: undefined | Signer = undefined) => async (
 
     // post the job from the supplier address;
     if (!bounty) {
-        bounty = ONE_HUND_TOKENS;
+        bounty = toBigNum(100 * 1.1); // $100 + 10%
     }
 
     const postJobTx = await Job

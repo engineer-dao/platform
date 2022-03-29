@@ -71,7 +71,9 @@ describe("JobContract ", function() {
             // jobId 0
             expect(await JobContract.jobCount()).to.equal(0);
 
-            const amountSent = testUtil.ONE_HUND_TOKENS;
+            const expectedBounty = testUtil.toBigNum(100);
+            const expectedFee = testUtil.toBigNum(10);
+            const amountSent = testUtil.toBigNum(110);
             await testUtil.postSampleJob()(JobContract, TestToken, amountSent);
 
             // jobId 1
@@ -84,13 +86,37 @@ describe("JobContract ", function() {
             expect(jobOne.supplier).to.equal(supplier.address);
 
             // check bounty
-            expect(jobOne.bounty).to.equal(amountSent);
+            expect(jobOne.bounty).to.equal(expectedBounty);
 
-            // check bounty
+            // check fee
+            expect(jobOne.fee).to.equal(expectedFee);
+
+            // check deposit
             expect(jobOne.requiredDeposit).to.equal(testUtil.DEFAULT_REQUIRED_DEPOSIT);
 
             // check state
             expect(jobOne.state).to.equal(testUtil.STATE_Available);
+        });
+
+
+        it('should have correct fee after setting DAO FEE', async function() {
+            // set DAO_FEE to 6%
+            await JobContract.setDaoFee(600)
+
+            // send the job
+            const expectedBounty = testUtil.toBigNum(100);
+            const expectedFee = testUtil.toBigNum(6);
+            const amountSent = testUtil.toBigNum(106);
+            await testUtil.postSampleJob()(JobContract, TestToken, amountSent);
+
+            // get the job
+            const jobOne = await JobContract.jobs(testUtil.JOB_ID_1);
+
+            // check bounty
+            expect(jobOne.bounty).to.equal(expectedBounty);
+
+            // check fee
+            expect(jobOne.fee).to.equal(expectedFee);
         });
 
         it('should have correct requiredDeposit', async function() {
@@ -148,9 +174,9 @@ describe("JobContract ", function() {
         });
 
         it('inreases daoEscrow', async function() {
-            const bounty1Amount = testUtil.toBigNum(110); // $110
-            const bounty2Amount = testUtil.toBigNum(220); // $220
-            const totalExpectedEscrow = testUtil.toBigNum(330); // $330
+            const bounty1Amount = testUtil.toBigNum(110 * 1.1); // $110 + 10%
+            const bounty2Amount = testUtil.toBigNum(220 * 1.1); // $220 + 10%
+            const totalExpectedEscrow = testUtil.toBigNum(330 * 1.1); // $330 + 10%
 
 
             await testUtil.postSampleJob()(JobContract, TestToken, bounty1Amount);
@@ -164,7 +190,8 @@ describe("JobContract ", function() {
 
         it('can be loaded', async function() {
             const bountyAmount = testUtil.toBigNum(190); // $190
-            await testUtil.postSampleJob()(JobContract, TestToken, bountyAmount);
+            const bountyAmountWithFee = testUtil.toBigNum(190 * 1.1); // $190 + 10%
+            await testUtil.postSampleJob()(JobContract, TestToken, bountyAmountWithFee);
 
             // load the job from the blockchain
             const jobData = await JobContract.jobs(testUtil.JOB_ID_1);
@@ -177,13 +204,6 @@ describe("JobContract ", function() {
             await expect(testUtil.postSampleJob()(JobContract, TestToken))
                 .to.emit(JobContract, 'JobPosted')
                 .withArgs(testUtil.JOB_ID_1, testUtil.DEFAULT_JOB_METADATA_CID);
-        });
-
-        it('emits JobSupplied event when posted', async function() {
-
-            await expect(testUtil.postSampleJob()(JobContract, TestToken))
-                .to.emit(JobContract, 'JobSupplied')
-                .withArgs(supplier.address, testUtil.JOB_ID_1);
         });
 
         it('can be posted multiple times', async function() {
@@ -375,7 +395,7 @@ describe("JobContract ", function() {
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
             const secondEscrowValue = await getBalanceOf(TestToken, JobContract.address);
-            expect(secondEscrowValue).to.equal(testUtil.toBigNum(150));
+            expect(secondEscrowValue).to.equal(testUtil.toBigNum(160)); // $100 + $10 + $50
         });
     });
 
@@ -551,8 +571,8 @@ describe("JobContract ", function() {
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
             await testUtil.completeJob(JobContract, testUtil.JOB_ID_1);
 
-            // $100 - $10 + $50 = $140
-            const expectedPayoutAmount = testUtil.toBigNum(140);
+            // $100 + $50 = $140
+            const expectedPayoutAmount = testUtil.toBigNum(150);
 
             await expect(testUtil.approveJob(JobContract, testUtil.JOB_ID_1))
                 .to.emit(JobContract, 'JobApproved')
@@ -568,12 +588,12 @@ describe("JobContract ", function() {
             const engineerBalance = await getBalanceOf(TestToken,
                 engineer.address
             );
-            expect(engineerBalance).to.equal(testUtil.toBigNum(1090));
+            expect(engineerBalance).to.equal(testUtil.toBigNum(1100));
 
             const supplierBalance = await getBalanceOf(TestToken,
                 supplier.address
             );
-            expect(supplierBalance).to.equal(testUtil.toBigNum(900));
+            expect(supplierBalance).to.equal(testUtil.toBigNum(890)); // $1000 - $110
         });
 
         it('sends DAO_FEE to treasury', async function() {
@@ -716,7 +736,7 @@ describe("JobContract ", function() {
             const startingSupplierBalance = await getBalanceOf(TestToken,
                 supplier.address
             );
-            expect(startingSupplierBalance).to.equal(testUtil.toBigNum(900));
+            expect(startingSupplierBalance).to.equal(testUtil.toBigNum(890)); // $1000 - $110
 
             await testUtil.startJob(JobContract, testUtil.JOB_ID_1);
 
@@ -839,8 +859,8 @@ describe("JobContract ", function() {
             const TIMEOUT_PERIOD = await JobContract.COMPLETED_TIMEOUT_SECONDS();
             await hre.timeAndMine.setTimeIncrease(TIMEOUT_PERIOD);
 
-            // $100 - $10 + $50 = $140
-            const expectedPayoutAmount = testUtil.toBigNum(140);
+            // $100 + $50 = $150
+            const expectedPayoutAmount = testUtil.toBigNum(150);
             await expect(testUtil.completeTimedOutJob(JobContract, testUtil.JOB_ID_1))
                 .to.emit(JobContract, 'JobTimeoutPayout')
                 .withArgs(testUtil.JOB_ID_1, expectedPayoutAmount);
@@ -860,12 +880,12 @@ describe("JobContract ", function() {
             const engineerBalance = await getBalanceOf(TestToken,
                 engineer.address
             );
-            expect(engineerBalance).to.equal(testUtil.toBigNum(1090));
+            expect(engineerBalance).to.equal(testUtil.toBigNum(1100));
 
             const supplierBalance = await getBalanceOf(TestToken,
                 supplier.address
             );
-            expect(supplierBalance).to.equal(testUtil.toBigNum(900));
+            expect(supplierBalance).to.equal(testUtil.toBigNum(890)); // $1000 - $110
         });
 
         it('sends DAO_FEE to treasury', async function() {
@@ -1207,13 +1227,13 @@ describe("JobContract ", function() {
 
             // check supplier funds  (-)
             expect(await getBalanceOf(TestToken, supplier.address)).to.equal(
-                testUtil.toBigNum(1000 - 100)
+                testUtil.toBigNum(1000 - 110)
             );
 
             // check engineer funds (+)
             expect(await getBalanceOf(TestToken, engineer.address)).to.equal(
-                // (100 + 50) * 0.94 = 141
-                testUtil.toBigNum(1000 - 50 + 141)
+                // (100 + 50) * 0.94 + 10 = 151
+                testUtil.toBigNum(1000 - 50 + 151)
             );
 
             // Dao % fee | (100 + 50) * 0.06 = 9
@@ -1239,7 +1259,7 @@ describe("JobContract ", function() {
             expect(contractValue).to.equal(0);
 
             // check supplier (-)
-            expect(await getBalanceOf(TestToken, supplier.address)).to.equal(supplierInitialAmount.sub(ONE_HUND_TOKENS));
+            expect(await getBalanceOf(TestToken, supplier.address)).to.equal(supplierInitialAmount.sub(testUtil.toBigNum(100 * 1.1)));
 
             // check engineer (-)
             const engineerAmount = await getBalanceOf(TestToken, engineer.address);
@@ -1357,14 +1377,14 @@ describe("JobContract ", function() {
 
             // check supplier funds  (-)
             expect(await getBalanceOf(TestToken, supplier.address)).to.equal(
-                // (100 + 50) * 0.94 = 141 / 2 = 70.5
-                testUtil.toBigNum(1000 - 100 + 70.5)
+                // (100 + 50) * 0.94 + 10 = 151 / 2 = 75.5
+                testUtil.toBigNum(1000 - 110 + 75.5)
             );
 
             // check engineer funds (+)
             expect(await getBalanceOf(TestToken, engineer.address)).to.equal(
-                // (100 + 50) * 0.94 = 141 / 2 = 70.5
-                testUtil.toBigNum(1000 - 50 + 70.5)
+                // (100 + 50) * 0.94 + 10 = 151 / 2 = 75.5
+                testUtil.toBigNum(1000 - 50 + 75.5)
             );
 
             // Dao % fee | (100 + 50) * 0.06 = 9
@@ -1390,7 +1410,7 @@ describe("JobContract ", function() {
             expect(contractValue).to.equal(0);
 
             // check supplier (+)
-            expect(await getBalanceOf(TestToken, supplier.address)).to.equal(supplierInitialAmount.sub(ONE_HUND_TOKENS).add(forWinner.div(2)));
+            expect(await getBalanceOf(TestToken, supplier.address)).to.equal(supplierInitialAmount.sub(testUtil.toBigNum(100 * 1.1)).add(forWinner.div(2)));
 
             // check engineer (+)
             const engineerAmount = await getBalanceOf(TestToken, engineer.address);
@@ -1624,8 +1644,8 @@ describe("JobContract ", function() {
             const daoBalance = await getBalanceOf(depositToken, DaoTreasury.address);
             expect(daoBalance).to.equal(daoInitialBalance);
 
-            const reward = jobOne.bounty.mul(rewardPecent).div(10000);
-            const refund = jobOne.bounty.sub(reward);
+            const reward = jobOne.bounty.mul(rewardPecent).div(BASE_PERCENT);
+            const refund = jobOne.bounty.add(jobOne.fee).sub(reward);
 
             // check reporter (deposit + reward)
             expect(await getBalanceOf(TestToken, reporter.address))
@@ -1672,7 +1692,7 @@ describe("JobContract ", function() {
             expect(daoBalance).to.equal(daoInitialBalance);
 
             const reward = jobOne.bounty.mul(rewardPecent).div(10000);
-            const refund = jobOne.bounty.sub(reward);
+            const refund = jobOne.bounty.add(jobOne.fee).sub(reward);
 
             // check reporter (deposit + reward)
             expect(await getBalanceOf(TestToken, reporter.address))

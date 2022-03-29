@@ -16,42 +16,50 @@ contract Job is IJob, Ownable {
     // Used for math
     uint256 constant BASE_PERCENTAGE = 10_000;
 
+    // 1% - this is not configurable
+    uint256 constant MINIMUM_SPLIT_CHUNK_PERCENTAGE = 100;
+
     /*************
      * Variables *
      *************/
 
     // 50 paymentTokens ($50)
-    uint256 public MINIMUM_BOUNTY = 50e18;
-    // 50 paymentTokens ($50) - TODO: Should we make this a pct with a hard floor?
-    uint256 public MINIMUM_DEPOSIT = 50e18;
+    uint256 public MINIMUM_BOUNTY = 50e18; // $50
+    // 50 paymentTokens ($50)
+    uint256 public MINIMUM_DEPOSIT = 50e18; // $50
 
-    // 10%
-    uint256 public DAO_FEE = 1000;
-    uint256 constant MAX_DAO_FEE = 2500;
-    // 6%
-    uint256 public RESOLUTION_FEE_PERCENTAGE = 600;
-    uint256 constant MAX_RESOLUTION_FEE_PERCENTAGE = 2500;
-    // 1% - this is not configurable
-    uint256 constant MINIMUM_SPLIT_CHUNK_PERCENTAGE = 100;
-    // Number of seconds after job is completed before job is awarded to engineer
+    // DAO Fee 10%
+    uint256 public DAO_FEE = 1000; // 10%
+    uint256 constant MAX_DAO_FEE = 2500; // 25%
+
+    // Resolution Fee 10%
+    uint256 public RESOLUTION_FEE_PERCENTAGE = 600; // 6%
+    uint256 constant MAX_RESOLUTION_FEE_PERCENTAGE = 2500; // 25%
+
+    // Timeout after job is completed before job is awarded to engineer
     uint256 public COMPLETED_TIMEOUT_SECONDS = 7 days;
     uint256 constant MIN_COMPLETED_TIMEOUT_SECONDS = 3 days;
     uint256 constant MAX_COMPLETED_TIMEOUT_SECONDS = 30 days;
 
     // Deposit required to report a job
-    uint256 public REPORT_DEPOSIT = 50e18;
-    uint256 constant MIN_REPORT_DEPOSIT = 10e18;
-    uint256 constant MAX_REPORT_DEPOSIT = 200e18;
+    uint256 public REPORT_DEPOSIT = 50e18; // $50
+    uint256 constant MIN_REPORT_DEPOSIT = 10e18; // $10
+    uint256 constant MAX_REPORT_DEPOSIT = 200e18; // $200
+
     // Type of token used for reporting a job
     IERC20 public REPORT_TOKEN;
-    // 10% - Reward of the bounty given to a successful reporter
-    uint256 public REPORT_REWARD_PERCENT = 1000;
-    uint256 constant MAX_REPORT_REWARD_PERCENT = 2500;
 
-    // @notice DAO_FEE send to this address
+    // 10% - Reward of the bounty given to a successful reporter
+    uint256 public REPORT_REWARD_PERCENT = 1000; // 10%
+    uint256 constant MAX_REPORT_REWARD_PERCENT = 2500; // 25%
+
+    // @notice DAO_FEE sent to this address
     address public daoTreasury;
+
+    // address that has permission to resolve disputes
     address public disputeResolver;
 
+    // tokens whitelisted for payment
     mapping(IERC20 => bool) public paymentTokens;
     IERC20[] public tokensList;
 
@@ -71,6 +79,7 @@ contract Job is IJob, Ownable {
         // Amount that the engineer deposited
         uint256 deposit;
         uint256 bounty;
+        uint256 fee;
         uint256 startTime;
         uint256 completedTime;
     }
@@ -106,7 +115,6 @@ contract Job is IJob, Ownable {
      **********/
 
     event JobPosted(uint256 indexed jobId, string metadataCid);
-    event JobSupplied(address indexed supplier, uint256 indexed jobId);
     event JobStarted(address indexed engineer, uint256 indexed jobId);
     event JobCompleted(uint256 indexed jobId);
     event JobApproved(uint256 indexed jobId, uint256 payoutAmount);
@@ -174,22 +182,26 @@ contract Job is IJob, Ownable {
     /**
      * Supplier posts a new job
      * @param paymentToken ERC20 token from the whitelist.
-     * @param bountyValue amount of paymentToken
-     * @param requiredDeposit min % of bountyValue that an engineer needs to deposit to start the job
+     * @param totalValue amount of paymentToken including bounty and fee
+     * @param requiredDeposit min % of totalValue that an engineer needs to deposit to start the job
      * @param metadataCid IFPS CID with job description & extra data.
      */
     function postJob(
         IERC20 paymentToken,
-        uint256 bountyValue,
+        uint256 totalValue,
         uint256 requiredDeposit,
         string memory metadataCid
     ) external onlyWhitelisted(paymentToken) {
-        require(bountyValue >= MINIMUM_BOUNTY, "Minimum bounty not provided");
         require(requiredDeposit >= MINIMUM_DEPOSIT, "Minimum deposit not provided");
+
+        // calculate fee and bounty
+        (uint256 bountyValue, uint256 feeValue) = calculateBountyAndFee(totalValue);
+
+        require(bountyValue >= MINIMUM_BOUNTY, "Minimum bounty not provided");
         require(requiredDeposit <= bountyValue, "Deposit too large");
 
         // receive funds
-        receiveFunds(paymentToken, msg.sender, bountyValue);
+        receiveFunds(paymentToken, msg.sender, totalValue);
 
         // assign newJobId from state
         ++jobCount;
@@ -199,14 +211,12 @@ contract Job is IJob, Ownable {
         jobs[newJobId].supplier = msg.sender;
         jobs[newJobId].token = paymentToken;
         jobs[newJobId].bounty = bountyValue;
+        jobs[newJobId].fee = feeValue;
         jobs[newJobId].state = States.Available;
         jobs[newJobId].requiredDeposit = requiredDeposit;
 
         // save the job meta data
         emit JobPosted(newJobId, metadataCid);
-
-        // emit JobSupplied to map the supplier to the job
-        emit JobSupplied(msg.sender, newJobId);
     }
 
     // engineer starts a posted job
@@ -239,7 +249,7 @@ contract Job is IJob, Ownable {
     function approveJob(uint256 jobId) external requiresJobState(jobId, States.Completed) onlySupplier(jobId) {
         jobs[jobId].state = States.FinalApproved;
 
-        (uint256 payoutAmount, uint256 daoTakeAmount) = calculatePayout(jobs[jobId].bounty, jobs[jobId].deposit);
+        (uint256 payoutAmount, uint256 daoTakeAmount) = calculatePayout(jobs[jobId].bounty, jobs[jobId].fee, jobs[jobId].deposit);
         sendJobPayout(jobs[jobId].token, payoutAmount, daoTakeAmount, jobs[jobId].engineer);
 
         emit JobApproved(jobId, payoutAmount);
@@ -286,7 +296,7 @@ contract Job is IJob, Ownable {
 
         jobs[jobId].state = States.FinalNoResponse;
 
-        (uint256 payoutAmount, uint256 daoTakeAmount) = calculatePayout(jobs[jobId].bounty, jobs[jobId].deposit);
+        (uint256 payoutAmount, uint256 daoTakeAmount) = calculatePayout(jobs[jobId].bounty, jobs[jobId].fee, jobs[jobId].deposit);
         sendJobPayout(jobs[jobId].token, payoutAmount, daoTakeAmount, jobs[jobId].engineer);
 
         emit JobTimeoutPayout(jobId, payoutAmount);
@@ -308,6 +318,7 @@ contract Job is IJob, Ownable {
 
         (uint256 payoutAmount, uint256 daoTakeAmount) = calculateFullDisputeResolutionPayout(
             jobs[jobId].bounty,
+            jobs[jobId].fee,
             jobs[jobId].deposit
         );
         sendJobPayout(jobs[jobId].token, payoutAmount, daoTakeAmount, jobs[jobId].supplier);
@@ -320,6 +331,7 @@ contract Job is IJob, Ownable {
 
         (uint256 payoutAmount, uint256 daoTakeAmount) = calculateFullDisputeResolutionPayout(
             jobs[jobId].bounty,
+            jobs[jobId].fee,
             jobs[jobId].deposit
         );
         sendJobPayout(jobs[jobId].token, payoutAmount, daoTakeAmount, jobs[jobId].engineer);
@@ -343,7 +355,7 @@ contract Job is IJob, Ownable {
             uint256 supplierPayoutAmount,
             uint256 engineerPayoutAmount,
             uint256 daoTakeAmount
-        ) = calculateSplitDisputeResolutionPayout(job.bounty, job.deposit, engineerAmountPct);
+        ) = calculateSplitDisputeResolutionPayout(job.bounty, job.deposit, job.fee, engineerAmountPct);
         sendSplitJobPayout(job, supplierPayoutAmount, engineerPayoutAmount, daoTakeAmount);
 
         emit JobDisputeResolved(jobId, engineerAmountPct);
@@ -383,7 +395,7 @@ contract Job is IJob, Ownable {
         jobs[jobId].state = States.FinalDelisted;
 
         uint256 rewardAmount = (job.bounty * REPORT_REWARD_PERCENT) / BASE_PERCENTAGE;
-        uint256 refundAmount = job.bounty - rewardAmount;
+        uint256 refundAmount = job.bounty + job.fee - rewardAmount;
 
         sendFunds(job.token, reporter, REPORT_DEPOSIT + rewardAmount);
         sendFunds(job.token, job.supplier, refundAmount);
@@ -416,7 +428,7 @@ contract Job is IJob, Ownable {
             uint256 forDao
         )
     {
-        (forEngineer, forDao) = calculatePayout(jobs[jobId].bounty, jobs[jobId].deposit);
+        (forEngineer, forDao) = calculatePayout(jobs[jobId].bounty, jobs[jobId].fee, jobs[jobId].deposit);
         forEngineerNoDeposit = forEngineer - jobs[jobId].deposit;
     }
 
@@ -425,7 +437,7 @@ contract Job is IJob, Ownable {
      * @param jobId of the job.
      */
     function getDisputePayouts(uint256 jobId) external view returns (uint256 forWinner, uint256 forDao) {
-        (forWinner, forDao) = calculateFullDisputeResolutionPayout(jobs[jobId].bounty, jobs[jobId].deposit);
+        (forWinner, forDao) = calculateFullDisputeResolutionPayout(jobs[jobId].bounty, jobs[jobId].fee, jobs[jobId].deposit);
     }
 
     /****************************
@@ -508,24 +520,32 @@ contract Job is IJob, Ownable {
     }
 
     function sendJobRefund(JobData memory job) internal {
-        sendFunds(job.token, job.supplier, job.bounty);
+        sendFunds(job.token, job.supplier, job.bounty + job.fee);
 
         if (job.deposit > 0) {
             sendFunds(job.token, job.engineer, job.deposit);
         }
     }
 
-    function calculatePayout(uint256 bounty, uint256 deposit)
+    function calculateBountyAndFee(uint256 total)
+        internal
+        view
+        returns (uint256 bountyValue, uint256 feeValue)
+    {
+        bountyValue = BASE_PERCENTAGE * total / (BASE_PERCENTAGE + DAO_FEE);
+        feeValue = total - bountyValue;
+    }
+
+    function calculatePayout(uint256 bounty, uint256 fee, uint256 deposit)
         internal
         view
         returns (uint256 payoutAmount, uint256 daoTakeAmount)
     {
-        // Take X% from provider bounty
-        daoTakeAmount = (bounty * DAO_FEE) / BASE_PERCENTAGE;
-        payoutAmount = (bounty - daoTakeAmount) + deposit;
+        daoTakeAmount = fee;
+        payoutAmount = bounty + deposit;
     }
 
-    function calculateFullDisputeResolutionPayout(uint256 bounty, uint256 deposit)
+    function calculateFullDisputeResolutionPayout(uint256 bounty, uint256 refundedFee, uint256 deposit)
         internal
         view
         returns (uint256 payoutAmount, uint256 daoTakeAmount)
@@ -533,7 +553,7 @@ contract Job is IJob, Ownable {
         uint256 resolutionPayout = bounty + deposit;
 
         daoTakeAmount = (resolutionPayout * RESOLUTION_FEE_PERCENTAGE) / BASE_PERCENTAGE;
-        payoutAmount = resolutionPayout - daoTakeAmount;
+        payoutAmount = resolutionPayout + refundedFee - daoTakeAmount;
     }
 
     function sendJobPayout(
@@ -549,6 +569,7 @@ contract Job is IJob, Ownable {
     function calculateSplitDisputeResolutionPayout(
         uint256 bounty,
         uint256 deposit,
+        uint256 fee,
         uint256 engineerAmountPct
     )
         internal
@@ -559,9 +580,10 @@ contract Job is IJob, Ownable {
             uint256 daoTakeAmount
         )
     {
-        uint256 resolutionPayout = bounty + deposit;
+        uint256 daoTakeBasis = bounty + deposit;
+        uint256 resolutionPayout = bounty + deposit + fee;
 
-        daoTakeAmount = (resolutionPayout * RESOLUTION_FEE_PERCENTAGE) / BASE_PERCENTAGE;
+        daoTakeAmount = (daoTakeBasis * RESOLUTION_FEE_PERCENTAGE) / BASE_PERCENTAGE;
 
         uint256 totalPayoutAmount = resolutionPayout - daoTakeAmount;
         engineerPayoutAmount = (totalPayoutAmount * engineerAmountPct) / BASE_PERCENTAGE;
