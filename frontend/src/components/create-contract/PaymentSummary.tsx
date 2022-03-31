@@ -1,4 +1,4 @@
-import { DAO_SERVICE_FEE } from '../../constants';
+import { useDAOFee } from '../smart-contracts/hooks/useDAOFee';
 import { ICreateContractForm } from './form/ICreateContractForm';
 
 const PaymentSummary = ({
@@ -8,6 +8,8 @@ const PaymentSummary = ({
   tokenName?: string;
   data: ICreateContractForm;
 }) => {
+  const { daoFee, isLoading } = useDAOFee();
+
   const token = tokenName || process.env.REACT_APP_PAYMENT_TOKEN_NAME || '';
 
   const bounty = data.bounty ? parseInt(data.bounty) : 0;
@@ -15,16 +17,16 @@ const PaymentSummary = ({
 
   const totalPayout = bounty + deposit;
 
-  const serviceFee = bounty * DAO_SERVICE_FEE;
+  const serviceFee = bounty * daoFee;
 
-  return (
+  return !isLoading ? (
     <>
       <p className="text-lg font-medium leading-6">Summary</p>
       <p className="mt-1 text-sm font-normal leading-5">
         {bounty} {token} Bounty + {deposit} {token} Buy-In
       </p>
       <p className="leading-2 text-xs">
-        + {serviceFee} {token} Service Fee ({DAO_SERVICE_FEE * 100}%)
+        + {serviceFee} {token} Service Fee ({daoFee * 100}%)
       </p>
       <p className="text-lg font-semibold leading-7">
         {totalPayout} {token} Total Payout
@@ -37,7 +39,7 @@ const PaymentSummary = ({
         How It Works
       </a>
     </>
-  );
+  ) : null;
 };
 
 export default PaymentSummary;
