@@ -17,9 +17,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   await deploy('Job', {
     from: deployer,
-    args: [erc20ContractAddress, daoTreasury, disputeResolver],
+    args: [],
     log: true,
     autoMine: true,
+    proxy: {
+      execute: {
+        init: {
+          methodName: 'initialize',
+          args: [erc20ContractAddress, daoTreasury, disputeResolver],
+        },
+      },
+    },
   });
 };
 
