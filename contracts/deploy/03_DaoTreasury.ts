@@ -10,10 +10,17 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   await deploy('DaoTreasury', {
     from: daoTreasury,
-    args: [
-      process.env.TREASURE_ROUTER_CONTRACT_ADDRESS ||
-        ethers.constants.AddressZero,
-    ],
+    proxy: {
+      execute: {
+        init: {
+          methodName: 'initialize',
+          args: [
+            process.env.TREASURE_ROUTER_CONTRACT_ADDRESS ||
+              ethers.constants.AddressZero,
+          ],
+        },
+      },
+    },
     log: true,
     autoMine: true,
   });

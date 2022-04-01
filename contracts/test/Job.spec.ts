@@ -1993,3 +1993,9 @@ describe("JobContract ", function() {
     });
 
 })
+
+describe.only("Upgradeable JobContract ", function() {
+    it('works before and after upgrading', async function () {
+        // TODO
+    });
+});

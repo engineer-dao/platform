@@ -1,13 +1,15 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "./Administratable.sol";
 import "./IJob.sol";
 import "./IDaoTreasury.sol";
 import "./IRouter.sol";
 
-contract DaoTreasury is IDaoTreasury, Ownable {
+contract DaoTreasury is IDaoTreasury, Initializable, Administratable {
     using SafeERC20 for IERC20;
 
     IJob public JobContract;
@@ -15,11 +17,14 @@ contract DaoTreasury is IDaoTreasury, Ownable {
 
     IRouter public Router;
 
-    constructor(address _routerAddr) {
+    function initialize(address _routerAddr) public initializer {
         Router = IRouter(_routerAddr);
+
+        // default the admin to the deployer
+        initializeAdmin(msg.sender);
     }
 
-    function swapAllToStable(uint256 slippage) external onlyOwner {
+    function swapAllToStable(uint256 slippage) external onlyAdmin {
         IERC20[] memory tokens = JobContract.getAllPaymentTokens();
         uint256 balance;
         for (uint256 i = 0; i < tokens.length; i++) {
@@ -35,7 +40,7 @@ contract DaoTreasury is IDaoTreasury, Ownable {
         IERC20 token,
         uint256 tokenAmount,
         uint256 slip
-    ) public onlyOwner {
+    ) public onlyAdmin {
         address[] memory path = new address[](2);
         path[0] = address(token);
         path[1] = address(stableCoin);
@@ -61,21 +66,22 @@ contract DaoTreasury is IDaoTreasury, Ownable {
         IERC20 token,
         uint256 tokenAmount,
         address to
-    ) external onlyOwner {
+    ) external onlyAdmin {
         token.safeTransfer(to, tokenAmount);
     }
 
-    function setJobContract(IJob addr) external onlyOwner {
+    function setJobContract(IJob addr) external onlyAdmin {
         JobContract = IJob(addr);
     }
 
-    function setStableCoin(IERC20 tokenAddr) external onlyOwner {
+    function setStableCoin(IERC20 tokenAddr) external onlyAdmin {
         stableCoin = tokenAddr;
     }
 
-    function setRouter(IRouter routerAddr) external onlyOwner {
+    function setRouter(IRouter routerAddr) external onlyAdmin {
         Router = IRouter(routerAddr);
     }
+
 
     receive() external payable {
         revert("Don't lock your MATIC !");
