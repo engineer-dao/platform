@@ -564,7 +564,7 @@ contract Job is IJob, Initializable, Administratable {
 
     function calculatePayout(uint256 bounty, uint256 fee, uint256 deposit)
         internal
-        view
+        pure
         returns (uint256 payoutAmount, uint256 daoTakeAmount)
     {
         daoTakeAmount = fee;
