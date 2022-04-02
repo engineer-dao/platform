@@ -9,7 +9,7 @@ import "./IRouter.sol";
 contract TestRouter is IRouter {
     using SafeERC20 for IERC20;
 
-    function getAmountsOut(uint256 amountIn, address[] memory path) external view returns (uint256[] memory) {
+    function getAmountsOut(uint256 amountIn, address[] memory path) external pure returns (uint256[] memory) {
         uint256[] memory amounts = new uint256[](2);
 
         amounts[0] = amountIn;
