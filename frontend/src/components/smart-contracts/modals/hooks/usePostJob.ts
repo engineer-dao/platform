@@ -5,6 +5,7 @@ import { useWallet } from 'components/wallet/useWallet';
 import { ContractReceipt, ethers } from 'ethers';
 import { useEffect, useState } from 'react';
 import { pinIpfsJobMetaData } from '../../../../services/ipfs';
+import { useDAOFee } from '../../hooks/useDAOFee';
 
 interface UsePostJobProps {
   formData: ICreateContractForm;
@@ -22,10 +23,13 @@ export const usePostJob = (props: UsePostJobProps) => {
 
   const { contracts } = useSmartContracts();
   const wallet = useWallet();
+  const { daoFee } = useDAOFee();
 
   // the logic called to initiate the transaction
   const callContract = async () => {
-    const bountyWei = ethers.utils.parseUnits(formData.bounty.toString());
+    const bountyPlusFee =
+      Number(formData.bounty) + Number(formData.bounty) * daoFee;
+    const bountyWei = ethers.utils.parseUnits(bountyPlusFee.toString());
     const depositWei = ethers.utils.parseUnits(
       formData.requiredDeposit.toString()
     );
