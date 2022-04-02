@@ -4,10 +4,10 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-import "./Administratable.sol";
+import "hardhat-deploy/solc_0.8/proxy/Proxied.sol";
 import "./IJob.sol";
 
-contract Job is IJob, Initializable, Administratable {
+contract Job is IJob, Proxied, Initializable {
     using SafeERC20 for IERC20;
 
     /*************
@@ -140,7 +140,7 @@ contract Job is IJob, Initializable, Administratable {
         IERC20 _initialToken,
         address _daoTreasury,
         address _resolver
-    ) public initializer {
+    ) public onlyProxyAdmin initializer {
         paymentTokens[_initialToken] = true;
         tokensList.push(_initialToken);
         REPORT_TOKEN = _initialToken;
@@ -166,9 +166,6 @@ contract Job is IJob, Initializable, Administratable {
 
         // 10% - Reward of the bounty given to a successful reporter
         REPORT_REWARD_PERCENT = 1000; // 10%
-
-        // default the admin to the deployer
-        initializeAdmin(msg.sender);
     }
 
     /**********************
@@ -472,7 +469,7 @@ contract Job is IJob, Initializable, Administratable {
     // TODO: what if someone sends a token by mistake to this contract ?
     // TODO: function withdraw
 
-    function updatePaymentTokens(IERC20 token, bool enable) external onlyAdmin {
+    function updatePaymentTokens(IERC20 token, bool enable) external onlyProxyAdmin {
         require(!enable || paymentTokens[token] != true, "Already added !");
         paymentTokens[token] = enable;
         if (enable) {
@@ -485,44 +482,44 @@ contract Job is IJob, Initializable, Administratable {
 
     // TODO: all these functions can either be with a Timelocker or with constrained values (see setJobTimeout).
     // TODO: So that people don't have to trust us
-    function setMinBounty(uint256 newValue) external onlyAdmin {
+    function setMinBounty(uint256 newValue) external onlyProxyAdmin {
         MINIMUM_BOUNTY = newValue;
     }
 
-    function setDaoFee(uint256 newValue) external onlyAdmin {
+    function setDaoFee(uint256 newValue) external onlyProxyAdmin {
         require(newValue <= MAX_DAO_FEE, "Value is too high");
         DAO_FEE = newValue;
     }
 
-    function setResolutionFee(uint256 newValue) external onlyAdmin {
+    function setResolutionFee(uint256 newValue) external onlyProxyAdmin {
         require(newValue <= MAX_RESOLUTION_FEE_PERCENTAGE, "Value is too high");
         RESOLUTION_FEE_PERCENTAGE = newValue;
     }
 
-    function setJobTimeout(uint256 newValue) external onlyAdmin {
+    function setJobTimeout(uint256 newValue) external onlyProxyAdmin {
         require(newValue >= MIN_COMPLETED_TIMEOUT_SECONDS, "Value is too low");
         require(newValue <= MAX_COMPLETED_TIMEOUT_SECONDS, "Value is too high");
         COMPLETED_TIMEOUT_SECONDS = newValue;
     }
 
-    function setDaoTreasury(address addr) external onlyAdmin {
+    function setDaoTreasury(address addr) external onlyProxyAdmin {
         daoTreasury = addr;
     }
 
-    function setResolver(address addr) external onlyAdmin {
+    function setResolver(address addr) external onlyProxyAdmin {
         disputeResolver = addr;
     }
 
-    function setReportDeposit(uint256 newValue) external onlyAdmin {
+    function setReportDeposit(uint256 newValue) external onlyProxyAdmin {
         require(newValue <= MAX_REPORT_DEPOSIT, "Value is too high");
         REPORT_DEPOSIT = newValue;
     }
 
-    function setReportToken(IERC20 newToken) external onlyAdmin {
+    function setReportToken(IERC20 newToken) external onlyProxyAdmin {
         REPORT_TOKEN = newToken;
     }
 
-    function setReportReward(uint256 newPercent) external onlyAdmin {
+    function setReportReward(uint256 newPercent) external onlyProxyAdmin {
         require(newPercent <= MAX_REPORT_REWARD_PERCENT, "Value is too high");
         REPORT_REWARD_PERCENT = newPercent;
     }
