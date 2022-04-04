@@ -20,6 +20,18 @@ contract Job is IJob, Proxied, Initializable {
     // 1% - this is not configurable
     uint256 constant MINIMUM_SPLIT_CHUNK_PERCENTAGE = 100;
 
+    uint256 constant MAX_DAO_FEE = 2500; // 25%
+
+    uint256 constant MAX_RESOLUTION_FEE_PERCENTAGE = 2500; // 25%
+
+    uint256 constant MIN_COMPLETED_TIMEOUT_SECONDS = 3 days;
+    uint256 constant MAX_COMPLETED_TIMEOUT_SECONDS = 30 days;
+
+    uint256 constant MIN_REPORT_DEPOSIT = 10e18; // $10
+    uint256 constant MAX_REPORT_DEPOSIT = 200e18; // $200
+
+    uint256 constant MAX_REPORT_REWARD_PERCENT = 2500; // 25%
+
     /*************
      * Variables *
      *************/
@@ -31,28 +43,21 @@ contract Job is IJob, Proxied, Initializable {
 
     // DAO Fee 10%
     uint256 public DAO_FEE;
-    uint256 constant MAX_DAO_FEE = 2500; // 25%
 
     // Resolution Fee 10%
     uint256 public RESOLUTION_FEE_PERCENTAGE;
-    uint256 constant MAX_RESOLUTION_FEE_PERCENTAGE = 2500; // 25%
 
     // Timeout after job is completed before job is awarded to engineer
     uint256 public COMPLETED_TIMEOUT_SECONDS;
-    uint256 constant MIN_COMPLETED_TIMEOUT_SECONDS = 3 days;
-    uint256 constant MAX_COMPLETED_TIMEOUT_SECONDS = 30 days;
 
     // Deposit required to report a job
     uint256 public REPORT_DEPOSIT;
-    uint256 constant MIN_REPORT_DEPOSIT = 10e18; // $10
-    uint256 constant MAX_REPORT_DEPOSIT = 200e18; // $200
 
     // Type of token used for reporting a job
     IERC20 public REPORT_TOKEN;
 
     // 10% - Reward of the bounty given to a successful reporter
     uint256 public REPORT_REWARD_PERCENT;
-    uint256 constant MAX_REPORT_REWARD_PERCENT = 2500; // 25%
 
     // @notice DAO_FEE sent to this address
     address public daoTreasury;
