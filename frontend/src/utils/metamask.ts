@@ -1,3 +1,5 @@
+import { IAddEthereumChainParameter } from "../interfaces/IAddEthereumChainParameter";
+
 const walletAddToken = async (
   tokenAddress: string,
   tokenSymbol: string,
@@ -23,35 +25,16 @@ const walletAddToken = async (
   }
 };
 
-// from https://docs.metamask.io/guide/rpc-api.html#unrestricted-methods as per EIP-3085
-interface AddEthereumChainParameter {
-  chainId: string; // A 0x-prefixed hexadecimal string
-  chainName: string;
-  nativeCurrency: {
-    name: string;
-    symbol: string; // 2-6 characters long
-    decimals: number; // usually 18
-  };
-  rpcUrls: string[];
-  blockExplorerUrls?: string[];
-  iconUrls?: string[]; // Currently ignored.
-}
-
-// interface WalletError {
-//   code: number;
-//   message: string;
-// }
-
-const defaultAddEthereumChainParameter: AddEthereumChainParameter = {
+const defaultAddEthereumChainParameter: IAddEthereumChainParameter = {
   chainId: String(process.env.REACT_APP_SUPPORTED_CHAIN_ID),
   chainName: String(process.env.REACT_APP_SUPPORTED_CHAIN_NAME),
   nativeCurrency: {
-    name: String(process.env.REACT_APP_SUPPORTED_CHAIN_NATIVE_CURRENCY_NAME),
+    name: String(process.env.REACT_APP_DEFAULT_CURRENCY_NAME),
     symbol: String(
-      process.env.REACT_APP_SUPPORTED_CHAIN_NATIVE_CURRENCY_SYMBOL
+      process.env.REACT_APP_DEFAULT_CURRENCY_SYMBOL
     ),
     decimals: Number(
-      process.env.REACT_APP_SUPPORTED_CHAIN_NATIVE_CURRENCY_DECIMALS
+      process.env.REACT_APP_DEFAULT_CURRENCY_DECIMALS
     ),
   },
   rpcUrls: String(process.env.REACT_APP_RPC_URLS).split(','),
@@ -64,7 +47,7 @@ const defaultAddEthereumChainParameter: AddEthereumChainParameter = {
 };
 
 const walletAddEthereumChain = async (
-  addEthereumChainParameter: AddEthereumChainParameter
+  addEthereumChainParameter: IAddEthereumChainParameter
 ) => {
   try {
     await window.ethereum.request({
@@ -72,12 +55,12 @@ const walletAddEthereumChain = async (
       params: [addEthereumChainParameter],
     });
   } catch (addError) {
-    console.error(2, addError);
+    console.error(addError);
   }
 };
 
 const walletSwitchEthereumChain = async (
-  addEthereumChainParameter: AddEthereumChainParameter
+  addEthereumChainParameter: IAddEthereumChainParameter
 ) => {
   try {
     await window.ethereum.request({
