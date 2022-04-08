@@ -1,6 +1,6 @@
 import { task } from 'hardhat/config';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { Job__factory } from '../typechain';
+// import { Job__factory } from '../typechain';
 
 // ------------------------------------------------------------------------------------------------
 // Proxy Info
@@ -64,6 +64,8 @@ task(
     const delay = minDelay;
 
     // generate calldata
+    const Job__factory = require('../typechain').Job__factory;
+
     const JobABI = Job__factory.abi;
     const jobInterface = new ethers.utils.Interface(JobABI);
     const args = [arg1];
@@ -181,17 +183,18 @@ task(
     const filter = ProxyAdmin.filters.CallScheduled();
     const results = await ProxyAdmin.queryFilter(filter);
 
+    const Job__factory = require('../typechain').Job__factory;
     const JobABI = Job__factory.abi;
     const jobInterface = new ethers.utils.Interface(JobABI);
 
     let resultTexts: string[] = [];
     for (const result of results) {
       const transactionDescription = jobInterface.parseTransaction({
-        data: result.args.data,
-        value: result.args.value,
+        data: result?.args?.data,
+        value: result?.args?.value,
       });
 
-      const operationId = result.args.id;
+      const operationId = result?.args?.id;
       const timestamp = await ProxyAdmin.getTimestamp(operationId);
       const readyDate = timestamp.toNumber() > 1 ? new Date(timestamp.toNumber() * 1000) : '[none]';
 
@@ -200,11 +203,11 @@ task(
       const isDone = await ProxyAdmin.isOperationDone(operationId);
 
       const resultText = `
-            id: ${result.args.id}
-        target: ${result.args.target}
+            id: ${result?.args?.id}
+        target: ${result?.args?.target}
       function: ${transactionDescription.name}
           args: ${transactionDescription.args.toString()}
-         delay: ${result.args.delay}
+         delay: ${result?.args?.delay}
        readyOn: ${readyDate}
      isPending: ${isPending}
        isReady: ${isReady}
