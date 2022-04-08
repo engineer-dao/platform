@@ -13,6 +13,7 @@ import 'hardhat-deploy';
 import 'solidity-coverage';
 
 import "./tasks/test-tokens";
+import "./tasks/proxy";
 
 dotenv.config();
 
@@ -73,7 +74,6 @@ task(
     .addParam("amount", "The amount")
     .addParam("token", "Token address or ETH");
 
-
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
 
@@ -89,13 +89,21 @@ const enableGasReport = !!process.env.REPORT_GAS
 
 const config: HardhatUserConfig = {
     solidity: {
-        version: '0.8.9',
-        settings: {
-            optimizer: {
-                enabled: true,
-                runs: 1000,
+        compilers: [
+            {
+                version: '0.8.9',
+                settings: {
+                    optimizer: {
+                        enabled: true,
+                        runs: 1000,
+                    }
+                }
+            },
+            {
+                version: '0.7.0',
+                settings: {}
             }
-        }
+        ]
     },
     namedAccounts: {
         deployer: {

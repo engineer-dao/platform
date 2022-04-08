@@ -145,7 +145,7 @@ contract Job is IJob, Proxied, Initializable {
         IERC20 _initialToken,
         address _daoTreasury,
         address _resolver
-    ) public onlyProxyAdmin initializer {
+    ) public initializer {
         paymentTokens[_initialToken] = true;
         tokensList.push(_initialToken);
         REPORT_TOKEN = _initialToken;
@@ -671,9 +671,5 @@ contract Job is IJob, Proxied, Initializable {
             tokensList.pop();
         }
         return found;
-    }
-
-    receive() external payable {
-        revert("Native token not accepted");
     }
 }

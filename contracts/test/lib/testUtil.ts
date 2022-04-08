@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat';
 import * as ContractTypes from '../../typechain/index';
-import { Signer, Contract, BigNumber } from 'ethers';
+import { Signer, Contract, BigNumber, BytesLike } from 'ethers';
 import { ERC20 } from "../../typechain/index";
 import { SignerWithAddress } from "hardhat-deploy-ethers/signers";
 import { extractAbi } from "typechain";
@@ -85,10 +85,24 @@ export const deployERC20Token = async (): Promise<ERC20> => {
 };
 
 export const deployJob = async (TestToken: ContractTypes.ERC20, DaoTreasury: ContractTypes.DaoTreasury, resolver: string) => {
-    // deploy the contract
+    const _signers = await signers();
+
+    // deploy the job implementation
     const Job = await ethers.getContractFactory('Job');
-    const job = await Job.deploy(TestToken.address, DaoTreasury.address, resolver);
-    await job.deployed();
+    const jobImplementation = await Job.deploy();
+    await jobImplementation.deployed();
+
+    // deploy the proxy contract
+    const JobProxy = await ethers.getContractFactory('JobProxy');
+    const calldata = [] as BytesLike; // empty calldata
+    const jobProxy = await JobProxy.deploy(jobImplementation.address, _signers.owner.address, calldata);
+
+    // Get the job contract at the proxy address
+    const job = Job.attach(jobProxy.address);
+
+    // initialize the job contract at the proxy address
+    await job.initialize(TestToken.address, DaoTreasury.address, resolver);
+
     return job;
 };
 
