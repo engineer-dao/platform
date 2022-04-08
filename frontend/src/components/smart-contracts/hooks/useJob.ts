@@ -36,27 +36,3 @@ export const useAccountIsJobContractDisputeResolver = (): [
 
   return [isDisputeResolver, jobIsLoading];
 };
-
-export const useAccountIsJobContractOwner = (): [
-  isOwner: boolean,
-  isLoading: boolean
-] => {
-  const { contracts } = useSmartContracts();
-  const { account } = useWallet();
-  const { job, isLoading: jobIsLoading } = useJob();
-  const [isOwner, setIsOwner] = useState(false);
-
-  useEffect(() => {
-    const _checkContractOwner = async () => {
-      if (job) {
-        const owner = await contracts.Job.owner();
-        setIsOwner(addressesMatch(account, owner));
-      }
-    };
-
-    _checkContractOwner();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [job]);
-
-  return [isOwner, jobIsLoading];
-};
