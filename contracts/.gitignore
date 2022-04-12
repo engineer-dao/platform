@@ -8,7 +8,4 @@ typechain
 cache
 artifacts
 
-/deployments/localhost
-/deployments/ropsten
-/deployments/polygon
-/deployments/mumbai
+/deployments/*
