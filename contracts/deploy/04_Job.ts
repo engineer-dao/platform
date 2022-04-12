@@ -4,7 +4,7 @@ import { DeployFunction } from 'hardhat-deploy/types';
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts, network } = hre;
   const { deploy } = deployments;
-  const { deployer, daoTreasury, disputeResolver } = await getNamedAccounts();
+  const { deployer, disputeResolver } = await getNamedAccounts();
 
   let erc20ContractAddress: string;
   if (network.live === false) {
@@ -15,11 +15,24 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     throw new Error(`Unable to deploy to network ${network.name}`);
   }
 
+  // get the proxy admin
+  const proxyAdmin = await deployments.get('ProxyAdmin');
+  const daoTreasury = await deployments.get('DaoTreasury');
+
   await deploy('Job', {
     from: deployer,
-    args: [erc20ContractAddress, daoTreasury, disputeResolver],
+    args: [],
     log: true,
     autoMine: true,
+    proxy: {
+      owner: proxyAdmin.address,
+      execute: {
+        init: {
+          methodName: 'initialize',
+          args: [erc20ContractAddress, daoTreasury.address, disputeResolver],
+        },
+      },
+    },
   });
 };
 

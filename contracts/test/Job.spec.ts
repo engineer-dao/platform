@@ -1988,8 +1988,41 @@ describe("JobContract ", function() {
                   to: JobContract.address,
                   value: ethers.utils.parseEther("1.0"), // Sends exactly 1.0 ether
                 })
-            ).to.be.revertedWith('Native token not accepted');
+            ).to.be.revertedWith('ETHER_REJECTED');
         });
     });
 
 })
+
+describe("Upgradeable JobContract ", function() {
+    it('works before and after upgrading', async function () {
+        const [owner, resolver] = await hre.ethers.getSigners();
+
+        const testToken = await deployERC20Token();
+        const daoTreasury = await deployDaoTreasury();
+        const jobContract = await deployJob(testToken, daoTreasury, resolver.address);
+
+        const JobProxy = await ethers.getContractFactory('JobProxy');
+        const jobContractAsProxy = JobProxy.attach(jobContract.address);
+
+        // set something in the first implementation
+        await jobContract.setMinBounty(testUtil.toBigNum(51))
+        expect(await jobContract.MINIMUM_BOUNTY()).to.equal(testUtil.toBigNum(51));
+
+        // now deploy again
+        const Job = await ethers.getContractFactory('Job');
+        const jobImplementation2 = await Job.deploy();
+        await jobImplementation2.deployed();
+
+        // address is unique
+        expect(jobContract.address).to.not.equal(jobImplementation2.address);
+
+        // update the implementation in the proxy
+        await jobContractAsProxy.upgradeTo(jobImplementation2.address);
+
+        // update something in the second implemenation
+        expect(await jobContract.MINIMUM_BOUNTY()).to.equal(testUtil.toBigNum(51));
+        await jobContract.setMinBounty(testUtil.toBigNum(52))
+        expect(await jobContract.MINIMUM_BOUNTY()).to.equal(testUtil.toBigNum(52));
+    });
+});

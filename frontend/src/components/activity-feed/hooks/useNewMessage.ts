@@ -1,6 +1,5 @@
 import {
   useAccountIsJobContractDisputeResolver,
-  useAccountIsJobContractOwner,
   useJob,
 } from 'components/smart-contracts/hooks/useJob';
 import { useWallet } from 'components/wallet/useWallet';
@@ -13,14 +12,12 @@ export const useAccountCanPostNewMessage = (): [
   const { job, isLoading: jobIsLoading } = useJob();
   const { account } = useWallet();
   const [isDisputeResolver] = useAccountIsJobContractDisputeResolver();
-  const [isOwner] = useAccountIsJobContractOwner();
 
   let canPost = false;
   if (
     addressesMatch(account, job?.supplier) ||
     addressesMatch(account, job?.engineer) ||
-    isDisputeResolver ||
-    isOwner
+    isDisputeResolver
   ) {
     canPost = true;
   }

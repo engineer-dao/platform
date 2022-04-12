@@ -3,10 +3,11 @@ pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import "hardhat-deploy/solc_0.8/proxy/Proxied.sol";
 import "./IJob.sol";
 
-contract Job is IJob, Ownable {
+contract Job is IJob, Proxied, Initializable {
     using SafeERC20 for IERC20;
 
     /*************
@@ -19,39 +20,44 @@ contract Job is IJob, Ownable {
     // 1% - this is not configurable
     uint256 constant MINIMUM_SPLIT_CHUNK_PERCENTAGE = 100;
 
+    uint256 constant MAX_DAO_FEE = 2500; // 25%
+
+    uint256 constant MAX_RESOLUTION_FEE_PERCENTAGE = 2500; // 25%
+
+    uint256 constant MIN_COMPLETED_TIMEOUT_SECONDS = 3 days;
+    uint256 constant MAX_COMPLETED_TIMEOUT_SECONDS = 30 days;
+
+    uint256 constant MIN_REPORT_DEPOSIT = 10e18; // $10
+    uint256 constant MAX_REPORT_DEPOSIT = 200e18; // $200
+
+    uint256 constant MAX_REPORT_REWARD_PERCENT = 2500; // 25%
+
     /*************
      * Variables *
      *************/
 
     // 50 paymentTokens ($50)
-    uint256 public MINIMUM_BOUNTY = 50e18; // $50
+    uint256 public MINIMUM_BOUNTY;
     // 50 paymentTokens ($50)
-    uint256 public MINIMUM_DEPOSIT = 50e18; // $50
+    uint256 public MINIMUM_DEPOSIT;
 
     // DAO Fee 10%
-    uint256 public DAO_FEE = 1000; // 10%
-    uint256 constant MAX_DAO_FEE = 2500; // 25%
+    uint256 public DAO_FEE;
 
     // Resolution Fee 10%
-    uint256 public RESOLUTION_FEE_PERCENTAGE = 600; // 6%
-    uint256 constant MAX_RESOLUTION_FEE_PERCENTAGE = 2500; // 25%
+    uint256 public RESOLUTION_FEE_PERCENTAGE;
 
     // Timeout after job is completed before job is awarded to engineer
-    uint256 public COMPLETED_TIMEOUT_SECONDS = 7 days;
-    uint256 constant MIN_COMPLETED_TIMEOUT_SECONDS = 3 days;
-    uint256 constant MAX_COMPLETED_TIMEOUT_SECONDS = 30 days;
+    uint256 public COMPLETED_TIMEOUT_SECONDS;
 
     // Deposit required to report a job
-    uint256 public REPORT_DEPOSIT = 50e18; // $50
-    uint256 constant MIN_REPORT_DEPOSIT = 10e18; // $10
-    uint256 constant MAX_REPORT_DEPOSIT = 200e18; // $200
+    uint256 public REPORT_DEPOSIT;
 
     // Type of token used for reporting a job
     IERC20 public REPORT_TOKEN;
 
     // 10% - Reward of the bounty given to a successful reporter
-    uint256 public REPORT_REWARD_PERCENT = 1000; // 10%
-    uint256 constant MAX_REPORT_REWARD_PERCENT = 2500; // 25%
+    uint256 public REPORT_REWARD_PERCENT;
 
     // @notice DAO_FEE sent to this address
     address public daoTreasury;
@@ -132,19 +138,39 @@ contract Job is IJob, Ownable {
     event JobDelisted(uint256 indexed jobId, address reporter, string metadataCid);
 
     /***************
-     * Constructor *
+     * Initializer *
      ***************/
 
-    constructor(
+    function initialize(
         IERC20 _initialToken,
         address _daoTreasury,
         address _resolver
-    ) {
+    ) public initializer {
         paymentTokens[_initialToken] = true;
         tokensList.push(_initialToken);
         REPORT_TOKEN = _initialToken;
         daoTreasury = _daoTreasury;
         disputeResolver = _resolver;
+
+        // 50 paymentTokens ($50)
+        MINIMUM_BOUNTY = 50e18; // $50
+        // 50 paymentTokens ($50)
+        MINIMUM_DEPOSIT = 50e18; // $50
+
+        // DAO Fee 10%
+        DAO_FEE = 1000; // 10%
+
+        // Resolution Fee 10%
+        RESOLUTION_FEE_PERCENTAGE = 600; // 6%
+
+        // Timeout after job is completed before job is awarded to engineer
+        COMPLETED_TIMEOUT_SECONDS = 7 days;
+
+        // Deposit required to report a job
+        REPORT_DEPOSIT = 50e18; // $50
+
+        // 10% - Reward of the bounty given to a successful reporter
+        REPORT_REWARD_PERCENT = 1000; // 10%
     }
 
     /**********************
@@ -174,6 +200,8 @@ contract Job is IJob, Ownable {
         require(jobs[jobId].engineer == msg.sender, "Method not available for this caller");
         _;
     }
+
+
 
     /********************
      * Public Functions *
@@ -446,7 +474,7 @@ contract Job is IJob, Ownable {
     // TODO: what if someone sends a token by mistake to this contract ?
     // TODO: function withdraw
 
-    function updatePaymentTokens(IERC20 token, bool enable) external onlyOwner {
+    function updatePaymentTokens(IERC20 token, bool enable) external onlyProxyAdmin {
         require(!enable || paymentTokens[token] != true, "Already added !");
         paymentTokens[token] = enable;
         if (enable) {
@@ -459,44 +487,44 @@ contract Job is IJob, Ownable {
 
     // TODO: all these functions can either be with a Timelocker or with constrained values (see setJobTimeout).
     // TODO: So that people don't have to trust us
-    function setMinBounty(uint256 newValue) external onlyOwner {
+    function setMinBounty(uint256 newValue) external onlyProxyAdmin {
         MINIMUM_BOUNTY = newValue;
     }
 
-    function setDaoFee(uint256 newValue) external onlyOwner {
+    function setDaoFee(uint256 newValue) external onlyProxyAdmin {
         require(newValue <= MAX_DAO_FEE, "Value is too high");
         DAO_FEE = newValue;
     }
 
-    function setResolutionFee(uint256 newValue) external onlyOwner {
+    function setResolutionFee(uint256 newValue) external onlyProxyAdmin {
         require(newValue <= MAX_RESOLUTION_FEE_PERCENTAGE, "Value is too high");
         RESOLUTION_FEE_PERCENTAGE = newValue;
     }
 
-    function setJobTimeout(uint256 newValue) external onlyOwner {
+    function setJobTimeout(uint256 newValue) external onlyProxyAdmin {
         require(newValue >= MIN_COMPLETED_TIMEOUT_SECONDS, "Value is too low");
         require(newValue <= MAX_COMPLETED_TIMEOUT_SECONDS, "Value is too high");
         COMPLETED_TIMEOUT_SECONDS = newValue;
     }
 
-    function setDaoTreasury(address addr) external onlyOwner {
+    function setDaoTreasury(address addr) external onlyProxyAdmin {
         daoTreasury = addr;
     }
 
-    function setResolver(address addr) external onlyOwner {
+    function setResolver(address addr) external onlyProxyAdmin {
         disputeResolver = addr;
     }
 
-    function setReportDeposit(uint256 newValue) external onlyOwner {
+    function setReportDeposit(uint256 newValue) external onlyProxyAdmin {
         require(newValue <= MAX_REPORT_DEPOSIT, "Value is too high");
         REPORT_DEPOSIT = newValue;
     }
 
-    function setReportToken(IERC20 newToken) external onlyOwner {
+    function setReportToken(IERC20 newToken) external onlyProxyAdmin {
         REPORT_TOKEN = newToken;
     }
 
-    function setReportReward(uint256 newPercent) external onlyOwner {
+    function setReportReward(uint256 newPercent) external onlyProxyAdmin {
         require(newPercent <= MAX_REPORT_REWARD_PERCENT, "Value is too high");
         REPORT_REWARD_PERCENT = newPercent;
     }
@@ -538,7 +566,7 @@ contract Job is IJob, Ownable {
 
     function calculatePayout(uint256 bounty, uint256 fee, uint256 deposit)
         internal
-        view
+        pure
         returns (uint256 payoutAmount, uint256 daoTakeAmount)
     {
         daoTakeAmount = fee;
@@ -643,9 +671,5 @@ contract Job is IJob, Ownable {
             tokensList.pop();
         }
         return found;
-    }
-
-    receive() external payable {
-        revert("Native token not accepted");
     }
 }

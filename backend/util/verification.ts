@@ -19,10 +19,6 @@ export const addressIsValidForJobId = async (
     return true;
   }
 
-  if (await isOwner(address)) {
-    return true;
-  }
-
   return false;
 };
 
@@ -31,13 +27,6 @@ export const isDisputeResolver = async (address?: string | null) => {
   const disputeResolver = await Job.disputeResolver();
 
   return addressesMatch(address, disputeResolver);
-};
-
-export const isOwner = async (address?: string | null) => {
-  const Job = getJobContract();
-  const owner = await Job.owner();
-
-  return addressesMatch(address, owner);
 };
 
 export const addressesMatch = (
