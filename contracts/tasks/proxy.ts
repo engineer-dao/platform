@@ -95,7 +95,7 @@ task(
         `
       );
     } else {
-      await ProxyAdmin.schedule(
+      const transactionResult = await ProxyAdmin.schedule(
         jobProxyAddress,
         0,
         callData,
@@ -104,6 +104,7 @@ task(
         delay
       );
       console.log(`Job scheduled with\n--calldata ${callData} --salt ${salt}`);
+      console.log(`completed tx: ${transactionResult.hash}`);
     }
   }
 )
@@ -148,8 +149,9 @@ task(
             `
       );
     } else {
-      await ProxyAdmin.execute(jobProxyAddress, 0, calldata, predecessor, salt);
+      const transactionResult = await ProxyAdmin.execute(jobProxyAddress, 0, calldata, predecessor, salt);
       console.log('executed call');
+      console.log(`Finished with tx: ${transactionResult.hash}`);
     }
   }
 )
@@ -221,23 +223,28 @@ task(
 // Transfer Proxy Ownership
 
 task(
-  'proxy-transfer-ownership',
-  'Transfer Ownership of the proxy to a new address',
+  'transfer-ownership',
+  'Transfer Ownership to a new address',
   async (taskArguments, hre: HardhatRuntimeEnvironment) => {
     const { ethers } = hre;
-    const jobProxyAddress = (taskArguments as any).proxycontract;
+    const privatekey = (taskArguments as any).privatekey;
+    const contractAddress = (taskArguments as any).contractaddress;
     const newOwnerAddress = (taskArguments as any).newowner;
 
-    // build the proxy
-    const JobProxy = await ethers.getContractAt('JobProxy', jobProxyAddress);
+    // build the contract as a JobProxy (but will work for any Ownable contract)
+    const Ownable = await ethers.getContractAt('JobProxy', contractAddress);
+
+    // get the wallet
+    const wallet = new ethers.Wallet(privatekey, ethers.provider);
 
     // transfer ownership
     console.log(`Transfering ownership to ${newOwnerAddress}`);
-    await JobProxy.transferOwnership(newOwnerAddress);
-    console.log('Finished');
+    const transactionResult = await Ownable.connect(wallet).transferOwnership(newOwnerAddress);
+    console.log(`Finished with tx: ${transactionResult.hash}`);
   }
 )
-  .addParam('jobproxy', 'Job proxy contract address')
+  .addParam('privatekey', 'The signing private key')
+  .addParam('contractaddress', 'Contract address')
   .addParam('newowner', 'New owner address');
 
 // ------------------------------------------------------------------------------------------------
@@ -266,7 +273,7 @@ task(
 
     console.log(`renouncing role ${role} from address ${wallet.address}`);
     const transactionResult = await ProxyAdmin.connect(wallet).renounceRole(encodedRole, wallet.address);
-    console.log(`completed tx: ${transactionResult.hash}`);
+    console.log(`Finished with tx: ${transactionResult.hash}`);
   }
 )
   .addParam('privatekey', 'The signing private key')

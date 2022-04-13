@@ -129,11 +129,11 @@ const config: HardhatUserConfig = {
         },
         disputeResolver: {
             default: 2,
-            [NetworkIDs.MAINNET]: process.env.MAINNET_DR_RESOLVER_PRIVATE_KEY ? `privatekey://${process.env.MAINNET_DR_RESOLVER_PRIVATE_KEY}` : 2,
-            [NetworkIDs.ROPSTEN]: process.env.ROPSTEN_DR_RESOLVER_PRIVATE_KEY ? `privatekey://${process.env.ROPSTEN_DR_RESOLVER_PRIVATE_KEY}` : 2,
-            [NetworkIDs.RINKEBY]: process.env.RINKEBY_DR_RESOLVER_PRIVATE_KEY ? `privatekey://${process.env.RINKEBY_DR_RESOLVER_PRIVATE_KEY}` : 2,
-            [NetworkIDs.POLYGON]: process.env.POLYGON_DR_RESOLVER_PRIVATE_KEY ? `privatekey://${process.env.POLYGON_DR_RESOLVER_PRIVATE_KEY}` : 2,
-            [NetworkIDs.MUMBAI]: process.env.MUMBAI_DR_RESOLVER_PRIVATE_KEY ? `privatekey://${process.env.MUMBAI_DR_RESOLVER_PRIVATE_KEY}` : 2,
+            [NetworkIDs.MAINNET]: process.env.MAINNET_DR_RESOLVER_ADDRESS ? process.env.MAINNET_DR_RESOLVER_ADDRESS : 2,
+            [NetworkIDs.ROPSTEN]: process.env.ROPSTEN_DR_RESOLVER_ADDRESS ? process.env.ROPSTEN_DR_RESOLVER_ADDRESS : 2,
+            [NetworkIDs.RINKEBY]: process.env.RINKEBY_DR_RESOLVER_ADDRESS ? process.env.RINKEBY_DR_RESOLVER_ADDRESS : 2,
+            [NetworkIDs.POLYGON]: process.env.POLYGON_DR_RESOLVER_ADDRESS ? process.env.POLYGON_DR_RESOLVER_ADDRESS : 2,
+            [NetworkIDs.MUMBAI]: process.env.MUMBAI_DR_RESOLVER_ADDRESS ? process.env.MUMBAI_DR_RESOLVER_ADDRESS : 2,
         },
     },
     networks: {
