@@ -2,7 +2,6 @@ import { contractDatabaseRef } from 'services/db';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import Cors from 'cors';
 import { utils } from 'ethers';
-import { ref, set, push } from 'firebase/database';
 import { addressesMatch, addressIsValidForJobId } from 'util/verification';
 
 const cors = Cors({
@@ -46,9 +45,9 @@ export default async function handler(
     (await addressIsValidForJobId(verifiedAddress, jobId))
   ) {
     const reference = contractDatabaseRef(`${jobId}/messages`);
-    const postRef = push(reference);
+    const postRef = reference.push();
 
-    await set(postRef, {
+    await postRef.set({
       address,
       message,
       created_at: new Date().toISOString(),

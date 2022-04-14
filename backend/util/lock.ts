@@ -1,4 +1,3 @@
-import { get, runTransaction } from 'firebase/database';
 import { contractDatabaseRef } from 'services/db';
 
 const THROTTLE_DELAY = parseInt(process.env.THROTTLE_DELAY || '3000');
@@ -14,8 +13,8 @@ export const getLock = async (lockName: string, settings?: ISettings) => {
 
   const processTsRef = contractDatabaseRef(lockName);
 
-  while (Date.now() - waitStart < throttleDelay) {
-    const snapshot = await get(processTsRef);
+    while (Date.now() - waitStart < throttleDelay) {
+    const snapshot = await processTsRef.get();
 
     const lastProcessTimestamp = snapshot.val() as number;
     if (isTimedOut(lastProcessTimestamp, throttleDelay)) {
@@ -41,8 +40,7 @@ const isTimedOut = (lastProcessTimestamp: number, throttleDelay: number) => {
 const acquireLock = async (lockName: string, throttleDelay: number) => {
   const processTsRef = contractDatabaseRef(lockName);
 
-  const txResult = await runTransaction(
-    processTsRef,
+  const txResult = await processTsRef.transaction(
     (lastProcessTimestamp) => {
       if (isTimedOut(lastProcessTimestamp, throttleDelay)) {
         lastProcessTimestamp = Date.now();
