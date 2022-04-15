@@ -9,8 +9,7 @@ task(
   'proxy-info',
   'Get proxy information',
   async (taskArguments, hre: HardhatRuntimeEnvironment) => {
-    const { ethers, getNamedAccounts } = hre;
-    const [deployer] = await ethers.getSigners();
+    const { ethers } = hre;
     const contractAddress = (taskArguments as any).proxycontract;
 
     // build the proxy
@@ -44,8 +43,7 @@ task(
   'proxy-admin-schedule',
   'Schedule a call using the job admin contract',
   async (taskArguments, hre: HardhatRuntimeEnvironment) => {
-    const { ethers, getNamedAccounts } = hre;
-    const [deployer] = await ethers.getSigners();
+    const { ethers } = hre;
     const jobProxyAddress = (taskArguments as any).jobproxy;
     const adminContractAddress = (taskArguments as any).admincontract;
     const method = (taskArguments as any).method;
@@ -84,16 +82,20 @@ task(
     if (show) {
       console.log(
         `
-     address target: ${jobProxyAddress}
-      uint256 value: ${0}
-bytes calldata data: ${callData}
-bytes32 predecessor: ${predecessor}
-       bytes32 salt: ${salt}
-      uint256 delay: ${delay}
+     contract address: ${adminContractAddress}
+
+       address target: ${jobProxyAddress}
+        uint256 value: ${0}
+  bytes calldata data: ${callData}
+  bytes32 predecessor: ${predecessor}
+         bytes32 salt: ${salt}
+        uint256 delay: ${delay}
+
+        --calldata ${callData} --salt ${salt}
         `
-      )
+      );
     } else {
-      await ProxyAdmin.schedule(
+      const transactionResult = await ProxyAdmin.schedule(
         jobProxyAddress,
         0,
         callData,
@@ -101,9 +103,8 @@ bytes32 predecessor: ${predecessor}
         salt,
         delay
       );
-      console.log(
-        `Job scheduled with\n--calldata ${callData} --salt ${salt}`
-      );
+      console.log(`Job scheduled with\n--calldata ${callData} --salt ${salt}`);
+      console.log(`completed tx: ${transactionResult.hash}`);
     }
   }
 )
@@ -112,7 +113,7 @@ bytes32 predecessor: ${predecessor}
   .addParam('method', 'Method name')
   .addOptionalParam('arg1', 'Argument One')
   .addOptionalParam('arg2', 'Argument Two')
-  .addFlag("show", "Show transaction data only")
+  .addFlag('show', 'Show transaction data only');
 
 // ------------------------------------------------------------------------------------------------
 // Proxy Admin Execute
@@ -121,8 +122,7 @@ task(
   'proxy-admin-execute',
   'Execute a call using the job admin contract',
   async (taskArguments, hre: HardhatRuntimeEnvironment) => {
-    const { ethers, getNamedAccounts } = hre;
-    const [deployer] = await ethers.getSigners();
+    const { ethers } = hre;
     const jobProxyAddress = (taskArguments as any).jobproxy;
     const adminContractAddress = (taskArguments as any).admincontract;
     const calldata = (taskArguments as any).calldata;
@@ -138,29 +138,28 @@ task(
     const predecessor = ethers.utils.formatBytes32String(''); // empty
 
     if (show) {
-          console.log(
+      console.log(
+        `
+     contract address: ${adminContractAddress}
+
+       address target: ${jobProxyAddress}
+  bytes calldata data: ${calldata}
+  bytes32 predecessor: ${predecessor}
+         bytes32 salt: ${salt}
             `
-     address target: ${jobProxyAddress}
-bytes calldata data: ${calldata}
-bytes32 predecessor: ${predecessor}
-       bytes32 salt: ${salt}
-            `
-          )
+      );
     } else {
-      await ProxyAdmin.execute(jobProxyAddress, 0, calldata, predecessor, salt);
+      const transactionResult = await ProxyAdmin.execute(jobProxyAddress, 0, calldata, predecessor, salt);
       console.log('executed call');
-
+      console.log(`Finished with tx: ${transactionResult.hash}`);
     }
-
-
   }
 )
   .addParam('admincontract', 'Admin contract address')
   .addParam('jobproxy', 'Job proxy contract address')
   .addParam('calldata', 'Call data')
   .addParam('salt', 'Salt')
-  .addFlag("show", "Show transaction data only")
-
+  .addFlag('show', 'Show transaction data only');
 
 // ------------------------------------------------------------------------------------------------
 // Proxy Show Scheduled
@@ -169,8 +168,7 @@ task(
   'proxy-admin-show-scheduled',
   'Show Scheduled calls in the job admin contract',
   async (taskArguments, hre: HardhatRuntimeEnvironment) => {
-    const { ethers, getNamedAccounts } = hre;
-    const [deployer] = await ethers.getSigners();
+    const { ethers } = hre;
     const adminContractAddress = (taskArguments as any).admincontract;
 
     // build the proxy
@@ -196,7 +194,10 @@ task(
 
       const operationId = result?.args?.id;
       const timestamp = await ProxyAdmin.getTimestamp(operationId);
-      const readyDate = timestamp.toNumber() > 1 ? new Date(timestamp.toNumber() * 1000) : '[none]';
+      const readyDate =
+        timestamp.toNumber() > 1
+          ? new Date(timestamp.toNumber() * 1000)
+          : '[none]';
 
       const isReady = await ProxyAdmin.isOperationReady(operationId);
       const isPending = await ProxyAdmin.isOperationPending(operationId);
@@ -217,3 +218,123 @@ task(
     }
   }
 ).addParam('admincontract', 'Admin contract address');
+
+// ------------------------------------------------------------------------------------------------
+// Transfer Proxy Ownership
+
+task(
+  'transfer-ownership',
+  'Transfer Ownership to a new address',
+  async (taskArguments, hre: HardhatRuntimeEnvironment) => {
+    const { ethers } = hre;
+    const privatekey = (taskArguments as any).privatekey;
+    const contractAddress = (taskArguments as any).contractaddress;
+    const newOwnerAddress = (taskArguments as any).newowner;
+
+    // build the contract as a JobProxy (but will work for any Ownable contract)
+    const Ownable = await ethers.getContractAt('JobProxy', contractAddress);
+
+    // get the wallet
+    const wallet = new ethers.Wallet(privatekey, ethers.provider);
+
+    // transfer ownership
+    console.log(`Transfering ownership to ${newOwnerAddress}`);
+    const transactionResult = await Ownable.connect(wallet).transferOwnership(newOwnerAddress);
+    console.log(`Finished with tx: ${transactionResult.hash}`);
+  }
+)
+  .addParam('privatekey', 'The signing private key')
+  .addParam('contractaddress', 'Contract address')
+  .addParam('newowner', 'New owner address');
+
+// ------------------------------------------------------------------------------------------------
+// Renounce admin role
+
+task(
+  'proxy-admin-renounce-admin-role',
+  'Renounce role ownership of the admin proxy',
+  async (taskArguments, hre: HardhatRuntimeEnvironment) => {
+    const { ethers } = hre;
+    const privatekey = (taskArguments as any).privatekey;
+    const adminContractAddress = (taskArguments as any).admincontract;
+    const role = (taskArguments as any).role;
+
+    // build the proxy
+    const ProxyAdmin = await ethers.getContractAt(
+      'ProxyAdmin',
+      adminContractAddress
+    );
+
+    // get the wallet
+    const wallet = new ethers.Wallet(privatekey, ethers.provider);
+
+    // get the role name
+    const encodedRole = await getEncodedRoleAdmin(ProxyAdmin, role);
+
+    console.log(`renouncing role ${role} from address ${wallet.address}`);
+    const transactionResult = await ProxyAdmin.connect(wallet).renounceRole(encodedRole, wallet.address);
+    console.log(`Finished with tx: ${transactionResult.hash}`);
+  }
+)
+  .addParam('privatekey', 'The signing private key')
+  .addParam('admincontract', 'Admin contract address')
+  .addParam(
+    'role',
+    'Role name: TIMELOCK_ADMIN_ROLE | PROPOSER_ROLE | EXECUTOR_ROLE'
+  );
+
+
+// ------------------------------------------------------------------------------------------------
+// check role
+
+task(
+  'proxy-admin-check-role',
+  'Renounce role ownership of the admin proxy',
+  async (taskArguments, hre: HardhatRuntimeEnvironment) => {
+    const { ethers } = hre;
+    const adminContractAddress = (taskArguments as any).admincontract;
+    const address = (taskArguments as any).address;
+    const role = (taskArguments as any).role;
+
+    // build the proxy
+    const ProxyAdmin = await ethers.getContractAt(
+      'ProxyAdmin',
+      adminContractAddress
+    );
+
+    // get the role name
+    const encodedRole = await getEncodedRoleAdmin(ProxyAdmin, role);
+
+    const hasRole = await ProxyAdmin.hasRole(encodedRole, address);
+    console.log(`address ${address} has role ${role}: ${JSON.stringify(hasRole)}`);
+  }
+)
+  .addParam('admincontract', 'Admin contract address')
+  .addParam('address', 'The address to check')
+  .addParam(
+    'role',
+    'Role name: TIMELOCK_ADMIN_ROLE | PROPOSER_ROLE | EXECUTOR_ROLE'
+  );
+
+
+// ------------------------------------------------------------------------------------------------
+
+async function getEncodedRoleAdmin(ProxyAdmin: any, role: string) {
+  let encodedRole = '';
+  switch (role) {
+    case 'TIMELOCK_ADMIN_ROLE':
+      encodedRole = await ProxyAdmin.TIMELOCK_ADMIN_ROLE();
+      break;
+    case 'PROPOSER_ROLE':
+      encodedRole = await ProxyAdmin.PROPOSER_ROLE();
+      break;
+    case 'EXECUTOR_ROLE':
+      encodedRole = await ProxyAdmin.EXECUTOR_ROLE();
+      break;
+
+    default:
+      throw `Unknown role: ${role}`;
+  }
+
+  return encodedRole
+}

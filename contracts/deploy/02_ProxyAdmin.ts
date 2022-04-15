@@ -4,7 +4,7 @@ import { DeployFunction } from 'hardhat-deploy/types';
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts, network } = hre;
   const { deploy } = deployments;
-  const { deployer, daoTreasury, disputeResolver } = await getNamedAccounts();
+  const { deployer } = await getNamedAccounts();
 
   const minDelay = process.env.PROXY_ADMIN_TIMELOCK_DELAY || 604800; // 7 days
   const proposers = [process.env.PROXY_ADMIN_OWNER || deployer];

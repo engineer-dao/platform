@@ -80,6 +80,7 @@ task(
 enum NetworkIDs {
     MAINNET = 1,
     ROPSTEN = 3,
+    RINKEBY = 4,
     POLYGON = 137,
     HARDHAT = 1337,
     MUMBAI = 80001, // Polygon testnet
@@ -100,6 +101,10 @@ const config: HardhatUserConfig = {
                 }
             },
             {
+                version: '0.7.6',
+                settings: {}
+            },
+            {
                 version: '0.7.0',
                 settings: {}
             }
@@ -110,6 +115,7 @@ const config: HardhatUserConfig = {
             default: 0,
             [NetworkIDs.MAINNET]: process.env.MAINNET_DEPLOYER_PRIVATE_KEY ? `privatekey://${process.env.MAINNET_DEPLOYER_PRIVATE_KEY}` : 0,
             [NetworkIDs.ROPSTEN]: process.env.ROPSTEN_DEPLOYER_PRIVATE_KEY ? `privatekey://${process.env.ROPSTEN_DEPLOYER_PRIVATE_KEY}` : 0,
+            [NetworkIDs.RINKEBY]: process.env.RINKEBY_DEPLOYER_PRIVATE_KEY ? `privatekey://${process.env.RINKEBY_DEPLOYER_PRIVATE_KEY}` : 0,
             [NetworkIDs.POLYGON]: process.env.POLYGON_DEPLOYER_PRIVATE_KEY ? `privatekey://${process.env.POLYGON_DEPLOYER_PRIVATE_KEY}` : 0,
             [NetworkIDs.MUMBAI]: process.env.MUMBAI_DEPLOYER_PRIVATE_KEY ? `privatekey://${process.env.MUMBAI_DEPLOYER_PRIVATE_KEY}` : 0,
         },
@@ -117,15 +123,17 @@ const config: HardhatUserConfig = {
             default: 1,
             [NetworkIDs.MAINNET]: process.env.MAINNET_TREASURY_PRIVATE_KEY ? `privatekey://${process.env.MAINNET_TREASURY_PRIVATE_KEY}` : 1,
             [NetworkIDs.ROPSTEN]: process.env.ROPSTEN_TREASURY_PRIVATE_KEY ? `privatekey://${process.env.ROPSTEN_TREASURY_PRIVATE_KEY}` : 1,
+            [NetworkIDs.RINKEBY]: process.env.RINKEBY_TREASURY_PRIVATE_KEY ? `privatekey://${process.env.RINKEBY_TREASURY_PRIVATE_KEY}` : 1,
             [NetworkIDs.POLYGON]: process.env.POLYGON_TREASURY_PRIVATE_KEY ? `privatekey://${process.env.POLYGON_TREASURY_PRIVATE_KEY}` : 1,
             [NetworkIDs.MUMBAI]: process.env.MUMBAI_TREASURY_PRIVATE_KEY ? `privatekey://${process.env.MUMBAI_TREASURY_PRIVATE_KEY}` : 1,
         },
         disputeResolver: {
             default: 2,
-            [NetworkIDs.MAINNET]: process.env.MAINNET_DR_RESOLVER_PRIVATE_KEY ? `privatekey://${process.env.MAINNET_DR_RESOLVER_PRIVATE_KEY}` : 2,
-            [NetworkIDs.ROPSTEN]: process.env.ROPSTEN_DR_RESOLVER_PRIVATE_KEY ? `privatekey://${process.env.ROPSTEN_DR_RESOLVER_PRIVATE_KEY}` : 2,
-            [NetworkIDs.POLYGON]: process.env.POLYGON_DR_RESOLVER_PRIVATE_KEY ? `privatekey://${process.env.POLYGON_DR_RESOLVER_PRIVATE_KEY}` : 2,
-            [NetworkIDs.MUMBAI]: process.env.MUMBAI_DR_RESOLVER_PRIVATE_KEY ? `privatekey://${process.env.MUMBAI_DR_RESOLVER_PRIVATE_KEY}` : 2,
+            [NetworkIDs.MAINNET]: process.env.MAINNET_DR_RESOLVER_ADDRESS ? process.env.MAINNET_DR_RESOLVER_ADDRESS : 2,
+            [NetworkIDs.ROPSTEN]: process.env.ROPSTEN_DR_RESOLVER_ADDRESS ? process.env.ROPSTEN_DR_RESOLVER_ADDRESS : 2,
+            [NetworkIDs.RINKEBY]: process.env.RINKEBY_DR_RESOLVER_ADDRESS ? process.env.RINKEBY_DR_RESOLVER_ADDRESS : 2,
+            [NetworkIDs.POLYGON]: process.env.POLYGON_DR_RESOLVER_ADDRESS ? process.env.POLYGON_DR_RESOLVER_ADDRESS : 2,
+            [NetworkIDs.MUMBAI]: process.env.MUMBAI_DR_RESOLVER_ADDRESS ? process.env.MUMBAI_DR_RESOLVER_ADDRESS : 2,
         },
     },
     networks: {
@@ -144,6 +152,11 @@ const config: HardhatUserConfig = {
             url: process.env.ROPSTEN_RPC_URL || '',
             live: false,
             chainId: NetworkIDs.ROPSTEN,
+        },
+        rinkeby: {
+            url: process.env.RINKEBY_RPC_URL || '',
+            live: false,
+            chainId: NetworkIDs.RINKEBY,
         },
         polygon: {
             url: process.env.POLYGON_RPC_URL || '',
