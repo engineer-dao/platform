@@ -15,7 +15,6 @@
     "cors": "^2.8.5",
     "discord.js": "12.5.3",
     "ethers": "^5.5.4",
-    "firebase": "^9.6.5",
     "firebase-admin": "^10.0.2",
     "next": "12.0.9",
     "node-fetch": "^3.2.2",

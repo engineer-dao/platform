@@ -16,7 +16,6 @@ import {
   JobTimeoutPayoutEvent,
 } from 'contracts-typechain/Job';
 import crypto from 'crypto';
-import { get, remove, set } from 'firebase/database';
 import { IBlockchainEventRef } from 'interfaces/IBlockchainEventRef';
 import { loadAllEvents } from 'services/contract';
 import { contractDatabaseRef } from 'services/db';
@@ -109,7 +108,7 @@ export const removeMissingBlockchainEvents = async (
 ) => {
   // load db uuids
   const allDbEpochBlockRefs = contractDatabaseRef(`epochs/${epochBlock}`);
-  const allDbEpochBlockEventReferences = (await get(allDbEpochBlockRefs)).val();
+  const allDbEpochBlockEventReferences = (await allDbEpochBlockRefs.get()).val();
   const dbUuids = Object.keys(allDbEpochBlockEventReferences || {});
 
   // uuids in the blockchain
@@ -130,21 +129,21 @@ export const removeMissingBlockchainEvents = async (
     const jobId = allDbEpochBlockEventReferences[invalidUuid].id || undefined;
     if (jobId) {
       const eventRef = contractDatabaseRef(`${jobId}/events/${invalidUuid}`);
-      await remove(eventRef);
+      await eventRef.remove();
     }
 
     // now remove the reference
     const epochBlockRef = contractDatabaseRef(
       `epochs/${epochBlock}/${invalidUuid}`
     );
-    await remove(epochBlockRef);
+    await epochBlockRef.remove();
   }
 };
 
 const getLatestSyncedBlock = async () => {
   const syncedBlockRef = contractDatabaseRef(`latest-synced-block`);
 
-  const snapshot = await get(syncedBlockRef);
+  const snapshot = await syncedBlockRef.get();
   return (
     snapshot.val() ||
     parseInt(process.env.JOB_CONTRACT_STARTING_BLOCK_HEIGHT || '1') - 1
@@ -153,7 +152,7 @@ const getLatestSyncedBlock = async () => {
 
 const storeLatestSyncedBlock = async (blockNumber: number) => {
   const syncedBlockRef = contractDatabaseRef(`latest-synced-block`);
-  await set(syncedBlockRef, blockNumber);
+  await syncedBlockRef.set(blockNumber);
   return blockNumber;
 };
 
@@ -279,12 +278,12 @@ const addEventToFirebase = async (
 
   try {
     // add the id to the epoch
-    await set(epochBlockRef, {
+    await epochBlockRef.set({
       id: contractEvent.jobId,
     });
 
     // set the event by uuid
-    await set(eventRef, {
+    await eventRef.set({
       type: contractEvent.event,
       created_at: new Date(blockTimestamp * 1000).toISOString(),
       args: contractEvent.args || null,
