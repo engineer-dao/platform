@@ -8,9 +8,12 @@ export const useJobs = (jobFilter?: IJobFilter) => {
   const { contracts } = useSmartContracts();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [jobs, setJobs] = useState<IJobData[]>([]);
+  const [fetching, setFetching] = useState(false);
 
   useEffect(() => {
     const fetchJobs = async () => {
+      setFetching(true);
+
       const highestJobCount = (await contracts.Job.jobCount()).toNumber();
 
       const allJobs = [] as IJobData[];
@@ -33,10 +36,16 @@ export const useJobs = (jobFilter?: IJobFilter) => {
       return filterJobs(allJobs, jobFilter);
     };
 
-    if (contracts.chainIsSupported) {
+    if (
+      contracts.chainIsSupported &&
+      contracts.Job &&
+      contracts.latestContractEvent &&
+      !fetching
+    ) {
       fetchJobs()
         .then((jobs) => {
           setJobs(jobs);
+          setFetching(false);
           setIsLoading(false);
         })
         .catch(console.error);
