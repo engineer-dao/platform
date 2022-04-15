@@ -1,16 +1,15 @@
-import { get, push, set } from 'firebase/database';
 import { contractDatabaseRef } from './db';
 import { getIPFSData } from './ipfs';
 
 export const getIPFSfromCache = async (cid: string) => {
   const ref = contractDatabaseRef(`ipfs/${cid}`);
 
-  const res = (await get(ref)).val();
+  const res = (await ref.get()).val();
 
   if (!res) {
     const metadata = await (await getIPFSData(cid)).json();
 
-    await set(ref, {
+    await ref.set({
       metadata,
       created_at: new Date().toISOString(),
     });
