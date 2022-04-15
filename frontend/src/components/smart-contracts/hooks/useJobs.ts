@@ -36,12 +36,7 @@ export const useJobs = (jobFilter?: IJobFilter) => {
       return filterJobs(allJobs, jobFilter);
     };
 
-    if (
-      contracts.chainIsSupported &&
-      contracts.Job &&
-      contracts.latestContractEvent &&
-      !fetching
-    ) {
+    if (contracts.chainIsSupported && contracts.Job && !fetching) {
       fetchJobs()
         .then((jobs) => {
           setJobs(jobs);
