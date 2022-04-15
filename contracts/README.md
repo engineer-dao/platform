@@ -30,7 +30,7 @@ To deploy to Ropsten testnet:
 ```shell
 ROPSTEN_DEPLOYER_PRIVATE_KEY=0xac0974bec39fffffffffffffffffffffffffffffffffffffffffffffffffff80 \
 ROPSTEN_TREASURY_PRIVATE_KEY=0x59c6995e998fffffffffffffffffffffffffffffffffffffffffffffffff690d \
-ROPSTEN_DR_RESOLVER_PRIVATE_KEY=0x5de4111afa1afffffffffffffffffffffffffffffffffffffffffffffffff365a \
+ROPSTEN_DR_RESOLVER_ADDRESS=0x000000000000000000000000000000000000000 \
 ROPSTEN_RPC_URL="https://ropsten.infura.io/v3/2fffffffffffffffffffffffffffffe2" \
   npx hardhat deploy --network ropsten
 ```
