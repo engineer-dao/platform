@@ -35,9 +35,11 @@ export const useJobs = (jobFilter?: IJobFilter) => {
 
     if (contracts.chainIsSupported) {
       fetchJobs()
-        .then((jobs) => setJobs(jobs))
-        .catch(console.error)
-        .finally(() => setIsLoading(false));
+        .then((jobs) => {
+          setJobs(jobs);
+          setIsLoading(false);
+        })
+        .catch(console.error);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [

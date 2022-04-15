@@ -1,18 +1,11 @@
 import { Job } from 'contracts-typechain';
 import { BigNumber, ethers } from 'ethers';
-import { CacheKeys } from '../enums/CacheKeys';
-import { IJobCacheEntry } from '../interfaces/IJobCacheEntry';
 import {
   IJobData,
   IJobMetaData,
   IJobSmartContractData,
 } from '../interfaces/IJobData';
 import { IJobFilter } from '../interfaces/IJobFilter';
-import {
-  CACHE_VERSION,
-  loadJobMetaDataFromCache,
-  saveJobToCache,
-} from '../utils/storage';
 import { fetchIpfsMetaData } from './ipfs';
 
 export const fetchJobMetaData = async (
@@ -68,16 +61,11 @@ export const filterJobs = (jobs: IJobData[], jobFilter?: IJobFilter) => {
 };
 
 export const loadJobFromJobId = async (jobId: string, Job: Job) => {
-  // load cached information
-  const cachedJobMetaData = loadJobMetaDataFromCache(jobId);
-
   // always get the job data from the contract as it can change
   const jobContractData = formatJobContractData(await Job.jobs(jobId));
 
   // load job meta data from IPFS if needed
-  const jobMetaData = cachedJobMetaData
-    ? cachedJobMetaData
-    : await fetchJobMetaData(jobId, Job);
+  const jobMetaData = await fetchJobMetaData(jobId, Job);
 
   if (jobMetaData === undefined) {
     return undefined;
@@ -89,16 +77,6 @@ export const loadJobFromJobId = async (jobId: string, Job: Job) => {
     ...jobMetaData,
     paymentTokenName: process.env.REACT_APP_PAYMENT_TOKEN_NAME || '',
   };
-
-  // save to cache
-  if (!cachedJobMetaData) {
-    const newCachedJobEntry: IJobCacheEntry = {
-      [CacheKeys.JOB_META]: jobMetaData,
-      [CacheKeys.VERSION]: CACHE_VERSION,
-      [CacheKeys.TIMESTAMP]: Date.now(),
-    };
-    saveJobToCache(jobId, newCachedJobEntry);
-  }
 
   return assembledJob;
 };

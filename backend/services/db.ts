@@ -22,7 +22,6 @@ const firebaseConfig = {
   appId: process.env.FIREBASE_APP_ID,
 };
 
-
 // make all database key selectors relative to the deployed smart contract
 //   Deploying a new contract will create a fresh database
 export const contractDatabaseRef = (selector: string) => {

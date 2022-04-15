@@ -8,7 +8,7 @@ import SkeletonContractItem from './SkeletonContractItem';
 const ContractsContainer: React.FC = () => {
   const { jobs, isLoading } = useJobs();
 
-  const opacityMap = [100, 90, 80, 70, 60, 50, 40, 30, 20, 10];
+  const opacityMap = [60, 50, 40, 30, 20, 10];
 
   return !isLoading && !jobs.length ? (
     <div>

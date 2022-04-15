@@ -55,7 +55,7 @@ export const pinIpfsReportMetaData = async ({
 
 export const fetchIpfsMetaData = async (cid: string) => {
   const response = await fetch(
-    `${process.env.REACT_APP_API}/api/ipfs/get?cid=${cid}`,
+    `${process.env.REACT_APP_API}/api/cache/get?cid=${cid}`,
     {
       method: 'GET',
       headers: {
@@ -64,5 +64,5 @@ export const fetchIpfsMetaData = async (cid: string) => {
     }
   );
 
-  return (await response.json()).data;
+  return await response.json();
 };
