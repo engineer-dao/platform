@@ -1,6 +1,5 @@
 import { ethers } from 'ethers';
 import EventEmitter from 'events';
-import Fortmatic from 'fortmatic';
 import {
   IWalletState,
   WalletStateActionPayload,
@@ -9,20 +8,7 @@ import { useEffect, useMemo, useReducer, useState } from 'react';
 import Web3Modal, { getInjectedProvider, IProviderInfo } from 'web3modal';
 import { walletReducer } from './WalletReducer';
 
-const fortmaticNetworkOptions = {
-  rpcUrl: 'https://rpc-mainnet.maticvigil.com',
-  chainId: 137,
-};
-
-const providerOptions = {
-  fortmatic: {
-    package: Fortmatic,
-    options: {
-      key: process.env.REACT_APP_FORTMATIC_KEY || 'INVALID_KEY',
-      network: fortmaticNetworkOptions,
-    },
-  },
-};
+const providerOptions = {};
 
 const web3Modal = new Web3Modal({
   network: 'mainnet',
