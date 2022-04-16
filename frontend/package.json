@@ -16,7 +16,6 @@
     "ethers": "^5.5.3",
     "firebase": "^9.6.5",
     "formik": "^2.2.9",
-    "fortmatic": "^2.2.1",
     "highlight.js": "^10.0.3",
     "history": "^5.0.1",
     "prettier": "^2.3.2",
