@@ -11,7 +11,7 @@ export const getWalletBalance = async (account: string) => {
 
 export const shortenAddress = (fullAddress: string) => {
   return (
-    fullAddress.substring(0, 6) +
+    fullAddress.substring(0, 10) +
     '...' +
     fullAddress.substring(fullAddress.length - 4)
   );
