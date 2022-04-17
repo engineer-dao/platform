@@ -3,7 +3,7 @@ import { DeployFunction } from 'hardhat-deploy/types';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts, network } = hre;
-  const { deploy } = deployments;
+  const { deploy, catchUnknownSigner } = deployments;
   const { deployer, disputeResolver } = await getNamedAccounts();
 
   let erc20ContractAddress: string;
@@ -19,21 +19,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const proxyAdmin = await deployments.get('ProxyAdmin');
   const daoTreasury = await deployments.get('DaoTreasury');
 
-  await deploy('Job', {
-    from: deployer,
-    args: [],
-    log: true,
-    autoMine: true,
-    proxy: {
-      owner: proxyAdmin.address,
-      execute: {
-        init: {
-          methodName: 'initialize',
-          args: [erc20ContractAddress, daoTreasury.address, disputeResolver],
+  await catchUnknownSigner(
+    deploy('Job', {
+      from: deployer,
+      args: [],
+      log: true,
+      autoMine: true,
+      proxy: {
+        owner: proxyAdmin.address,
+        execute: {
+          init: {
+            methodName: 'initialize',
+            args: [erc20ContractAddress, daoTreasury.address, disputeResolver],
+          },
         },
       },
-    },
-  });
+    })
+  );
 };
 
 export default func;
