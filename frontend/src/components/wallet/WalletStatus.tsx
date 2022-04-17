@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
 import { utils } from 'ethers';
-import { getWalletBalance, shortenAddress } from 'utils/ethereum';
+import { shortenAddress } from 'utils/ethereum';
 import { useWallet } from './useWallet';
 
 export const WalletConnectionStatus = () => {
@@ -11,17 +10,6 @@ export const WalletConnectionStatus = () => {
     connectToWallet,
     disconnectWallet,
   } = useWallet();
-  const [walletBalance, setWalletBalance] = useState<string | undefined>();
-
-  const getBalance = async (account: string) => {
-    const _balance = await getWalletBalance(account);
-
-    setWalletBalance(_balance.substring(0, 9));
-  };
-
-  useEffect(() => {
-    account && getBalance(account);
-  }, [account]);
 
   return (
     <>
