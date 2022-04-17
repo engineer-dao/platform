@@ -20,7 +20,7 @@ contract Job is IJob, Proxied, Initializable {
     // 1% - this is not configurable
     uint256 constant MINIMUM_SPLIT_CHUNK_PERCENTAGE = 100;
 
-    uint256 constant MAX_DAO_FEE = 2500; // 25%
+    uint256 constant MAX_DAO_FEE = 1500; // 15%
 
     uint256 constant MAX_RESOLUTION_FEE_PERCENTAGE = 2500; // 25%
 
