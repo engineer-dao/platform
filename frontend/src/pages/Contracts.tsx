@@ -1,10 +1,10 @@
 import ContractsContainer from '../components/contracts/ContractsContainer';
-import SortFilterHeading from '../components/SortFilterHeading';
+import ContractsHeading from '../components/ContractsHeading';
 
 const Contracts = () => {
   return (
     <>
-      <SortFilterHeading heading="Contracts" displayCreate />
+      <ContractsHeading heading="Contracts" displayCreate />
       <ContractsContainer />
     </>
   );
