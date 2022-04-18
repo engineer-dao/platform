@@ -14,9 +14,9 @@ function Sidebar(props: ISidebar) {
       <div className="flex flex-col">
         <div className="flex min-h-0 flex-1 flex-col bg-gray-800">
           <div className="flex flex-1 flex-col overflow-y-auto px-2 pt-5 pb-4">
-            <div className="flex flex-shrink-0 items-center px-4">
+            <div className="flex flex-shrink-0 items-center justify-center px-4">
               <h1 className="text-2xl font-extrabold leading-6 tracking-tight text-white sm:text-4xl">
-                EngineerDAO
+                Stable
               </h1>
             </div>
             <div className="px-2 pt-7 pb-1 text-center">

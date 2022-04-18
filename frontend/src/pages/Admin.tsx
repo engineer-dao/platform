@@ -3,7 +3,6 @@ import {
   ClipboardCheckIcon,
   ClipboardIcon,
   HomeIcon,
-  UserGroupIcon,
   BeakerIcon,
 } from '@heroicons/react/outline';
 import Sidebar from '../components/Sidebar';
@@ -42,12 +41,6 @@ export default function Admin() {
       href: SectionPath.myContracts,
       icon: ClipboardCheckIcon,
       current: current(SectionPath.myContracts),
-    },
-    {
-      name: 'Community',
-      href: SectionPath.community,
-      icon: UserGroupIcon,
-      current: current(SectionPath.community),
     },
   ];
 

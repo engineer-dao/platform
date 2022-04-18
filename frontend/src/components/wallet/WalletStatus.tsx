@@ -43,7 +43,8 @@ export const WalletConnectionStatus = () => {
               )}
               <div>
                 {shortenAddress(utils.getAddress(account || ''))}
-                {walletBalance && <> | {walletBalance} ETH</>}
+                <br />
+                <p className="text-xs">Disconnect</p>
               </div>
             </div>
           </button>
