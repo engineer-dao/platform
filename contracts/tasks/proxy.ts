@@ -44,13 +44,13 @@ task(
   'Schedule a call using the job admin contract',
   async (taskArguments, hre: HardhatRuntimeEnvironment) => {
     const { ethers } = hre;
-    const jobProxyAddress = (taskArguments as any).jobproxy;
+    const targetAddress = (taskArguments as any).targetaddress;
     const adminContractAddress = (taskArguments as any).admincontract;
     const method = (taskArguments as any).method;
     const arg1 = (taskArguments as any).arg1;
     const arg2 = (taskArguments as any).arg2;
     const show = (taskArguments as any).show;
-    const asproxy = (taskArguments as any).asproxy;
+    const targetType = resolveABIType((taskArguments as any).targettype);
 
     // build the proxy
     const ProxyAdmin = await ethers.getContractAt(
@@ -69,7 +69,7 @@ task(
 
     // generate calldata
     const contractInterface = new ethers.utils.Interface(
-      resolveJobInterfaceABI(asproxy)
+      resolveInterfaceABI(targetType)
     );
     const callData = contractInterface.encodeFunctionData(method, args);
 
@@ -84,7 +84,7 @@ task(
         `
      contract address: ${adminContractAddress}
 
-       address target: ${jobProxyAddress}
+       address target: ${targetAddress}
         uint256 value: ${0}
   bytes calldata data: ${callData}
   bytes32 predecessor: ${predecessor}
@@ -96,7 +96,7 @@ task(
       );
     } else {
       const transactionResult = await ProxyAdmin.schedule(
-        jobProxyAddress,
+        targetAddress,
         0,
         callData,
         predecessor,
@@ -109,11 +109,11 @@ task(
   }
 )
   .addParam('admincontract', 'Admin contract address')
-  .addParam('jobproxy', 'Job proxy contract address')
+  .addParam('targetaddress', 'Target contract address')
   .addParam('method', 'Method name')
   .addOptionalParam('arg1', 'Argument One')
   .addOptionalParam('arg2', 'Argument Two')
-  .addFlag('asproxy', 'Schedule a proxy method')
+  .addOptionalParam('targettype', 'JOB | JOBPROXY | PROXYADMIN')
   .addFlag('show', 'Show transaction data only');
 
 // ------------------------------------------------------------------------------------------------
@@ -124,7 +124,7 @@ task(
   'Execute a call using the job admin contract',
   async (taskArguments, hre: HardhatRuntimeEnvironment) => {
     const { ethers } = hre;
-    const jobProxyAddress = (taskArguments as any).jobproxy;
+    const targetAddress = (taskArguments as any).targetaddress;
     const adminContractAddress = (taskArguments as any).admincontract;
     const calldata = (taskArguments as any).calldata;
     const salt = (taskArguments as any).salt;
@@ -143,7 +143,7 @@ task(
         `
      contract address: ${adminContractAddress}
 
-       address target: ${jobProxyAddress}
+       address target: ${targetAddress}
   bytes calldata data: ${calldata}
   bytes32 predecessor: ${predecessor}
          bytes32 salt: ${salt}
@@ -151,7 +151,7 @@ task(
       );
     } else {
       const transactionResult = await ProxyAdmin.execute(
-        jobProxyAddress,
+        targetAddress,
         0,
         calldata,
         predecessor,
@@ -163,7 +163,7 @@ task(
   }
 )
   .addParam('admincontract', 'Admin contract address')
-  .addParam('jobproxy', 'Job proxy contract address')
+  .addParam('targetaddress', 'Target contract address')
   .addParam('calldata', 'Call data')
   .addParam('salt', 'Salt')
   .addFlag('show', 'Show transaction data only');
@@ -177,7 +177,6 @@ task(
   async (taskArguments, hre: HardhatRuntimeEnvironment) => {
     const { ethers } = hre;
     const adminContractAddress = (taskArguments as any).admincontract;
-    const asproxy = (taskArguments as any).asproxy;
 
     // build the proxy
     const ProxyAdmin = await ethers.getContractAt(
@@ -189,16 +188,47 @@ task(
     const filter = ProxyAdmin.filters.CallScheduled();
     const results = await ProxyAdmin.queryFilter(filter);
 
-    const contractInterface = new ethers.utils.Interface(
-      resolveJobInterfaceABI(asproxy)
+    const jobContractInterface = new ethers.utils.Interface(
+      resolveInterfaceABI(ABIType.JOB)
+    );
+    const proxyContractInterface = new ethers.utils.Interface(
+      resolveInterfaceABI(ABIType.JOBPROXY)
+    );
+    const jobAdminContractInterface = new ethers.utils.Interface(
+      resolveInterfaceABI(ABIType.PROXYADMIN)
     );
 
     let resultTexts: string[] = [];
     for (const result of results) {
-      const transactionDescription = contractInterface.parseTransaction({
-        data: result?.args?.data,
-        value: result?.args?.value,
-      });
+      let transactionDescription;
+
+      // try the job contract
+      try {
+        transactionDescription = jobContractInterface.parseTransaction({
+          data: result?.args?.data,
+          value: result?.args?.value,
+        });
+      } catch (e) {
+        // try the job proxy contract
+        try {
+          transactionDescription = proxyContractInterface.parseTransaction({
+            data: result?.args?.data,
+            value: result?.args?.value,
+          });
+        } catch (e) {
+          // lastly, try the proxy admin itself contract
+          try {
+            transactionDescription = jobAdminContractInterface.parseTransaction(
+              {
+                data: result?.args?.data,
+                value: result?.args?.value,
+              }
+            );
+          } catch (e) {
+            throw 'Unable to resolve this type of transaction call';
+          }
+        }
+      }
 
       const operationId = result?.args?.id;
       const timestamp = await ProxyAdmin.getTimestamp(operationId);
@@ -225,12 +255,7 @@ task(
       console.log(resultText);
     }
   }
-)
-  .addParam('admincontract', 'Admin contract address')
-  .addFlag(
-    'asproxy',
-    'Show a proxy method and not a job implementation method'
-  );
+).addParam('admincontract', 'Admin contract address');
 
 // ------------------------------------------------------------------------------------------------
 // Proxy Admin Decode Calldata
@@ -241,11 +266,11 @@ task(
   async (taskArguments, hre: HardhatRuntimeEnvironment) => {
     const { ethers } = hre;
     const calldata = (taskArguments as any).calldata;
-    const asproxy = (taskArguments as any).asproxy;
+    const targetType = resolveABIType((taskArguments as any).targettype);
 
     // get the contract interface
     const contractInterface = new ethers.utils.Interface(
-      resolveJobInterfaceABI(asproxy)
+      resolveInterfaceABI(targetType)
     );
 
     // decode the contract call
@@ -265,10 +290,7 @@ function: ${transactionDescription.name}
   }
 )
   .addParam('calldata', 'Call data')
-  .addFlag(
-    'asproxy',
-    'Decode a proxy method and not a job implementation method'
-  );
+  .addOptionalParam('targettype', 'JOB | JOBPROXY | PROXYADMIN');
 
 // ------------------------------------------------------------------------------------------------
 // Transfer Proxy Ownership
@@ -396,12 +418,35 @@ async function getEncodedRoleAdmin(ProxyAdmin: any, role: string) {
   return encodedRole;
 }
 
-function resolveJobInterfaceABI(asproxy: boolean) {
-  if (asproxy) {
+enum ABIType {
+  JOB,
+  JOBPROXY,
+  PROXYADMIN,
+}
+
+function resolveABIType(type: string) {
+  switch (type) {
+    case 'JOBPROXY':
+      return ABIType.JOBPROXY;
+    case 'PROXYADMIN':
+      return ABIType.PROXYADMIN;
+    default:
+      // default to JOB type
+      return ABIType.JOB;
+  }
+}
+
+function resolveInterfaceABI(type: ABIType) {
+  if (type == ABIType.JOB) {
+    const Job__factory = require('../typechain').Job__factory;
+    return Job__factory.abi;
+  }
+  if (type == ABIType.JOBPROXY) {
     const JobProxy__factory = require('../typechain').JobProxy__factory;
     return JobProxy__factory.abi;
   }
-
-  const Job__factory = require('../typechain').Job__factory;
-  return Job__factory.abi;
+  if (type == ABIType.PROXYADMIN) {
+    const Job__factory = require('../typechain').ProxyAdmin__factory;
+    return Job__factory.abi;
+  }
 }
