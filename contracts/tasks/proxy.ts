@@ -50,6 +50,7 @@ task(
     const arg1 = (taskArguments as any).arg1;
     const arg2 = (taskArguments as any).arg2;
     const show = (taskArguments as any).show;
+    const asproxy = (taskArguments as any).asproxy;
 
     // build the proxy
     const ProxyAdmin = await ethers.getContractAt(
@@ -61,17 +62,16 @@ task(
     const minDelay = await ProxyAdmin.getMinDelay();
     const delay = minDelay;
 
-    // generate calldata
-    const Job__factory = require('../typechain').Job__factory;
-
-    const JobABI = Job__factory.abi;
-    const jobInterface = new ethers.utils.Interface(JobABI);
     const args = [arg1];
     if (arg2 != null) {
       args.push(arg2);
     }
 
-    const callData = jobInterface.encodeFunctionData(method, args);
+    // generate calldata
+    const contractInterface = new ethers.utils.Interface(
+      resolveJobInterfaceABI(asproxy)
+    );
+    const callData = contractInterface.encodeFunctionData(method, args);
 
     // predecessor and salt
     const predecessor = ethers.utils.formatBytes32String(''); // empty
@@ -113,6 +113,7 @@ task(
   .addParam('method', 'Method name')
   .addOptionalParam('arg1', 'Argument One')
   .addOptionalParam('arg2', 'Argument Two')
+  .addFlag('asproxy', 'Schedule a proxy method')
   .addFlag('show', 'Show transaction data only');
 
 // ------------------------------------------------------------------------------------------------
@@ -149,7 +150,13 @@ task(
             `
       );
     } else {
-      const transactionResult = await ProxyAdmin.execute(jobProxyAddress, 0, calldata, predecessor, salt);
+      const transactionResult = await ProxyAdmin.execute(
+        jobProxyAddress,
+        0,
+        calldata,
+        predecessor,
+        salt
+      );
       console.log('executed call');
       console.log(`Finished with tx: ${transactionResult.hash}`);
     }
@@ -170,6 +177,7 @@ task(
   async (taskArguments, hre: HardhatRuntimeEnvironment) => {
     const { ethers } = hre;
     const adminContractAddress = (taskArguments as any).admincontract;
+    const asproxy = (taskArguments as any).asproxy;
 
     // build the proxy
     const ProxyAdmin = await ethers.getContractAt(
@@ -181,13 +189,13 @@ task(
     const filter = ProxyAdmin.filters.CallScheduled();
     const results = await ProxyAdmin.queryFilter(filter);
 
-    const Job__factory = require('../typechain').Job__factory;
-    const JobABI = Job__factory.abi;
-    const jobInterface = new ethers.utils.Interface(JobABI);
+    const contractInterface = new ethers.utils.Interface(
+      resolveJobInterfaceABI(asproxy)
+    );
 
     let resultTexts: string[] = [];
     for (const result of results) {
-      const transactionDescription = jobInterface.parseTransaction({
+      const transactionDescription = contractInterface.parseTransaction({
         data: result?.args?.data,
         value: result?.args?.value,
       });
@@ -217,7 +225,50 @@ task(
       console.log(resultText);
     }
   }
-).addParam('admincontract', 'Admin contract address');
+)
+  .addParam('admincontract', 'Admin contract address')
+  .addFlag(
+    'asproxy',
+    'Show a proxy method and not a job implementation method'
+  );
+
+// ------------------------------------------------------------------------------------------------
+// Proxy Admin Decode Calldata
+
+task(
+  'proxy-admin-decode-calldata',
+  'Decode calldata from the job admin contract',
+  async (taskArguments, hre: HardhatRuntimeEnvironment) => {
+    const { ethers } = hre;
+    const calldata = (taskArguments as any).calldata;
+    const asproxy = (taskArguments as any).asproxy;
+
+    // get the contract interface
+    const contractInterface = new ethers.utils.Interface(
+      resolveJobInterfaceABI(asproxy)
+    );
+
+    // decode the contract call
+    const transactionDescription = contractInterface.parseTransaction({
+      data: calldata,
+      value: 0,
+    });
+
+    const resultText = `
+----------------------------------------------------------
+Decoded calldata
+----------------------------------------------------------
+function: ${transactionDescription.name}
+    args: ${transactionDescription.args.toString()}
+    `;
+    console.log(resultText);
+  }
+)
+  .addParam('calldata', 'Call data')
+  .addFlag(
+    'asproxy',
+    'Decode a proxy method and not a job implementation method'
+  );
 
 // ------------------------------------------------------------------------------------------------
 // Transfer Proxy Ownership
@@ -239,7 +290,9 @@ task(
 
     // transfer ownership
     console.log(`Transfering ownership to ${newOwnerAddress}`);
-    const transactionResult = await Ownable.connect(wallet).transferOwnership(newOwnerAddress);
+    const transactionResult = await Ownable.connect(wallet).transferOwnership(
+      newOwnerAddress
+    );
     console.log(`Finished with tx: ${transactionResult.hash}`);
   }
 )
@@ -272,7 +325,10 @@ task(
     const encodedRole = await getEncodedRoleAdmin(ProxyAdmin, role);
 
     console.log(`renouncing role ${role} from address ${wallet.address}`);
-    const transactionResult = await ProxyAdmin.connect(wallet).renounceRole(encodedRole, wallet.address);
+    const transactionResult = await ProxyAdmin.connect(wallet).renounceRole(
+      encodedRole,
+      wallet.address
+    );
     console.log(`Finished with tx: ${transactionResult.hash}`);
   }
 )
@@ -282,7 +338,6 @@ task(
     'role',
     'Role name: TIMELOCK_ADMIN_ROLE | PROPOSER_ROLE | EXECUTOR_ROLE'
   );
-
 
 // ------------------------------------------------------------------------------------------------
 // check role
@@ -306,7 +361,9 @@ task(
     const encodedRole = await getEncodedRoleAdmin(ProxyAdmin, role);
 
     const hasRole = await ProxyAdmin.hasRole(encodedRole, address);
-    console.log(`address ${address} has role ${role}: ${JSON.stringify(hasRole)}`);
+    console.log(
+      `address ${address} has role ${role}: ${JSON.stringify(hasRole)}`
+    );
   }
 )
   .addParam('admincontract', 'Admin contract address')
@@ -316,8 +373,8 @@ task(
     'Role name: TIMELOCK_ADMIN_ROLE | PROPOSER_ROLE | EXECUTOR_ROLE'
   );
 
-
 // ------------------------------------------------------------------------------------------------
+// support functions
 
 async function getEncodedRoleAdmin(ProxyAdmin: any, role: string) {
   let encodedRole = '';
@@ -336,5 +393,15 @@ async function getEncodedRoleAdmin(ProxyAdmin: any, role: string) {
       throw `Unknown role: ${role}`;
   }
 
-  return encodedRole
+  return encodedRole;
+}
+
+function resolveJobInterfaceABI(asproxy: boolean) {
+  if (asproxy) {
+    const JobProxy__factory = require('../typechain').JobProxy__factory;
+    return JobProxy__factory.abi;
+  }
+
+  const Job__factory = require('../typechain').Job__factory;
+  return Job__factory.abi;
 }
