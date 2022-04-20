@@ -16,7 +16,12 @@ const TextArea: React.FC<ITextAreaProps> = (props) => {
   return (
     <>
       <label className="block text-sm font-medium text-gray-700">
-        {label}
+        <div className="flex w-full content-end justify-between">
+          <span>{label}</span>
+          <span className="self-end text-xs font-light italic text-gray-500">
+            Markdown supported 🎉
+          </span>
+        </div>
         <Field
           component="textarea"
           name={id}
