@@ -3,7 +3,6 @@ import Cors from 'cors';
 import { utils } from 'ethers';
 import { pinata } from '../../../services/ipfs';
 import { middleware } from '../../../middleware/middleware';
-import { postReport, postToSupportChannel } from '../../../services/discord';
 
 const MAX_MESSAGE_SIZE = parseInt(process.env.MAX_MESSAGE_SIZE || '4096');
 
@@ -49,8 +48,6 @@ export default async function handler(
     return res.status(422).json({ message: 'Missing or invalid address' });
   }
   const address = utils.getAddress(addressString);
-
-  postReport(raw.jobUrl, raw.reason);
 
   // pin the content to IPFS
   const result = await pinata.pinJSONToIPFS(

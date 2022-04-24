@@ -19,6 +19,7 @@ import crypto from 'crypto';
 import { IBlockchainEventRef } from 'interfaces/IBlockchainEventRef';
 import { loadAllEvents } from 'services/contract';
 import { contractDatabaseRef } from 'services/db';
+import { shouldNotifyAboutEvent, notifyEvent } from 'services/discord';
 import { getBlockTimestamp, getLatestBlockHeight } from 'services/ethereum';
 import { blockNumberToBlockEpoch, groupBlocksByEpoch } from 'util/blockEpoch';
 import { getLock } from 'util/lock';
@@ -34,6 +35,11 @@ interface IContractEvent {
   event: string;
   jobId: string;
   args?: any;
+}
+
+interface INotificationRef {
+  uuid: string;
+  messageParameters: IContractEvent;
 }
 
 export const syncContractEvents = async () => {
@@ -72,6 +78,7 @@ const syncContractEventsInBlockRange = async (
   for (let [epochBlock, epochEndBlock] of epochBlocks) {
     // track all found blockchain events
     const blockchainEventRefs: IBlockchainEventRef[] = [];
+    const notificationEventRefs: INotificationRef[] = [];
 
     // load all events in this epoch from the blockchain
     //   1-1000, 1001-2000, etc...
@@ -80,6 +87,9 @@ const syncContractEventsInBlockRange = async (
       if (messageParameters) {
         const uuid = await addEventToFirebase(messageParameters, epochBlock);
         if (uuid) {
+          // save the event notificatoin
+          notificationEventRefs.push({ uuid, messageParameters });
+
           blockchainEventRefs.push({
             uuid,
             id: messageParameters.jobId,
@@ -88,6 +98,9 @@ const syncContractEventsInBlockRange = async (
         }
       }
     }
+
+    // notify all events in Discord
+    await notifyAllEventsOnce(notificationEventRefs);
 
     // remove all events that were not found
     await removeMissingBlockchainEvents(
@@ -108,7 +121,9 @@ export const removeMissingBlockchainEvents = async (
 ) => {
   // load db uuids
   const allDbEpochBlockRefs = contractDatabaseRef(`epochs/${epochBlock}`);
-  const allDbEpochBlockEventReferences = (await allDbEpochBlockRefs.get()).val();
+  const allDbEpochBlockEventReferences = (
+    await allDbEpochBlockRefs.get()
+  ).val();
   const dbUuids = Object.keys(allDbEpochBlockEventReferences || {});
 
   // uuids in the blockchain
@@ -217,7 +232,8 @@ const buildEventMessageParameters = (untypedEvent: TypedEvent<any>) => {
         untypedEvent,
         (untypedEvent as JobDisputeResolvedEvent).args.jobId.toString(),
         {
-          engineerAmountPct: (untypedEvent as JobDisputeResolvedEvent).args.engineerAmountPct,
+          engineerAmountPct: (untypedEvent as JobDisputeResolvedEvent).args
+            .engineerAmountPct,
         }
       );
 
@@ -230,7 +246,10 @@ const buildEventMessageParameters = (untypedEvent: TypedEvent<any>) => {
     case 'JobReported':
       return buildContractEvent(
         untypedEvent,
-        (untypedEvent as JobReportedEvent).args.jobId.toString()
+        (untypedEvent as JobReportedEvent).args.jobId.toString(),
+        {
+          metadataCid: (untypedEvent as JobReportedEvent).args.metadataCid,
+        }
       );
 
     case 'JobReportDeclined':
@@ -293,6 +312,43 @@ const addEventToFirebase = async (
   } catch (e) {
     // an error occurred
     console.error('error: ', e);
+  }
+};
+
+const notifyAllEventsOnce = async (
+  notificationEventRefs: INotificationRef[]
+) => {
+  for (const notificationEventRef of notificationEventRefs) {
+    await notifyEventOnce(
+      notificationEventRef.uuid,
+      notificationEventRef.messageParameters
+    );
+  }
+};
+
+const notifyEventOnce = async (
+  uuid: string,
+  messageParameters: IContractEvent
+) => {
+  if (shouldNotifyAboutEvent(messageParameters.event)) {
+    const shortHash = messageParameters.transactionHash.substring(
+      messageParameters.transactionHash.length - 20
+    );
+    const notifyUuid = `${shortHash}-${messageParameters.logIndex}`;
+    const notifyRef = contractDatabaseRef(`notifications/${notifyUuid}`);
+    const alreadyNotified = (await notifyRef.get()).val();
+    if (!alreadyNotified) {
+      // notify in Discord
+      await notifyEvent(
+        messageParameters.event,
+        messageParameters.args,
+        messageParameters.blockNumber,
+        messageParameters.jobId
+      );
+
+      // remember that we notified
+      notifyRef.set(true);
+    }
   }
 };
 
