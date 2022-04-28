@@ -139,7 +139,8 @@ const Dashboard = () => {
           onConfirmed={() => {}}
           show={showFaucet}
           callContract={async () => {
-            return contracts.TestERC20?.requestTokens();
+            await contracts.TestENGI?.requestTokens();
+            return await contracts.TestUSDC?.requestTokens();
           }}
           onFinish={() => {
             setShowFaucet(false);

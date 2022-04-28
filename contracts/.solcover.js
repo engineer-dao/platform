@@ -1,4 +1,9 @@
 module.exports = {
   configureYulOptimizer: true,
-  skipFiles: ['TestERC20.sol', 'TestRouter.sol', 'ProxyAdmin.sol'],
+  skipFiles: [
+    'TestUSDC.sol',
+    'TestENGI.sol',
+    'TestRouter.sol',
+    'ProxyAdmin.sol',
+  ],
 };

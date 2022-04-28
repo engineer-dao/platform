@@ -78,7 +78,7 @@ export const deployTestRouter = async () => {
 
 export const deployERC20Token = async (): Promise<ERC20> => {
     const testToken = await (
-        await ethers.getContractFactory('TestERC20')
+        await ethers.getContractFactory('TestUSDC')
     ).deploy();
     await testToken.deployed();
     return testToken;

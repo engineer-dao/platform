@@ -1,3 +1,4 @@
+import { SupportedTokens } from '../../../enums/SupportedTokens';
 import { IListBoxItem } from '../../../interfaces/IListBoxItem';
 
 export interface ICreateContractForm {
@@ -11,4 +12,5 @@ export interface ICreateContractForm {
   acceptanceTests: IListBoxItem[];
   requiredDeposit: string;
   endDate: string;
+  token: SupportedTokens;
 }

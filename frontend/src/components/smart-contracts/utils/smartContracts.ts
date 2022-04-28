@@ -2,7 +2,8 @@ import { SmartContractAddresses } from 'components/smart-contracts/SmartContract
 import {
   ERC20__factory,
   Job__factory,
-  TestERC20__factory,
+  TestENGI__factory,
+  TestUSDC__factory,
 } from 'contracts-typechain';
 import { ethers } from 'ethers';
 import { ISmartContractState } from 'interfaces/ISmartContractState';
@@ -43,12 +44,18 @@ export const buildSmartContractState = (wallet: IWalletState) => {
     isERC20Approved: false,
     latestContractEvent: '',
     ERC20: ERC20__factory.connect(
-      SmartContractAddresses.PaymentToken,
+      SmartContractAddresses.ENGITokenAddress,
       smartContractProvider
     ),
-    TestERC20: isTestingEnvironment()
-      ? TestERC20__factory.connect(
-          SmartContractAddresses.PaymentToken,
+    TestENGI: isTestingEnvironment()
+      ? TestENGI__factory.connect(
+          SmartContractAddresses.ENGITokenAddress,
+          smartContractProvider
+        )
+      : undefined,
+    TestUSDC: isTestingEnvironment()
+      ? TestUSDC__factory.connect(
+          SmartContractAddresses.USDCTokenAddress,
           smartContractProvider
         )
       : undefined,

@@ -1,4 +1,4 @@
-import { ERC20, TestERC20, Job } from 'contracts-typechain';
+import { ERC20, Job, TestUSDC, TestENGI } from 'contracts-typechain';
 
 export interface ISmartContractState {
   isERC20Approved: boolean;
@@ -7,5 +7,6 @@ export interface ISmartContractState {
   latestContractEvent: string;
   Job: Job;
   ERC20: ERC20;
-  TestERC20?: TestERC20;
+  TestENGI?: TestENGI;
+  TestUSDC?: TestUSDC;
 }

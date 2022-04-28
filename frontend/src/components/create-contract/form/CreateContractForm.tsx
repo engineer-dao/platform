@@ -17,6 +17,7 @@ import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { createFormSchema } from './ValidationSchema';
 import { useSmartContracts } from '../../smart-contracts/hooks/useSmartContracts';
+import { SupportedTokens } from '../../../enums/SupportedTokens';
 
 const CreateContractForm = () => {
   const tokenName = process.env.REACT_APP_PAYMENT_TOKEN_NAME;
@@ -31,6 +32,7 @@ const CreateContractForm = () => {
     acceptanceTests: [],
     requiredDeposit: '',
     endDate: '',
+    token: SupportedTokens.USDC,
   };
 
   const history = useHistory();

@@ -4,6 +4,7 @@ import { SmartContractAddresses } from 'components/smart-contracts/SmartContract
 import { useWallet } from 'components/wallet/useWallet';
 import { ContractReceipt, ethers } from 'ethers';
 import { useEffect, useState } from 'react';
+import { SupportedTokens } from '../../../../enums/SupportedTokens';
 import { pinIpfsJobMetaData } from '../../../../services/ipfs';
 import { useDAOFee } from '../../hooks/useDAOFee';
 
@@ -33,9 +34,12 @@ export const usePostJob = (props: UsePostJobProps) => {
     const depositWei = ethers.utils.parseUnits(
       formData.requiredDeposit.toString()
     );
+    const token = formData.token;
 
     return contracts.Job.postJob(
-      SmartContractAddresses.PaymentToken,
+      token === SupportedTokens.ENGI
+        ? SmartContractAddresses.ENGITokenAddress
+        : SmartContractAddresses.USDCTokenAddress,
       bountyWei,
       depositWei,
       IPFSCid
