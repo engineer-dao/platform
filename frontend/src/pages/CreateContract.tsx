@@ -14,7 +14,9 @@ export const CreateContract = () => {
         Create Contract
       </h3>
       {!account ? <RequireWalletDialog /> : null}
-      {account && !contracts?.isERC20Approved ? <ApproveTokenDialog /> : null}
+      {account && !contracts?.isENGIApproved && !contracts?.isUSDCApproved ? (
+        <ApproveTokenDialog />
+      ) : null}
       <CreateContractForm />
     </>
   );

@@ -17,6 +17,7 @@ import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { createFormSchema } from './ValidationSchema';
 import { useSmartContracts } from '../../smart-contracts/hooks/useSmartContracts';
+import { SupportedTokens } from '../../../enums/SupportedTokens';
 
 const CreateContractForm = () => {
   const tokenName = process.env.REACT_APP_PAYMENT_TOKEN_NAME;
@@ -31,6 +32,7 @@ const CreateContractForm = () => {
     acceptanceTests: [],
     requiredDeposit: '',
     endDate: '',
+    token: SupportedTokens.ENGI,
   };
 
   const history = useHistory();
@@ -122,7 +124,6 @@ const CreateContractForm = () => {
                       label="Bounty"
                       placeholder="1000"
                       min={50}
-                      tokenName={tokenName}
                     />
                   </div>
                   <div className="col-span-2">
@@ -131,7 +132,6 @@ const CreateContractForm = () => {
                       placeholder="0.3"
                       min={50}
                       label="Buy-In"
-                      tokenName={tokenName}
                     />
                   </div>
                   <div className="col-span-2">

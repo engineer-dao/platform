@@ -6,10 +6,12 @@ import { BigNumber, ethers } from 'ethers';
 import { ISmartContractState } from 'interfaces/ISmartContractState';
 import { IWalletState } from 'interfaces/IWalletState';
 import { useMemo, useState } from 'react';
+import { SupportedTokens } from '../../../enums/SupportedTokens';
 
 export const useERC20Approval = (
   wallet: IWalletState,
-  contracts: ISmartContractState
+  contracts: ISmartContractState,
+  token: SupportedTokens
 ) => {
   const [isERC20Approved, setIsERC20Approved] = useState(false);
   const [queryComplete, setApprovalQueryComplete] = useState(false);
@@ -22,7 +24,7 @@ export const useERC20Approval = (
   const lookupERC20ApprovalOnce = async () => {
     const approved = await lookupERC20Approval(
       wallet.account || '',
-      contracts.ERC20
+      token === SupportedTokens.ENGI ? contracts.TestENGI : contracts.TestUSDC
     );
     if (approved !== isERC20Approved) {
       setIsERC20Approved(approved);
@@ -64,7 +66,7 @@ const useERC20ApprovalEventsFilter = (
   };
 
   // listen for events
-  const filter = contracts.ERC20.filters.Approval(
+  const filter = contracts.TestENGI?.filters.Approval(
     wallet.account || ethers.constants.AddressZero,
     SmartContractAddresses.Job
   );

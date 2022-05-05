@@ -3,8 +3,9 @@ import { SmartContractContext } from 'components/smart-contracts/SmartContractCo
 import { buildSmartContractState } from 'components/smart-contracts/utils/smartContracts';
 import { ISmartContractState } from 'interfaces/ISmartContractState';
 import { useWallet } from 'components/wallet/useWallet';
-import { useERC20Approval } from 'components/smart-contracts/hooks/useERC20Events';
+import { useERC20Approval } from 'components/smart-contracts/hooks/useENGIEvents';
 import { useContractEvents } from 'components/smart-contracts/hooks/useContractEvents';
+import { SupportedTokens } from '../../enums/SupportedTokens';
 
 export const SmartContractsProvider = ({
   children,
@@ -20,10 +21,15 @@ export const SmartContractsProvider = ({
   }, [wallet]);
 
   // listen to ERC20 token approval status when the blockchain changes
-  const { isERC20Approved, setIsERC20Approved } = useERC20Approval(
-    wallet,
-    initialContracts
-  );
+  const {
+    isERC20Approved: isENGIApproved,
+    setIsERC20Approved: setIsENGIApproved,
+  } = useERC20Approval(wallet, initialContracts, SupportedTokens.ENGI);
+
+  const {
+    isERC20Approved: isUSDCApproved,
+    setIsERC20Approved: setIsUSDCApproved,
+  } = useERC20Approval(wallet, initialContracts, SupportedTokens.USDC);
 
   // listen for any blockchain events on the smart contract address
   const { latestContractEvent } = useContractEvents(initialContracts);
@@ -31,14 +37,16 @@ export const SmartContractsProvider = ({
   // merge in the ERC20 status
   const contracts = {
     ...initialContracts,
-    isERC20Approved,
+    isENGIApproved,
+    isUSDCApproved,
     latestContractEvent,
   };
 
   // create a context to pass down
   const smartContractsContext = {
     contracts: contracts,
-    updateERC20Approval: setIsERC20Approved,
+    updateENGIApproval: setIsENGIApproved,
+    updateUSDCApproval: setIsUSDCApproved,
   };
 
   return (

@@ -6,11 +6,15 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deploy, catchUnknownSigner } = deployments;
   const { deployer, disputeResolver } = await getNamedAccounts();
 
-  let erc20ContractAddress: string;
+  let engiAddress: string;
+  let usdcAddress: string;
+
   if (network.live === false) {
     // use the test erc 20 token for testing on test networks
-    const testERC20Deployment = await deployments.get('TestERC20');
-    erc20ContractAddress = testERC20Deployment.address;
+    const testENGIDeployment = await deployments.get('TestENGI');
+    const testUSDCDeployment = await deployments.get('TestUSDC');
+    engiAddress = testENGIDeployment.address;
+    usdcAddress = testUSDCDeployment.address;
   } else {
     throw new Error(`Unable to deploy to network ${network.name}`);
   }
@@ -30,7 +34,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         execute: {
           init: {
             methodName: 'initialize',
-            args: [erc20ContractAddress, daoTreasury.address, disputeResolver],
+            args: [engiAddress, usdcAddress, daoTreasury.address, disputeResolver],
           },
         },
       },

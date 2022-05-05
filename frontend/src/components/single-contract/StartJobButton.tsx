@@ -1,6 +1,6 @@
 import { PlayIcon, ThumbUpIcon } from '@heroicons/react/solid';
 import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
-import { ApproveERC20Modal } from 'components/smart-contracts/modals/ApproveERC20Modal';
+import { ApproveERC20Modal } from 'components/smart-contracts/modals/ApproveENGIModal';
 import { StartJobModal } from 'components/smart-contracts/modals/StartJobModal';
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';

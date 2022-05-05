@@ -142,13 +142,16 @@ contract Job is IJob, Proxied, Initializable {
      ***************/
 
     function initialize(
-        IERC20 _initialToken,
+        IERC20 _initialENGIToken,
+        IERC20 _initialUSDCToken,
         address _daoTreasury,
         address _resolver
     ) public initializer {
-        paymentTokens[_initialToken] = true;
-        tokensList.push(_initialToken);
-        REPORT_TOKEN = _initialToken;
+        paymentTokens[_initialENGIToken] = true;
+        paymentTokens[_initialUSDCToken] = true;
+        tokensList.push(_initialENGIToken);
+        tokensList.push(_initialUSDCToken);
+        REPORT_TOKEN = _initialENGIToken;
         daoTreasury = _daoTreasury;
         disputeResolver = _resolver;
 
@@ -200,8 +203,6 @@ contract Job is IJob, Proxied, Initializable {
         require(jobs[jobId].engineer == msg.sender, "Method not available for this caller");
         _;
     }
-
-
 
     /********************
      * Public Functions *
@@ -277,7 +278,11 @@ contract Job is IJob, Proxied, Initializable {
     function approveJob(uint256 jobId) external requiresJobState(jobId, States.Completed) onlySupplier(jobId) {
         jobs[jobId].state = States.FinalApproved;
 
-        (uint256 payoutAmount, uint256 daoTakeAmount) = calculatePayout(jobs[jobId].bounty, jobs[jobId].fee, jobs[jobId].deposit);
+        (uint256 payoutAmount, uint256 daoTakeAmount) = calculatePayout(
+            jobs[jobId].bounty,
+            jobs[jobId].fee,
+            jobs[jobId].deposit
+        );
         sendJobPayout(jobs[jobId].token, payoutAmount, daoTakeAmount, jobs[jobId].engineer);
 
         emit JobApproved(jobId, payoutAmount);
@@ -324,7 +329,11 @@ contract Job is IJob, Proxied, Initializable {
 
         jobs[jobId].state = States.FinalNoResponse;
 
-        (uint256 payoutAmount, uint256 daoTakeAmount) = calculatePayout(jobs[jobId].bounty, jobs[jobId].fee, jobs[jobId].deposit);
+        (uint256 payoutAmount, uint256 daoTakeAmount) = calculatePayout(
+            jobs[jobId].bounty,
+            jobs[jobId].fee,
+            jobs[jobId].deposit
+        );
         sendJobPayout(jobs[jobId].token, payoutAmount, daoTakeAmount, jobs[jobId].engineer);
 
         emit JobTimeoutPayout(jobId, payoutAmount);
@@ -405,7 +414,11 @@ contract Job is IJob, Proxied, Initializable {
         emit JobReported(jobId, msg.sender, metadataCid);
     }
 
-    function declineReport(uint256 jobId, string memory metadataCid) external onlyResolver requiresJobState(jobId, States.Reported) {
+    function declineReport(uint256 jobId, string memory metadataCid)
+        external
+        onlyResolver
+        requiresJobState(jobId, States.Reported)
+    {
         address reporter = reports[jobId].reporter;
 
         // move the job back to the previous state
@@ -415,7 +428,11 @@ contract Job is IJob, Proxied, Initializable {
         emit JobReportDeclined(jobId, reporter, metadataCid);
     }
 
-    function acceptReport(uint256 jobId, string memory metadataCid) external onlyResolver requiresJobState(jobId, States.Reported) {
+    function acceptReport(uint256 jobId, string memory metadataCid)
+        external
+        onlyResolver
+        requiresJobState(jobId, States.Reported)
+    {
         JobData memory job = jobs[jobId];
 
         address reporter = reports[jobId].reporter;
@@ -555,29 +572,25 @@ contract Job is IJob, Proxied, Initializable {
         }
     }
 
-    function calculateBountyAndFee(uint256 total)
-        internal
-        view
-        returns (uint256 bountyValue, uint256 feeValue)
-    {
-        bountyValue = BASE_PERCENTAGE * total / (BASE_PERCENTAGE + DAO_FEE);
+    function calculateBountyAndFee(uint256 total) internal view returns (uint256 bountyValue, uint256 feeValue) {
+        bountyValue = (BASE_PERCENTAGE * total) / (BASE_PERCENTAGE + DAO_FEE);
         feeValue = total - bountyValue;
     }
 
-    function calculatePayout(uint256 bounty, uint256 fee, uint256 deposit)
-        internal
-        pure
-        returns (uint256 payoutAmount, uint256 daoTakeAmount)
-    {
+    function calculatePayout(
+        uint256 bounty,
+        uint256 fee,
+        uint256 deposit
+    ) internal pure returns (uint256 payoutAmount, uint256 daoTakeAmount) {
         daoTakeAmount = fee;
         payoutAmount = bounty + deposit;
     }
 
-    function calculateFullDisputeResolutionPayout(uint256 bounty, uint256 refundedFee, uint256 deposit)
-        internal
-        view
-        returns (uint256 payoutAmount, uint256 daoTakeAmount)
-    {
+    function calculateFullDisputeResolutionPayout(
+        uint256 bounty,
+        uint256 refundedFee,
+        uint256 deposit
+    ) internal view returns (uint256 payoutAmount, uint256 daoTakeAmount) {
         uint256 resolutionPayout = bounty + deposit;
 
         daoTakeAmount = (resolutionPayout * RESOLUTION_FEE_PERCENTAGE) / BASE_PERCENTAGE;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ApproveERC20Modal } from '../../smart-contracts/modals/ApproveERC20Modal';
+import { ApproveERC20Modal } from '../../smart-contracts/modals/ApproveENGIModal';
 
 const ApproveTokenDialog = () => {
   const [showApproveERC20Modal, setShowApproveERC20Modal] = useState(false);

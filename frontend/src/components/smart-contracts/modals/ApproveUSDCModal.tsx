@@ -6,7 +6,7 @@ import {
 import { constants, ContractReceipt } from 'ethers';
 import { ITransactionModalProps } from 'interfaces/ITransactionModalProps';
 
-export const ApproveERC20Modal = (props: ITransactionModalProps) => {
+export const ApproveUSDCModal = (props: ITransactionModalProps) => {
   const { show, onFinish, onError } = props;
 
   const { contracts, updateERC20Approval } = useSmartContracts();
