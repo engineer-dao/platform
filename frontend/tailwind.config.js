@@ -13,6 +13,15 @@ module.exports = {
         rose: colors.rose,
         orange: colors.orange,
         cyan: colors.cyan,
+        stableblack: {
+          900: '#031019',
+        },
+        stablegreen: {
+          900: '#00D67F',
+        },
+        stableblue: {
+          900: '#0DA8EA',
+        },
       },
     },
   },
