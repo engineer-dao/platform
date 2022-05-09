@@ -68,7 +68,7 @@ const ReportModal: React.FC<IReportModal> = (props) => {
             }
           />
         </label>
-        {contracts.isERC20Approved ? (
+        {contracts.isUSDCApproved ? (
           <PrimaryButton
             color="red"
             content="Report"
@@ -79,7 +79,7 @@ const ReportModal: React.FC<IReportModal> = (props) => {
         ) : (
           <PrimaryButton
             color="blue"
-            content="Approve Spending"
+            content="Approve USDC Spending"
             disabled={isDisabled || isTransacting}
             loading={isTransacting}
             onClick={handleClick}

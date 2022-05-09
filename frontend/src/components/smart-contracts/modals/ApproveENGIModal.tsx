@@ -9,11 +9,11 @@ import { ITransactionModalProps } from 'interfaces/ITransactionModalProps';
 export const ApproveENGIModal = (props: ITransactionModalProps) => {
   const { show, onFinish, onError } = props;
 
-  const { contracts, updateERC20Approval } = useSmartContracts();
+  const { contracts, updateENGIApproval } = useSmartContracts();
 
   // the logic called to initiate the transaction
   const callContract = async () => {
-    return contracts.ERC20.approve(
+    return contracts.ENGIToken.approve(
       SmartContractAddresses.Job,
       constants.MaxUint256
     );
@@ -21,13 +21,13 @@ export const ApproveENGIModal = (props: ITransactionModalProps) => {
 
   // what to do when the transaction is confirmed on the blockchain
   const onConfirmed = (receipt: ContractReceipt) => {
-    updateERC20Approval(true);
+    updateENGIApproval(true);
   };
 
   // render the transaction modal
   return (
     <TransactionModal
-      title="Approving Spending Allowance"
+      title="Approving ENGI Spending"
       {...{ show, callContract, onConfirmed, onFinish, onError }}
     />
   );

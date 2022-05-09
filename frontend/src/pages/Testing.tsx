@@ -163,7 +163,7 @@ const Dashboard = () => {
               setShowENGIFaucet(true);
             }}
             type="button"
-            className="focus:outline-none ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            className="focus:outline-none mb-2 ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
           >
             Get ENGI Tokens
           </button>
@@ -175,7 +175,7 @@ const Dashboard = () => {
               setShowUSDCFaucet(true);
             }}
             type="button"
-            className="focus:outline-none ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            className="focus:outline-none mb-2 ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
           >
             Get USDC Tokens
           </button>
@@ -192,7 +192,7 @@ const Dashboard = () => {
               );
             }}
             type="button"
-            className="focus:outline-none ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            className="focus:outline-none mb-2 ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
           >
             Add ENGI Token to Wallet
           </button>
@@ -209,7 +209,7 @@ const Dashboard = () => {
               );
             }}
             type="button"
-            className="focus:outline-none ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            className="focus:outline-none mb-2 ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
           >
             Add USDC Token to Wallet
           </button>

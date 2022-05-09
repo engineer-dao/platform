@@ -7,7 +7,8 @@ export interface ISmartContractState {
   walletIsConnected: boolean;
   latestContractEvent: string;
   Job: Job;
-  ERC20: ERC20;
+  ENGIToken: ERC20;
+  USDCToken: ERC20;
   TestENGI: TestENGI;
   TestUSDC: TestUSDC;
 }

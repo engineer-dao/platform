@@ -16,7 +16,6 @@ import { PostJobModal } from '../../smart-contracts/modals/PostJobModal';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { createFormSchema } from './ValidationSchema';
-import { useSmartContracts } from '../../smart-contracts/hooks/useSmartContracts';
 import { SupportedTokens } from '../../../enums/SupportedTokens';
 
 const CreateContractForm = () => {
@@ -38,9 +37,6 @@ const CreateContractForm = () => {
   const history = useHistory();
 
   const [showPostJobModal, setShowPostJobModal] = useState(false);
-
-  const { contracts } = useSmartContracts();
-  const isDisabled = !contracts?.isERC20Approved;
 
   const onJobPosted = (jobId: string) => {
     setShowPostJobModal(false);
@@ -72,9 +68,9 @@ const CreateContractForm = () => {
         return (
           <Form
             className="mt-6 overflow-hidden shadow sm:rounded-md"
-            style={isSubmitting || isDisabled ? { opacity: 0.5 } : {}}
+            style={isSubmitting ? { opacity: 0.5 } : {}}
           >
-            <fieldset disabled={isDisabled}>
+            <fieldset>
               <div className="bg-white px-4 py-5 sm:p-6">
                 <div className="grid grid-cols-6 gap-6">
                   <div className="col-span-6">

@@ -1,11 +1,8 @@
 import { RequireWalletDialog } from 'components/wallet/RequireWalletDialog';
 import { useWallet } from 'components/wallet/useWallet';
-import ApproveTokenDialog from '../components/create-contract/form/ApproveTokenDialog';
 import CreateContractForm from '../components/create-contract/form/CreateContractForm';
-import { useSmartContracts } from '../components/smart-contracts/hooks/useSmartContracts';
 
 export const CreateContract = () => {
-  const { contracts } = useSmartContracts();
   const { account } = useWallet();
 
   return (
@@ -14,9 +11,6 @@ export const CreateContract = () => {
         Create Contract
       </h3>
       {!account ? <RequireWalletDialog /> : null}
-      {account && !contracts?.isENGIApproved && !contracts?.isUSDCApproved ? (
-        <ApproveTokenDialog />
-      ) : null}
       <CreateContractForm />
     </>
   );

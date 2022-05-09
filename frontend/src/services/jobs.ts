@@ -1,5 +1,7 @@
 import { Job } from 'contracts-typechain';
 import { BigNumber, ethers } from 'ethers';
+import { SmartContractAddresses } from '../components/smart-contracts/SmartContractAddresses';
+import { SupportedTokens } from '../enums/SupportedTokens';
 import {
   IJobData,
   IJobMetaData,
@@ -104,5 +106,9 @@ export const formatJobContractData = (
     closedBySupplier: jobContractData.closedBySupplier,
     closedByEngineer: jobContractData.closedByEngineer,
     state: jobContractData.state,
+    token:
+      jobContractData.token === SmartContractAddresses.ENGIToken
+        ? SupportedTokens.ENGI
+        : SupportedTokens.USDC,
   };
 };

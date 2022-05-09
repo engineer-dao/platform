@@ -8,7 +8,6 @@ import {
 import { ethers } from 'ethers';
 import { ISmartContractState } from 'interfaces/ISmartContractState';
 import { IWalletState } from 'interfaces/IWalletState';
-import { isTestingEnvironment } from 'utils/testing';
 
 // builds a smart contracts state based on the wallet state
 export const buildSmartContractState = (wallet: IWalletState) => {
@@ -48,18 +47,18 @@ export const buildSmartContractState = (wallet: IWalletState) => {
       SmartContractAddresses.ENGIToken,
       smartContractProvider
     ),
-    TestENGI: isTestingEnvironment()
-      ? TestENGI__factory.connect(
-          SmartContractAddresses.ENGIToken,
-          smartContractProvider
-        )
-      : undefined,
-    TestUSDC: isTestingEnvironment()
-      ? TestUSDC__factory.connect(
-          SmartContractAddresses.USDCToken,
-          smartContractProvider
-        )
-      : undefined,
+    USDCToken: ERC20__factory.connect(
+      SmartContractAddresses.USDCToken,
+      smartContractProvider
+    ),
+    TestENGI: TestENGI__factory.connect(
+      SmartContractAddresses.ENGIToken,
+      smartContractProvider
+    ),
+    TestUSDC: TestUSDC__factory.connect(
+      SmartContractAddresses.USDCToken,
+      smartContractProvider
+    ),
     Job: Job__factory.connect(
       SmartContractAddresses.Job,
       smartContractProvider

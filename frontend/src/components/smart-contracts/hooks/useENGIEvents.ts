@@ -24,7 +24,7 @@ export const useERC20Approval = (
   const lookupERC20ApprovalOnce = async () => {
     const approved = await lookupERC20Approval(
       wallet.account || '',
-      token === SupportedTokens.ENGI ? contracts.TestENGI : contracts.TestUSDC
+      token === SupportedTokens.ENGI ? contracts.ENGIToken : contracts.USDCToken
     );
     if (approved !== isERC20Approved) {
       setIsERC20Approved(approved);
@@ -37,7 +37,7 @@ export const useERC20Approval = (
       lookupERC20ApprovalOnce();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wallet.account, contracts.chainIsSupported, contracts.ERC20]);
+  }, [wallet.account, contracts.chainIsSupported, contracts.ENGIToken]);
 
   return { isERC20Approved, setIsERC20Approved, queryComplete };
 };
@@ -66,9 +66,9 @@ const useERC20ApprovalEventsFilter = (
   };
 
   // listen for events
-  const filter = contracts.TestENGI?.filters.Approval(
+  const filter = contracts.ENGIToken?.filters.Approval(
     wallet.account || ethers.constants.AddressZero,
     SmartContractAddresses.Job
   );
-  useBlockchainEventFilter(contracts.ERC20, filter, onApprovalEventHandler);
+  useBlockchainEventFilter(contracts.ENGIToken, filter, onApprovalEventHandler);
 };

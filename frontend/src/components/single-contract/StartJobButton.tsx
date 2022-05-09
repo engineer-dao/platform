@@ -1,10 +1,12 @@
 import { PlayIcon, ThumbUpIcon } from '@heroicons/react/solid';
 import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
-import { ApproveERC20Modal } from 'components/smart-contracts/modals/ApproveENGIModal';
+import { ApproveENGIModal } from 'components/smart-contracts/modals/ApproveENGIModal';
 import { StartJobModal } from 'components/smart-contracts/modals/StartJobModal';
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
+import { SupportedTokens } from '../../enums/SupportedTokens';
 import { useJob } from '../smart-contracts/hooks/useJob';
+import { ApproveUSDCModal } from '../smart-contracts/modals/ApproveUSDCModal';
 
 export const StartJobButton: React.FC = () => {
   const { job } = useJob();
@@ -13,15 +15,21 @@ export const StartJobButton: React.FC = () => {
 
   const { contracts } = useSmartContracts();
 
-  const [showApproveERC20Modal, setShowApproveERC20Modal] = useState(false);
+  const [showApproveENGIModal, setShowApproveENGIModal] = useState(false);
+  const [showApproveUSDCModal, setShowApproveUSDCModal] = useState(false);
   const [showStartJobModal, setShowStartJobModal] = useState(false);
 
   const handleButton = () => {
     setShowStartJobModal(true);
   };
 
+  const isTokenApproved =
+    job?.token === SupportedTokens.USDC
+      ? contracts.isUSDCApproved
+      : contracts.isENGIApproved;
+
   return job ? (
-    contracts.isERC20Approved ? (
+    isTokenApproved ? (
       <>
         <button
           type="submit"
@@ -50,7 +58,9 @@ export const StartJobButton: React.FC = () => {
       <>
         <button
           onClick={() => {
-            setShowApproveERC20Modal(true);
+            job?.token === SupportedTokens.USDC
+              ? setShowApproveUSDCModal(true)
+              : setShowApproveENGIModal(true);
           }}
           type="button"
           className="focus:outline-none inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
@@ -59,10 +69,17 @@ export const StartJobButton: React.FC = () => {
           Approve Spending
         </button>
 
-        <ApproveERC20Modal
-          show={showApproveERC20Modal && !contracts.isERC20Approved}
-          onFinish={() => setShowApproveERC20Modal(false)}
-        />
+        {job?.token === SupportedTokens.USDC ? (
+          <ApproveUSDCModal
+            show={showApproveUSDCModal && !contracts.isUSDCApproved}
+            onFinish={() => setShowApproveUSDCModal(false)}
+          />
+        ) : (
+          <ApproveENGIModal
+            show={showApproveENGIModal && !contracts.isUSDCApproved}
+            onFinish={() => setShowApproveENGIModal(false)}
+          />
+        )}
       </>
     ) : null
   ) : null;

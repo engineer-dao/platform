@@ -10,14 +10,14 @@ import React from 'react';
 export const RevokeUSDCModal = (props: ITransactionModalProps) => {
   const { show, onFinish, onError } = props;
 
-  const { contracts, updateERC20Approval } = useSmartContracts();
+  const { contracts, updateUSDCApproval } = useSmartContracts();
 
   const callContract = async () => {
-    return contracts.ERC20.approve(SmartContractAddresses.Job, 0);
+    return contracts.USDCToken.approve(SmartContractAddresses.Job, 0);
   };
 
   const onConfirmed = (receipt: ContractReceipt) => {
-    updateERC20Approval(false);
+    updateUSDCApproval(false);
   };
 
   return (

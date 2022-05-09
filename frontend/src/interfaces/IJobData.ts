@@ -13,6 +13,7 @@ export interface IJobSmartContractData {
   closedBySupplier: boolean;
   closedByEngineer: boolean;
   state: number;
+  token: string;
 }
 
 export interface IJobMetaData {
@@ -25,6 +26,7 @@ export interface IJobMetaData {
   identity: IListBoxItem[];
   acceptanceTests: IListBoxItem[];
   endDate: string;
+  token: string;
 }
 
 export interface IFormattedJobSmartContractData {
