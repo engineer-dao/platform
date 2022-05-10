@@ -12,9 +12,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   if (network.live === false) {
     // use the test erc 20 token for testing on test networks
     const testENGIDeployment = await deployments.get('TestENGI');
-    const testUSDCDeployment = await deployments.get('TestUSDC');
     engiAddress = testENGIDeployment.address;
-    usdcAddress = testUSDCDeployment.address;
   } else {
     throw new Error(`Unable to deploy to network ${network.name}`);
   }
@@ -34,7 +32,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
         execute: {
           init: {
             methodName: 'initialize',
-            args: [engiAddress, usdcAddress, daoTreasury.address, disputeResolver],
+            args: [engiAddress, daoTreasury.address, disputeResolver],
           },
         },
       },

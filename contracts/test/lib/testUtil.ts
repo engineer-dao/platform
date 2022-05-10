@@ -89,7 +89,6 @@ export const deployERC20Token = async (): Promise<ERC20> => {
 
 export const deployJob = async (
   TestENGIToken: ContractTypes.ERC20,
-  TestUSDCToken: ContractTypes.ERC20,
   DaoTreasury: ContractTypes.DaoTreasury,
   resolver: string
 ) => {
@@ -113,12 +112,7 @@ export const deployJob = async (
   const job = Job.attach(jobProxy.address);
 
   // initialize the job contract at the proxy address
-  await job.initialize(
-    TestENGIToken.address,
-    TestUSDCToken.address,
-    DaoTreasury.address,
-    resolver
-  );
+  await job.initialize(TestENGIToken.address, DaoTreasury.address, resolver);
 
   return job;
 };

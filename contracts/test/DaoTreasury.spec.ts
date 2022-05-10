@@ -202,7 +202,6 @@ describe('DaoTreasury ', function () {
       const DaoTreasury = await deployDaoTreasury();
       const JobContract = await deployJob(
         ercTokenDAI,
-        ercTokenUSDC,
         DaoTreasury,
         resolver.address
       );
