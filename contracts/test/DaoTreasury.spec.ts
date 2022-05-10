@@ -20,7 +20,6 @@ import { expect } from 'chai';
 import { ethers } from 'hardhat';
 
 import * as testUtil from './lib/testUtil';
-import { BigNumber } from 'ethers';
 import { SignerWithAddress } from 'hardhat-deploy-ethers/signers';
 import { Job, ERC20, DaoTreasury } from '../typechain';
 
@@ -74,7 +73,9 @@ describe('DaoTreasury ', function () {
         testUtil.USDC_ADDRESS
       );
 
-      expect(await DaoTreasury.Router()).to.equal(testUtil.QUICK_SWAP_POLY_ADDRESS);
+      expect(await DaoTreasury.Router()).to.equal(
+        testUtil.QUICK_SWAP_POLY_ADDRESS
+      );
       await (await DaoTreasury.setRouter(addr2.address)).wait();
       expect(await DaoTreasury.Router()).to.equal(addr2.address);
 
@@ -157,10 +158,16 @@ describe('DaoTreasury ', function () {
       // create the test router
       const TestRouter = await testUtil.deployTestRouter();
       await (await DaoTreasury.setRouter(TestRouter.address)).wait();
-      await ercTokenUSDC.transfer(TestRouter.address, testUtil.ONE_THOUS_TOKENS);
+      await ercTokenUSDC.transfer(
+        TestRouter.address,
+        testUtil.ONE_THOUS_TOKENS
+      );
 
       // start with test DAI in the treasury
-      await ercTokenDAI.transfer(DaoTreasury.address, testUtil.ONE_THOUS_TOKENS);
+      await ercTokenDAI.transfer(
+        DaoTreasury.address,
+        testUtil.ONE_THOUS_TOKENS
+      );
 
       // set the desired stable coin in the treasury
       await (await DaoTreasury.setStableCoin(ercTokenUSDC.address)).wait();
@@ -173,9 +180,15 @@ describe('DaoTreasury ', function () {
       );
 
       // check swapped balance of the treasury swapped from DAI to USDC
-      const finalDAIBalance = await getBalanceOf(ercTokenDAI.address, DaoTreasury.address);
+      const finalDAIBalance = await getBalanceOf(
+        ercTokenDAI.address,
+        DaoTreasury.address
+      );
       expect(finalDAIBalance).to.equal('0');
-      const finalUSDCBalance = await getBalanceOf(ercTokenUSDC.address, DaoTreasury.address);
+      const finalUSDCBalance = await getBalanceOf(
+        ercTokenUSDC.address,
+        DaoTreasury.address
+      );
 
       expect(finalUSDCBalance).to.equal(ethers.utils.parseUnits('1000'));
     });
@@ -187,7 +200,12 @@ describe('DaoTreasury ', function () {
       const ercTokenEMPTY = await testUtil.deployERC20Token();
       const ercTokenUSDC = await testUtil.deployERC20Token();
       const DaoTreasury = await deployDaoTreasury();
-      const JobContract = await deployJob(ercTokenDAI, DaoTreasury, resolver.address);
+      const JobContract = await deployJob(
+        ercTokenDAI,
+        ercTokenUSDC,
+        DaoTreasury,
+        resolver.address
+      );
       await (await DaoTreasury.setJobContract(JobContract.address)).wait();
 
       // add another payment tokens
@@ -197,14 +215,29 @@ describe('DaoTreasury ', function () {
       // create the test router
       const TestRouter = await testUtil.deployTestRouter();
       await (await DaoTreasury.setRouter(TestRouter.address)).wait();
-      await ercTokenUSDC.transfer(TestRouter.address, ethers.utils.parseUnits('5000'));
+      await ercTokenUSDC.transfer(
+        TestRouter.address,
+        ethers.utils.parseUnits('5000')
+      );
 
       // start with test DAI and USDT in the treasury
-      await ercTokenDAI.transfer(DaoTreasury.address, ethers.utils.parseUnits('1000'));
-      await ercTokenUSDT.transfer(DaoTreasury.address, ethers.utils.parseUnits('2000'));
-      expect(await getBalanceOf(ercTokenEMPTY.address, DaoTreasury.address)).to.equal(ethers.utils.parseUnits('0'));
-      expect(await getBalanceOf(ercTokenDAI.address, DaoTreasury.address)).to.equal(ethers.utils.parseUnits('1000'));
-      expect(await getBalanceOf(ercTokenUSDT.address, DaoTreasury.address)).to.equal(ethers.utils.parseUnits('2000'));
+      await ercTokenDAI.transfer(
+        DaoTreasury.address,
+        ethers.utils.parseUnits('1000')
+      );
+      await ercTokenUSDT.transfer(
+        DaoTreasury.address,
+        ethers.utils.parseUnits('2000')
+      );
+      expect(
+        await getBalanceOf(ercTokenEMPTY.address, DaoTreasury.address)
+      ).to.equal(ethers.utils.parseUnits('0'));
+      expect(
+        await getBalanceOf(ercTokenDAI.address, DaoTreasury.address)
+      ).to.equal(ethers.utils.parseUnits('1000'));
+      expect(
+        await getBalanceOf(ercTokenUSDT.address, DaoTreasury.address)
+      ).to.equal(ethers.utils.parseUnits('2000'));
 
       // set the desired stable coin
       await (await DaoTreasury.setStableCoin(ercTokenUSDC.address)).wait();
@@ -213,14 +246,21 @@ describe('DaoTreasury ', function () {
       await DaoTreasury.swapAllToStable('0');
 
       // check swapped balance of the treasury swapped from DAI to USDC
-      const finalDAIBalance = await getBalanceOf(ercTokenDAI.address, DaoTreasury.address);
+      const finalDAIBalance = await getBalanceOf(
+        ercTokenDAI.address,
+        DaoTreasury.address
+      );
       expect(finalDAIBalance).to.equal('0');
-      const finalUSDTBalance = await getBalanceOf(ercTokenUSDT.address, DaoTreasury.address);
+      const finalUSDTBalance = await getBalanceOf(
+        ercTokenUSDT.address,
+        DaoTreasury.address
+      );
       expect(finalUSDTBalance).to.equal('0');
-      const finalUSDCBalance = await getBalanceOf(ercTokenUSDC.address, DaoTreasury.address);
+      const finalUSDCBalance = await getBalanceOf(
+        ercTokenUSDC.address,
+        DaoTreasury.address
+      );
       expect(finalUSDCBalance).to.equal(ethers.utils.parseUnits('3000'));
-
     });
-
   });
 });
