@@ -32,7 +32,6 @@ const Dashboard = () => {
       contracts.Job.getAllPaymentTokens()
         .then((item: string[]) => {
           setWhitelisted(item);
-          console.log(item);
         })
         .catch((error) => console.log('this happen: ', error));
     // eslint-disable-next-line react-hooks/exhaustive-deps
