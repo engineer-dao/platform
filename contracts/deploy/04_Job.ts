@@ -12,7 +12,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const testERC20Deployment = await deployments.get('TestERC20');
     erc20ContractAddress = testERC20Deployment.address;
   } else {
-    throw new Error(`Unable to deploy to network ${network.name}`);
+    const engiToken = await deployments.get('ENGIToken');
+    erc20ContractAddress = engiToken.address;
   }
 
   // get the proxy admin
