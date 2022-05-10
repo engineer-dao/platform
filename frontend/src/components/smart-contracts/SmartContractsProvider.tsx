@@ -3,9 +3,9 @@ import { SmartContractContext } from 'components/smart-contracts/SmartContractCo
 import { buildSmartContractState } from 'components/smart-contracts/utils/smartContracts';
 import { ISmartContractState } from 'interfaces/ISmartContractState';
 import { useWallet } from 'components/wallet/useWallet';
-import { useERC20Approval } from 'components/smart-contracts/hooks/useENGIEvents';
 import { useContractEvents } from 'components/smart-contracts/hooks/useContractEvents';
-import { SupportedTokens } from '../../enums/SupportedTokens';
+import { useENGIApproval } from './hooks/useENGIEvents';
+import { useUSDCApproval } from './hooks/useUSDCEvents';
 
 export const SmartContractsProvider = ({
   children,
@@ -21,15 +21,15 @@ export const SmartContractsProvider = ({
   }, [wallet]);
 
   // listen to ERC20 token approval status when the blockchain changes
-  const {
-    isERC20Approved: isENGIApproved,
-    setIsERC20Approved: setIsENGIApproved,
-  } = useERC20Approval(wallet, initialContracts, SupportedTokens.ENGI);
+  const { isENGIApproved, setIsENGIApproved } = useENGIApproval(
+    wallet,
+    initialContracts
+  );
 
-  const {
-    isERC20Approved: isUSDCApproved,
-    setIsERC20Approved: setIsUSDCApproved,
-  } = useERC20Approval(wallet, initialContracts, SupportedTokens.USDC);
+  const { isUSDCApproved, setIsUSDCApproved } = useUSDCApproval(
+    wallet,
+    initialContracts
+  );
 
   // listen for any blockchain events on the smart contract address
   const { latestContractEvent } = useContractEvents(initialContracts);
