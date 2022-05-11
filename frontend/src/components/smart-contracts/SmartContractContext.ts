@@ -5,7 +5,8 @@ import { createContext } from 'react';
 
 interface ISmartContractContext {
   contracts: ISmartContractState;
-  updateERC20Approval: (isERC20Approved: boolean) => void;
+  updateENGIApproval: (isERC20Approved: boolean) => void;
+  updateUSDCApproval: (isERC20Approved: boolean) => void;
 }
 
 const initialWalletState: IWalletState = {
@@ -20,7 +21,8 @@ const initialSmartContractsState = buildSmartContractState(initialWalletState);
 
 const defaultSmartContractsContextValue: ISmartContractContext = {
   contracts: initialSmartContractsState,
-  updateERC20Approval: () => {},
+  updateENGIApproval: () => {},
+  updateUSDCApproval: () => {},
 };
 
 export const SmartContractContext = createContext<ISmartContractContext>(

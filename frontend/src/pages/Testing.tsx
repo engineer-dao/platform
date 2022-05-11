@@ -1,25 +1,41 @@
 import { useSmartContracts } from 'components/smart-contracts/hooks/useSmartContracts';
-import { ApproveERC20Modal } from 'components/smart-contracts/modals/ApproveERC20Modal';
-import { RevokeERC20Modal } from 'components/smart-contracts/modals/RevokeERC20Modal';
+import { ApproveENGIModal } from 'components/smart-contracts/modals/ApproveENGIModal';
+import { RevokeENGIModal } from 'components/smart-contracts/modals/RevokeENGIModal';
 import { TransactionModal } from 'components/smart-contracts/modals/TransactionModal';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { walletAddToken } from 'utils/metamask';
 import { useNotifications } from '../components/notifications/useNotifications';
 import { syncEvents } from 'services/activityFeed';
+import { ApproveUSDCModal } from '../components/smart-contracts/modals/ApproveUSDCModal';
+import { RevokeUSDCModal } from '../components/smart-contracts/modals/RevokeUSDCModal';
 
 const Dashboard = () => {
   const { pushNotification } = useNotifications();
 
   const { contracts } = useSmartContracts();
 
-  const [showApproveERC20, setShowApproveERC20] = useState(false);
-  const [showRevokeERC20, setShowRevokeERC20] = useState(false);
+  const [showApproveENGI, setShowApproveENGI] = useState(false);
+  const [showRevokeENGI, setShowRevokeENGI] = useState(false);
+  const [showApproveUSDC, setShowApproveUSDC] = useState(false);
+  const [showRevokeUSDC, setShowRevokeUSDC] = useState(false);
   const [showSetDaoTreasury, setShowSetDaoTreasury] = useState(false);
   const [daoTreasuryAddress, setDaoTreasuryAddress] = useState('');
-  const [showFaucet, setShowFaucet] = useState(false);
+  const [showENGIFaucet, setShowENGIFaucet] = useState(false);
+  const [showUSDCFaucet, setShowUSDCFaucet] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
     undefined
   );
+  const [whitelisted, setWhitelisted] = useState<string[]>([]);
+
+  useEffect(() => {
+    contracts.Job.getAllPaymentTokens &&
+      contracts.Job.getAllPaymentTokens()
+        .then((item: string[]) => {
+          setWhitelisted(item);
+        })
+        .catch((error) => console.log('this happen: ', error));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contracts.Job.getAllPaymentTokens]);
 
   return (
     <div>
@@ -37,15 +53,15 @@ const Dashboard = () => {
       </button>
 
       <div className="mt-5">
-        Is ERC 20 token approved?
-        <pre>{contracts.isERC20Approved ? 'YES' : 'NO'}</pre>
+        Is ENGI token approved?
+        <pre>{contracts.isENGIApproved ? 'YES' : 'NO'}</pre>
         <pre>{errorMessage}</pre>
       </div>
       <div className="mt-2">
-        {!contracts.isERC20Approved && (
+        {!contracts.isENGIApproved && (
           <button
             onClick={() => {
-              setShowApproveERC20(true);
+              setShowApproveENGI(true);
             }}
             type="button"
             className="focus:outline-none inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
@@ -53,10 +69,10 @@ const Dashboard = () => {
             Approve
           </button>
         )}
-        {contracts.isERC20Approved && (
+        {contracts.isENGIApproved && (
           <button
             onClick={() => {
-              setShowRevokeERC20(true);
+              setShowRevokeENGI(true);
             }}
             type="button"
             className="focus:outline-none inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
@@ -64,6 +80,41 @@ const Dashboard = () => {
             Revoke
           </button>
         )}
+      </div>
+      <div className="mt-5">
+        Is USDC token approved?
+        <pre>{contracts.isUSDCApproved ? 'YES' : 'NO'}</pre>
+        <pre>{errorMessage}</pre>
+      </div>
+      <div className="mt-2">
+        {!contracts.isUSDCApproved && (
+          <button
+            onClick={() => {
+              setShowApproveUSDC(true);
+            }}
+            type="button"
+            className="focus:outline-none inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          >
+            Approve
+          </button>
+        )}
+        {contracts.isUSDCApproved && (
+          <button
+            onClick={() => {
+              setShowRevokeUSDC(true);
+            }}
+            type="button"
+            className="focus:outline-none inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          >
+            Revoke
+          </button>
+        )}
+      </div>
+      <div className="mt-5">
+        Whitelisted Tokens
+        {whitelisted.map((item) => (
+          <pre>{item}</pre>
+        ))}
       </div>
 
       <div className="mt-5">
@@ -108,12 +159,24 @@ const Dashboard = () => {
         <div>
           <button
             onClick={() => {
-              setShowFaucet(true);
+              setShowENGIFaucet(true);
             }}
             type="button"
-            className="focus:outline-none ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            className="focus:outline-none mb-2 ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
           >
-            Get {process.env.REACT_APP_PAYMENT_TOKEN_NAME || ''} Tokens
+            Get ENGI Tokens
+          </button>
+        </div>
+
+        <div>
+          <button
+            onClick={() => {
+              setShowUSDCFaucet(true);
+            }}
+            type="button"
+            className="focus:outline-none mb-2 ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          >
+            Get USDC Tokens
           </button>
         </div>
 
@@ -121,28 +184,60 @@ const Dashboard = () => {
           <button
             onClick={async () => {
               walletAddToken(
-                String(process.env.REACT_APP_PAYMENT_TOKEN_CONTRACT_ADDRESS),
-                String(process.env.REACT_APP_PAYMENT_TOKEN_NAME),
+                String(process.env.REACT_APP_ENGI_TOKEN_ADDRESS),
+                'ENGI',
                 String(process.env.REACT_APP_PAYMENT_TOKEN_IMG_URL),
                 parseInt(String(process.env.REACT_APP_PAYMENT_TOKEN_DECIMALS))
               );
             }}
             type="button"
-            className="focus:outline-none ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            className="focus:outline-none mb-2 ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
           >
-            Add {process.env.REACT_APP_PAYMENT_TOKEN_NAME || ''} Token to Wallet
+            Add ENGI Token to Wallet
+          </button>
+        </div>
+
+        <div>
+          <button
+            onClick={async () => {
+              walletAddToken(
+                String(process.env.REACT_APP_USDC_TOKEN_ADDRESS),
+                'USDC',
+                String(process.env.REACT_APP_PAYMENT_TOKEN_IMG_URL),
+                parseInt(String(process.env.REACT_APP_PAYMENT_TOKEN_DECIMALS))
+              );
+            }}
+            type="button"
+            className="focus:outline-none mb-2 ml-2 inline-flex items-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-white shadow-sm hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          >
+            Add USDC Token to Wallet
           </button>
         </div>
 
         <TransactionModal
-          title="Get Tokens"
+          title="Get ENGI Tokens"
           onConfirmed={() => {}}
-          show={showFaucet}
+          show={showENGIFaucet}
           callContract={async () => {
-            return contracts.TestERC20?.requestTokens();
+            return contracts.TestENGI?.requestTokens();
           }}
           onFinish={() => {
-            setShowFaucet(false);
+            setShowENGIFaucet(false);
+          }}
+          onError={(error: string) => {
+            setErrorMessage(error);
+          }}
+        />
+
+        <TransactionModal
+          title="Get USDC Tokens"
+          onConfirmed={() => {}}
+          show={showUSDCFaucet}
+          callContract={async () => {
+            return contracts.TestUSDC?.requestTokens();
+          }}
+          onFinish={() => {
+            setShowUSDCFaucet(false);
           }}
           onError={(error: string) => {
             setErrorMessage(error);
@@ -165,14 +260,23 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <ApproveERC20Modal
-        show={showApproveERC20}
-        onFinish={() => setShowApproveERC20(false)}
-        onError={(error) => setErrorMessage(error)}
+      <ApproveENGIModal
+        show={showApproveENGI}
+        onFinish={() => setShowApproveENGI(false)}
+        onError={(error: any) => setErrorMessage(error)}
       />
-      <RevokeERC20Modal
-        show={showRevokeERC20}
-        onFinish={() => setShowRevokeERC20(false)}
+      <RevokeENGIModal
+        show={showRevokeENGI}
+        onFinish={() => setShowRevokeENGI(false)}
+      />
+      <ApproveUSDCModal
+        show={showApproveUSDC}
+        onFinish={() => setShowApproveUSDC(false)}
+        onError={(error: any) => setErrorMessage(error)}
+      />
+      <RevokeUSDCModal
+        show={showRevokeUSDC}
+        onFinish={() => setShowRevokeUSDC(false)}
       />
     </div>
   );

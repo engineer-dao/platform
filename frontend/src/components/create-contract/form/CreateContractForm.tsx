@@ -16,7 +16,7 @@ import { PostJobModal } from '../../smart-contracts/modals/PostJobModal';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { createFormSchema } from './ValidationSchema';
-import { useSmartContracts } from '../../smart-contracts/hooks/useSmartContracts';
+import { SupportedTokens } from '../../../enums/SupportedTokens';
 
 const CreateContractForm = () => {
   const tokenName = process.env.REACT_APP_PAYMENT_TOKEN_NAME;
@@ -31,14 +31,12 @@ const CreateContractForm = () => {
     acceptanceTests: [],
     requiredDeposit: '',
     endDate: '',
+    token: SupportedTokens.ENGI,
   };
 
   const history = useHistory();
 
   const [showPostJobModal, setShowPostJobModal] = useState(false);
-
-  const { contracts } = useSmartContracts();
-  const isDisabled = !contracts?.isERC20Approved;
 
   const onJobPosted = (jobId: string) => {
     setShowPostJobModal(false);
@@ -70,9 +68,9 @@ const CreateContractForm = () => {
         return (
           <Form
             className="mt-6 overflow-hidden shadow sm:rounded-md"
-            style={isSubmitting || isDisabled ? { opacity: 0.5 } : {}}
+            style={isSubmitting ? { opacity: 0.5 } : {}}
           >
-            <fieldset disabled={isDisabled}>
+            <fieldset>
               <div className="bg-white px-4 py-5 sm:p-6">
                 <div className="grid grid-cols-6 gap-6">
                   <div className="col-span-6">
@@ -122,7 +120,6 @@ const CreateContractForm = () => {
                       label="Bounty"
                       placeholder="1000"
                       min={50}
-                      tokenName={tokenName}
                     />
                   </div>
                   <div className="col-span-2">
@@ -131,7 +128,6 @@ const CreateContractForm = () => {
                       placeholder="0.3"
                       min={50}
                       label="Buy-In"
-                      tokenName={tokenName}
                     />
                   </div>
                   <div className="col-span-2">

@@ -7,40 +7,40 @@ import { ISmartContractState } from 'interfaces/ISmartContractState';
 import { IWalletState } from 'interfaces/IWalletState';
 import { useMemo, useState } from 'react';
 
-export const useERC20Approval = (
+export const useENGIApproval = (
   wallet: IWalletState,
   contracts: ISmartContractState
 ) => {
-  const [isERC20Approved, setIsERC20Approved] = useState(false);
+  const [isENGIApproved, setIsENGIApproved] = useState(false);
   const [queryComplete, setApprovalQueryComplete] = useState(false);
 
   // update ERC20 token status when the blockchain changes
-  useERC20ApprovalEventsFilter(wallet, contracts, (isApproved) => {
-    setIsERC20Approved(isApproved);
+  useENGIApprovalEventsFilter(wallet, contracts, (isApproved) => {
+    setIsENGIApproved(isApproved);
   });
 
-  const lookupERC20ApprovalOnce = async () => {
-    const approved = await lookupERC20Approval(
+  const lookupENGIApprovalOnce = async () => {
+    const approved = await lookupENGIApproval(
       wallet.account || '',
-      contracts.ERC20
+      contracts.ENGIToken
     );
-    if (approved !== isERC20Approved) {
-      setIsERC20Approved(approved);
+    if (approved !== isENGIApproved) {
+      setIsENGIApproved(approved);
     }
     setApprovalQueryComplete(true);
   };
 
   useMemo(() => {
     if (contracts.chainIsSupported && wallet.account) {
-      lookupERC20ApprovalOnce();
+      lookupENGIApprovalOnce();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wallet.account, contracts.chainIsSupported, contracts.ERC20]);
+  }, [wallet.account, contracts.chainIsSupported, contracts.ENGIToken]);
 
-  return { isERC20Approved, setIsERC20Approved, queryComplete };
+  return { isENGIApproved, setIsENGIApproved, queryComplete };
 };
 
-const lookupERC20Approval = async (account: string, erc20Contract: ERC20) => {
+const lookupENGIApproval = async (account: string, erc20Contract: ERC20) => {
   if (!account) {
     return false;
   }
@@ -53,7 +53,7 @@ const lookupERC20Approval = async (account: string, erc20Contract: ERC20) => {
   return transactionResult.gt(0);
 };
 
-const useERC20ApprovalEventsFilter = (
+const useENGIApprovalEventsFilter = (
   wallet: IWalletState,
   contracts: ISmartContractState,
   onApprovalChange: (arg0: boolean) => void
@@ -64,9 +64,9 @@ const useERC20ApprovalEventsFilter = (
   };
 
   // listen for events
-  const filter = contracts.ERC20.filters.Approval(
+  const filter = contracts.ENGIToken?.filters.Approval(
     wallet.account || ethers.constants.AddressZero,
     SmartContractAddresses.Job
   );
-  useBlockchainEventFilter(contracts.ERC20, filter, onApprovalEventHandler);
+  useBlockchainEventFilter(contracts.ENGIToken, filter, onApprovalEventHandler);
 };

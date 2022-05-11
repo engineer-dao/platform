@@ -13,7 +13,7 @@ interface IDataTableProps {
 
 const DataTable: React.FC<IDataTableProps> = (props) => {
   const { contract, loading } = props;
-  const tokenName = process.env.REACT_APP_PAYMENT_TOKEN_NAME || '';
+  const tokenName = contract?.token;
 
   return loading ? (
     <LoadingDataTable />

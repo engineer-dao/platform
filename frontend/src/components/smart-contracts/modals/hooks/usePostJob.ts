@@ -4,6 +4,7 @@ import { SmartContractAddresses } from 'components/smart-contracts/SmartContract
 import { useWallet } from 'components/wallet/useWallet';
 import { ContractReceipt, ethers } from 'ethers';
 import { useEffect, useState } from 'react';
+import { SupportedTokens } from '../../../../enums/SupportedTokens';
 import { pinIpfsJobMetaData } from '../../../../services/ipfs';
 import { useDAOFee } from '../../hooks/useDAOFee';
 
@@ -34,12 +35,12 @@ export const usePostJob = (props: UsePostJobProps) => {
       formData.requiredDeposit.toString()
     );
 
-    return contracts.Job.postJob(
-      SmartContractAddresses.PaymentToken,
-      bountyWei,
-      depositWei,
-      IPFSCid
-    );
+    const tokenAddress =
+      formData.token === SupportedTokens.ENGI
+        ? SmartContractAddresses.ENGIToken
+        : SmartContractAddresses.USDCToken;
+
+    return contracts.Job.postJob(tokenAddress, bountyWei, depositWei, IPFSCid);
   };
 
   // what to do when the transaction is confirmed on the blockchain

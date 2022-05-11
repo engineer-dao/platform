@@ -5,6 +5,7 @@ import { Form, Formik } from 'formik';
 import { IJobData } from 'interfaces/IJobData';
 import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
+import { SupportedTokens } from '../../enums/SupportedTokens';
 import { useJob } from '../smart-contracts/hooks/useJob';
 
 interface IApproveJobFormProps {
@@ -33,7 +34,11 @@ export const ApproveJobForm: React.FC<IApproveJobFormProps> = (props) => {
         return errors;
       }}
       onSubmit={(values) => {
-        if (!contracts.isERC20Approved) {
+        if (job?.token === SupportedTokens.ENGI && !contracts.isENGIApproved) {
+          return;
+        }
+
+        if (job?.token === SupportedTokens.USDC && !contracts.isUSDCApproved) {
           return;
         }
 
