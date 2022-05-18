@@ -16,7 +16,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     const testUSDCeployment = await deployments.get('TestUSDC');
     usdcAddress = testUSDCeployment.address;
   } else {
-    throw new Error(`Unable to deploy to network ${network.name}`);
+    const engiToken = await deployments.get('ENGIToken');
+    engiAddress = engiToken.address;
+    usdcAddress = ''
   }
 
   // get the proxy admin
@@ -45,7 +47,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   );
 
 
-  if (isLocalTestNetwork) {
+  if (isLocalTestNetwork && usdcAddress.length > 0) {
     // add USDC token
     const jobProxyAddress = (await deployments.get('Job')).address;
     const jobProxy = await hre.ethers.getContractAt(

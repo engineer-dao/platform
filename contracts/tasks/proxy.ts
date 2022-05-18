@@ -303,6 +303,7 @@ task(
     const privatekey = (taskArguments as any).privatekey;
     const contractAddress = (taskArguments as any).contractaddress;
     const newOwnerAddress = (taskArguments as any).newowner;
+    const gasPrice = (taskArguments as any).gasprice;
 
     // build the contract as a JobProxy (but will work for any Ownable contract)
     const Ownable = await ethers.getContractAt('JobProxy', contractAddress);
@@ -312,15 +313,18 @@ task(
 
     // transfer ownership
     console.log(`Transfering ownership to ${newOwnerAddress}`);
+    const transactionOptions = gasPrice ? { gasPrice } : {};
     const transactionResult = await Ownable.connect(wallet).transferOwnership(
-      newOwnerAddress
+      newOwnerAddress,
+      transactionOptions
     );
     console.log(`Finished with tx: ${transactionResult.hash}`);
   }
 )
   .addParam('privatekey', 'The signing private key')
   .addParam('contractaddress', 'Contract address')
-  .addParam('newowner', 'New owner address');
+  .addParam('newowner', 'New owner address')
+  .addOptionalParam('gasprice', 'Custom gas price');
 
 // ------------------------------------------------------------------------------------------------
 // Renounce admin role
@@ -333,6 +337,7 @@ task(
     const privatekey = (taskArguments as any).privatekey;
     const adminContractAddress = (taskArguments as any).admincontract;
     const role = (taskArguments as any).role;
+    const gasPrice = (taskArguments as any).gasprice;
 
     // build the proxy
     const ProxyAdmin = await ethers.getContractAt(
@@ -347,9 +352,11 @@ task(
     const encodedRole = await getEncodedRoleAdmin(ProxyAdmin, role);
 
     console.log(`renouncing role ${role} from address ${wallet.address}`);
+    const transactionOptions = gasPrice ? { gasPrice } : {};
     const transactionResult = await ProxyAdmin.connect(wallet).renounceRole(
       encodedRole,
-      wallet.address
+      wallet.address,
+      transactionOptions
     );
     console.log(`Finished with tx: ${transactionResult.hash}`);
   }
@@ -359,7 +366,8 @@ task(
   .addParam(
     'role',
     'Role name: TIMELOCK_ADMIN_ROLE | PROPOSER_ROLE | EXECUTOR_ROLE'
-  );
+  )
+  .addOptionalParam('gasprice', 'Custom gas price');
 
 // ------------------------------------------------------------------------------------------------
 // check role
