@@ -174,9 +174,13 @@ const storeLatestSyncedBlock = async (blockNumber: number) => {
 const buildEventMessageParameters = (untypedEvent: TypedEvent<any>) => {
   switch (untypedEvent.event) {
     case 'JobPosted':
+      const jobPostedEvent = untypedEvent as JobPostedEvent;
       return buildContractEvent(
         untypedEvent,
-        (untypedEvent as JobPostedEvent).args.jobId.toString()
+        jobPostedEvent.args.jobId.toString(),
+        {
+          metadataCid: jobPostedEvent.args.metadataCid,
+        }
       );
 
     case 'JobStarted':
@@ -244,11 +248,13 @@ const buildEventMessageParameters = (untypedEvent: TypedEvent<any>) => {
       );
 
     case 'JobReported':
+      const jobReportedEvent = untypedEvent as JobReportedEvent;
       return buildContractEvent(
         untypedEvent,
-        (untypedEvent as JobReportedEvent).args.jobId.toString(),
+        jobReportedEvent.args.jobId.toString(),
         {
-          metadataCid: (untypedEvent as JobReportedEvent).args.metadataCid,
+          metadataCid: jobReportedEvent.args.metadataCid,
+          reporter: jobReportedEvent.args.reporter,
         }
       );
 
