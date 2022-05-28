@@ -9,20 +9,30 @@ import {
 } from '../interfaces/IJobData';
 import { IJobFilter } from '../interfaces/IJobFilter';
 import { fetchIpfsMetaData } from './ipfs';
+import { contractDatabaseRef } from 'services/firebase';
+import { get, child } from 'firebase/database';
+
+interface IFirebaseEventData {
+  jobCid: string | undefined;
+  reporter: string | undefined;
+}
 
 export const fetchJobMetaData = async (
   jobId: string,
   Job: Job
 ): Promise<IJobMetaData | undefined> => {
-  const filter = Job.filters.JobPosted(BigNumber.from(jobId));
-  const results = await Job.queryFilter(filter);
-  const event = results?.[0];
-  const ipfsCid = event.args.metadataCid;
+  // load ipfs cid from firebase events, fallback to recent blockchain if not found
+  const eventDataFromFirebase = await fetchEventDataFromFirebase(jobId);
+  const ipfsCid =
+    eventDataFromFirebase.jobCid ||
+    (await fetchIpfsCidFromContractEvents(jobId, Job));
 
-  const reportFilter = Job.filters.JobReported(BigNumber.from(jobId));
-  const reportResults = await Job.queryFilter(reportFilter);
-  const reportEvent = reportResults?.[0];
-  const reporter = reportEvent?.args?.reporter;
+  if (!ipfsCid) {
+    return undefined;
+  }
+
+  // find the reporter from firebase events
+  const reporter = eventDataFromFirebase.reporter;
 
   const data = await fetchIpfsMetaData(ipfsCid);
 
@@ -66,7 +76,7 @@ export const loadJobFromJobId = async (jobId: string, Job: Job) => {
   // always get the job data from the contract as it can change
   const jobContractData = formatJobContractData(await Job.jobs(jobId));
 
-  // load job meta data from IPFS if needed
+  // load job meta data
   const jobMetaData = await fetchJobMetaData(jobId, Job);
 
   if (jobMetaData === undefined) {
@@ -111,4 +121,39 @@ export const formatJobContractData = (
         ? SupportedTokens.ENGI
         : SupportedTokens.USDC,
   };
+};
+
+const fetchEventDataFromFirebase = async (jobId: string) => {
+  const eventsDbRef = contractDatabaseRef(`${jobId}/events`);
+  const snapshot = await get(eventsDbRef);
+  const eventData: IFirebaseEventData = {
+    jobCid: undefined,
+    reporter: undefined,
+  };
+  if (snapshot.exists()) {
+    snapshot.forEach((childSnapshot) => {
+      const childData = childSnapshot.val();
+      if (childData.type == 'JobPosted') {
+        eventData.jobCid = childData.args.metadataCid;
+      }
+      if (childData.type == 'JobReported') {
+        eventData.reporter = childData.args.reporter;
+      }
+    });
+  }
+
+  return eventData;
+};
+
+const fetchIpfsCidFromContractEvents = async (
+  jobId: string,
+  Job: Job
+): Promise<string | undefined> => {
+  const filter = Job.filters.JobPosted(BigNumber.from(jobId));
+  const results = await Job.queryFilter(filter, -10000);
+  const event = results?.[0];
+  if (event) {
+    return event.args.metadataCid;
+  }
+  return undefined;
 };
