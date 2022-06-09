@@ -19,7 +19,6 @@ import { createFormSchema } from './ValidationSchema';
 import { SupportedTokens } from '../../../enums/SupportedTokens';
 
 const CreateContractForm = () => {
-  const tokenName = process.env.REACT_APP_PAYMENT_TOKEN_NAME;
   const initialValues: ICreateContractForm = {
     title: '',
     description: '',
@@ -135,7 +134,7 @@ const CreateContractForm = () => {
                   </div>
                   <div className="col-span-6 flex w-full bg-gray-50 px-4 py-5 sm:p-6">
                     <div className="w-1/2">
-                      <PaymentSummary tokenName={tokenName} data={values} />
+                      <PaymentSummary tokenName={values?.token} data={values} />
                     </div>
                     <div className="w-1/2">
                       <OptionsSummary data={values} />
