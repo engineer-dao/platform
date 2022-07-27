@@ -8,10 +8,16 @@ const Dashboard = () => {
         <span className="block text-indigo-600">the future of work.</span>
       </h2>
       <p className="mt-10 max-w-3xl items-center text-center text-lg text-gray-900">
-        EngineerDAO is a product-focused DAO obsessed with manifesting the
-        "Internet of Jobs". Our product is an anonymous, permissionless
-        marketplace for software engineers to match with paid projects, tasks,
-        and jobs.
+        Stable is an anonymous, permissionless marketplace for software
+        engineers to match with paid bounties. Built with &#10084; by
+        EngineerDAO, we're obsessed with manifesting the "Internet of Jobs"
+        through decentralized tools and collaborations.
+        <br />
+        <br />
+        <strong>
+          Join us today to leave the corporate world and start your on-chain
+          career!
+        </strong>
       </p>
       <Resources />
     </div>
