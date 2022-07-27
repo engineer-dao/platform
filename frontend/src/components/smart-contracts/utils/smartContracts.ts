@@ -22,20 +22,10 @@ export const buildSmartContractState = (wallet: IWalletState) => {
     : new ethers.providers.BaseProvider('any');
 
   let smartContractProvider, chainIsSupported, walletIsConnected;
-  if (wallet.provider !== null) {
-    // when using a wallet, require the wallet's chain matches the application chain (e.g. Polygon)
-    chainIsSupported = !!(
-      wallet.chainId &&
-      wallet.chainId === process.env.REACT_APP_SUPPORTED_CHAIN_ID
-    );
-    smartContractProvider = wallet.provider.getSigner();
-    walletIsConnected = chainIsSupported;
-  } else {
-    // no wallet - use the RPC host
-    smartContractProvider = defaultSmartContractProvider;
-    chainIsSupported = true;
-    walletIsConnected = false;
-  }
+
+  smartContractProvider = defaultSmartContractProvider;
+  chainIsSupported = true;
+  walletIsConnected = false;
 
   const contracts: ISmartContractState = {
     chainIsSupported,
