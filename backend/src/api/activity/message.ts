@@ -22,6 +22,11 @@ export default async function handler(req: Request, res: Response) {
     (await addressIsValidForJobId(verifiedAddress, jobId))
   ) {
     const reference = contractDatabaseRef(`${jobId}/messages`);
+
+    if (!reference) {
+      throw new Error('Error fetching message from Firebase');
+    }
+
     const postRef = reference.push();
 
     await postRef.set({

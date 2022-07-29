@@ -6,7 +6,9 @@
   "license": "MIT",
   "scripts": {
     "start": "ts-node ./src/index.ts",
-    "dev": "nodemon --config nodemon.json src/index.ts",
+    "watch:dev": "env-cmd -f .env.dev yarn watch",
+    "watch:prod": "env-cmd -f .env.prod yarn watch",
+    "watch": "nodemon --config nodemon.json src/index.ts",
     "dev:debug": "nodemon --config nodemon.json --inspect-brk src/index.ts"
   },
   "author": "EngineerDAO",
