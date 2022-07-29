@@ -1,4 +1,4 @@
-import { JobState } from 'enums/JobState';
+import { JobState } from '../enums/JobState';
 import { BigNumber } from 'ethers';
 import { IListBoxItem } from './IListBoxItem';
 

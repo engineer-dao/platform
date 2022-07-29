@@ -1,4 +1,4 @@
-import { IListBoxItem } from 'interfaces/IListBoxItem';
+import { IListBoxItem } from '../interfaces/IListBoxItem';
 
 export const LABEL_ITEMS: IListBoxItem[] = [
   {

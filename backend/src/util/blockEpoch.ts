@@ -1,4 +1,4 @@
-import { IBlockchainEventRef } from 'interfaces/IBlockchainEventRef';
+import { IBlockchainEventRef } from '../interfaces/IBlockchainEventRef';
 
 // Sync this many blocks at a time
 export const SYNC_BLOCK_CHUNK_SIZE = parseInt(

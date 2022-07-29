@@ -29,7 +29,7 @@ export const postComment = async ({
 export const syncEvents = async () => {
   // This is a fire-and-forget method.
   //  Do not wait for a response
-  fetch(`${process.env.REACT_APP_API}/api/activity/syncEvents`, {
+  fetch(`${process.env.REACT_APP_API}/api/activity/sync-events`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

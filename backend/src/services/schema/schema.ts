@@ -1,5 +1,5 @@
 import { JSONSchemaType } from 'ajv';
-import { IIPFSJobMetaData } from 'interfaces/IJobData';
+import { IIPFSJobMetaData } from '../../interfaces/IJobData';
 import {
   ACCEPTANCE_TEST_ITEMS,
   IDENTITY_ITEMS,

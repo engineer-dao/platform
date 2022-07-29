@@ -1,4 +1,4 @@
-import { getJobContract } from 'services/contract';
+import { getJobContract } from '../services/contract';
 
 // supplier, engineer, owner and dispute resolver can post
 export const addressIsValidForJobId = async (

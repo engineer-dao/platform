@@ -1,4 +1,4 @@
-import { contractDatabaseRef } from 'services/db';
+import { contractDatabaseRef } from '../services/db';
 
 const THROTTLE_DELAY = parseInt(process.env.THROTTLE_DELAY || '3000');
 

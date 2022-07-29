@@ -1,16 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import Cors from 'cors';
+import { Request, Response } from 'express';
 import { utils } from 'ethers';
-import { pinata } from '../../../services/ipfs';
-import { transformJobToIPFS } from '../../../services/schema/transform';
-import { validate } from '../../../services/schema/validate';
-import { middleware } from '../../../middleware/middleware';
+import { pinata } from '../../services/ipfs';
 
 const MAX_MESSAGE_SIZE = parseInt(process.env.MAX_MESSAGE_SIZE || '4096');
-
-const cors = Cors({
-  methods: ['GET', 'HEAD'],
-});
 
 type Data = {
   ipfsCid?: string;
@@ -19,12 +11,7 @@ type Data = {
   detail?: string;
 };
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>
-) {
-  await middleware(req, res, cors);
-
+export default async function handler(req: Request, res: Response<Data>) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
@@ -51,32 +38,23 @@ export default async function handler(
   }
   const address = utils.getAddress(addressString);
 
-  // Transform to IPFS format to validate
-  const transformedRaw = transformJobToIPFS(raw);
-
-  const { isValid, error } = validate(transformedRaw);
-
-  if (!isValid) {
-    return res.status(400).json({
-      message: 'Invalid form data',
-      detail: error,
-    });
-  }
-
   // pin the content to IPFS
-  const result = await pinata.pinJSONToIPFS(transformedRaw, {
-    pinataOptions: {
-      cidVersion: 1,
-    },
-    pinataMetadata: {
-      name: address,
-      // @ts-ignore
-      keyvalues: {
-        type: 'job',
-        address: address,
+  const result = await pinata.pinJSONToIPFS(
+    { report: raw },
+    {
+      pinataOptions: {
+        cidVersion: 1,
       },
-    },
-  });
+      pinataMetadata: {
+        name: address,
+        // @ts-ignore
+        keyvalues: {
+          type: 'report',
+          address,
+        },
+      },
+    }
+  );
 
   const ipfsCid = String(result.IpfsHash);
   const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${ipfsCid}`;

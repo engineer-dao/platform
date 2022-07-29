@@ -1,39 +1,16 @@
-import { contractDatabaseRef } from 'services/db';
-import type { NextApiRequest, NextApiResponse } from 'next';
-import Cors from 'cors';
 import { utils } from 'ethers';
-import { addressesMatch, addressIsValidForJobId } from 'util/verification';
-
-const cors = Cors({
-  methods: ['GET', 'HEAD'],
-});
+import { contractDatabaseRef } from '../../services/db';
+import {
+  addressesMatch,
+  addressIsValidForJobId,
+} from '../../util/verification';
+import { Request, Response } from 'express';
 
 type Data = {
   message: string;
 };
 
-function runMiddleware(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>,
-  fn: any
-) {
-  return new Promise((resolve, reject) => {
-    fn(req, res, (result: any) => {
-      if (result instanceof Error) {
-        return reject(result);
-      }
-
-      return resolve(result);
-    });
-  });
-}
-
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>
-) {
-  await runMiddleware(req, res, cors);
-
+export default async function handler(req: Request, res: Response) {
   const { sig, address, message, contract_id: jobId } = req?.body || {};
 
   // verify that the signatiure is valid

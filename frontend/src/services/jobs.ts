@@ -23,6 +23,7 @@ export const fetchJobMetaData = async (
 ): Promise<IJobMetaData | undefined> => {
   // load ipfs cid from firebase events, fallback to recent blockchain if not found
   const eventDataFromFirebase = await fetchEventDataFromFirebase(jobId);
+
   const ipfsCid =
     eventDataFromFirebase.jobCid ||
     (await fetchIpfsCidFromContractEvents(jobId, Job));
@@ -133,10 +134,11 @@ const fetchEventDataFromFirebase = async (jobId: string) => {
   if (snapshot.exists()) {
     snapshot.forEach((childSnapshot) => {
       const childData = childSnapshot.val();
-      if (childData.type == 'JobPosted') {
+
+      if (childData.type === 'JobPosted') {
         eventData.jobCid = childData.args.metadataCid;
       }
-      if (childData.type == 'JobReported') {
+      if (childData.type === 'JobReported') {
         eventData.reporter = childData.args.reporter;
       }
     });

@@ -1,14 +1,8 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
-import Cors from 'cors';
-import { getIPFSData, pinata } from '../../../services/ipfs';
-import { validate } from '../../../services/schema/validate';
-import { transformIPFStoJob } from '../../../services/schema/transform';
-import { middleware } from '../../../middleware/middleware';
-import { IIPFSJobMetaData } from '../../../interfaces/IJobData';
-
-const cors = Cors({
-  methods: ['GET', 'HEAD'],
-});
+import { Request, Response } from 'express';
+import { getIPFSData, pinata } from '../../services/ipfs';
+import { validate } from '../../services/schema/validate';
+import { transformIPFStoJob } from '../../services/schema/transform';
+import { IIPFSJobMetaData } from '../../interfaces/IJobData';
 
 interface Data {
   data?: Record<string, any>;
@@ -16,15 +10,10 @@ interface Data {
   detail?: string;
 }
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<Data>
-) {
+export default async function handler(req: Request, res: Response<Data>) {
   const { cid } = req?.query || {};
 
   const _cid = Array.isArray(cid) ? cid[0] : cid;
-
-  await middleware(req, res, cors);
 
   if (req.method !== 'GET') {
     return res.status(405).json({ message: 'Method not allowed' });
@@ -34,7 +23,7 @@ export default async function handler(
     return res.status(422).json({ message: 'Missing CID' });
   }
 
-  const response = await getIPFSData(_cid);
+  const response = await getIPFSData(String(_cid));
 
   if (response.status !== 200) {
     return res

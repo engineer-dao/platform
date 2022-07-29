@@ -1,4 +1,4 @@
-import { TypedEvent } from 'contracts-typechain/common';
+import { TypedEvent } from '../contracts-typechain/common';
 import {
   JobApprovedEvent,
   JobCanceledEvent,
@@ -14,15 +14,15 @@ import {
   JobReportedEvent,
   JobStartedEvent,
   JobTimeoutPayoutEvent,
-} from 'contracts-typechain/Job';
+} from '../contracts-typechain/Job';
 import crypto from 'crypto';
-import { IBlockchainEventRef } from 'interfaces/IBlockchainEventRef';
-import { loadAllEvents } from 'services/contract';
-import { contractDatabaseRef } from 'services/db';
-import { shouldNotifyAboutEvent, notifyEvent } from 'services/discord';
-import { getBlockTimestamp, getLatestBlockHeight } from 'services/ethereum';
-import { blockNumberToBlockEpoch, groupBlocksByEpoch } from 'util/blockEpoch';
-import { getLock } from 'util/lock';
+import { IBlockchainEventRef } from '../interfaces/IBlockchainEventRef';
+import { loadAllEvents } from '../services/contract';
+import { contractDatabaseRef } from '../services/db';
+import { shouldNotifyAboutEvent, notifyEvent } from '../services/discord';
+import { getBlockTimestamp, getLatestBlockHeight } from '../services/ethereum';
+import { blockNumberToBlockEpoch, groupBlocksByEpoch } from './blockEpoch';
+import { getLock } from './lock';
 
 // after this many blocks, assume finality on the blockchain
 const FINALITY_BLOCK_COUNT = parseInt(process.env.FINALITY_BLOCK_COUNT || '25');

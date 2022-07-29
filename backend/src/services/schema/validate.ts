@@ -1,5 +1,5 @@
 import Ajv, { DefinedError, JSONSchemaType } from 'ajv';
-import { IIPFSJobMetaData } from 'interfaces/IJobData';
+import { IIPFSJobMetaData } from '../../interfaces/IJobData';
 import { CURRENT_SCHEMA_VERSION } from '../../constants/schema';
 import { v1 } from './schema';
 

@@ -38,4 +38,4 @@ yarn-error.log*
 *.tsbuildinfo
 
 # ignore contracts build artifacts
-/contracts-typechain
+contracts-typechain
