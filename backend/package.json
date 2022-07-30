@@ -5,6 +5,7 @@
   "main": "./src/index.ts",
   "license": "MIT",
   "scripts": {
+    "build": "tsc --build",
     "start": "ts-node ./src/index.ts",
     "watch:dev": "env-cmd -f .env.dev yarn watch",
     "watch:prod": "env-cmd -f .env.prod yarn watch",
