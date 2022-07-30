@@ -1,0 +1,71 @@
+envs:
+  - key: FIREBASE_API_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:c7YaZDC1Rd8OkCMIuYkdn8mHDFw73u0C:Lr3DlsYBg5GW0XWzeWUZMQVfeQN/s8zdhvvGCUpdk0QzEbuYDMMU971fra3coIWkcnTvIkB8WQ==]
+  - key: IPFS_PINATA_PROJECT_KEY
+    scope: RUN_AND_BUILD_TIME
+    value: 4806bca25c515a3265c5
+  - key: IPFS_PINATA_PROJECT_SECRET
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:06fH8GRO3crnkBy/F5/WcA4NQ861ctrp:YlY0DyqAlNpC+yOXAAOpK5s+fwVRPdXjFkNb9HPFpY6SAVECgiZqWRTlz868OEa8sMLCQx5/zhc5RH5te2m/yJLVN9DXqgxs2ymcYoIaOhM=]
+  - key: FIREBASE_SERVICE_ACCOUNT_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:ONKAR54whfrX5YFFvbL5ToQKzqLukU+l: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]
+  - key: FIREBASE_AUTH_DOMAIN
+    scope: RUN_AND_BUILD_TIME
+    value: engineerdao.firebaseio.com
+  - key: FIREBASE_DATABASE_URL
+    scope: RUN_AND_BUILD_TIME
+    value: https://engineerdao-dev.firebaseio.com
+  - key: FIREBASE_PROJECT_ID
+    scope: RUN_AND_BUILD_TIME
+    value: engineerdao
+  - key: FIREBASE_STORAGE_BUCKET
+    scope: RUN_AND_BUILD_TIME
+    value: engineerdao.appspot.com
+  - key: FIREBASE_MESSAGING_SENDER_ID
+    scope: RUN_AND_BUILD_TIME
+    value: '367249583128'
+  - key: FIREBASE_APP_ID
+    scope: RUN_AND_BUILD_TIME
+    value: 1:367249583128:web:1c6e777bd5f0f38adce76d
+  - key: MAX_MESSAGE_SIZE
+    scope: RUN_AND_BUILD_TIME
+    value: '4096'
+  - key: JOB_CONTRACT_ADDRESS
+    scope: RUN_AND_BUILD_TIME
+    value: 0xD6d8f49f9CDCfb02b3A23F530FB349146b28A6f6
+  - key: JOB_CONTRACT_STARTING_BLOCK_HEIGHT
+    scope: RUN_AND_BUILD_TIME
+    value: '28000000'
+  - key: ETHERS_PROVIDER_CHAIN_RPC_HOST
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:KmBvMkMlIgzNCHJWC7pE3oOocv9B+eCa:KJ8PhohIm9+r1Cwl42p27+nsH/BbMKkx03Mpvp7WdC1Nvs/auFKhh8mAMYxvC4TZeyO0uwajYHtXthKasvB1HQgv7zhWr53WbYvubV/HIkvbWpM=]
+  - key: DISCORD_API_KEY
+    scope: RUN_AND_BUILD_TIME
+    type: SECRET
+    value: EV[1:hM+gGiX5dyqXWYOD6lOiBiTbv0Dhoa0G:kwoRqgddfUuje/uReWgQilVan4Rmj4+JQpPsErP/doe+RVrt3GEWtD53uLBHxYxZnH5WbcKXfp+UXX0pa3boG2oYDP73/gXx2jZj]
+  - key: CORS_ORIGIN
+    scope: RUN_AND_BUILD_TIME
+    value: https://dev.stablework.app
+name: stable-dev
+region: nyc
+services:
+  - build_command: yarn && yarn build
+    environment_slug: node-js
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: engineer-dao/platform
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: professional-s
+    name: platform-backend
+    routes:
+      - path: /
+    run_command: yarn start
+    source_dir: backend
