@@ -9,7 +9,7 @@ export const getIPFSfromCache = async (cid: string) => {
   const res = (await ref.get()).val();
 
   if (!res) {
-    const _metadata = await (await getIPFSData(cid)).json();
+    const _metadata = await (await getIPFSData(cid)).data;
 
     const metadata = transformIPFStoJob(_metadata as IIPFSJobMetaData);
 

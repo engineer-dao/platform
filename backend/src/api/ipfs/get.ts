@@ -28,13 +28,13 @@ export default async function handler(req: Request, res: Response<Data>) {
   if (response.status !== 200) {
     return res
       .status(500)
-      .json({ message: `IPFS error`, detail: String(response?.body) });
+      .json({ message: `IPFS error`, detail: String(response?.data) });
   }
 
   let raw: IIPFSJobMetaData;
 
   try {
-    raw = (await response.json()) as IIPFSJobMetaData;
+    raw = (await response.data) as IIPFSJobMetaData;
   } catch (e) {
     return res.status(500).json({ message: `IPFS error`, detail: String(e) });
   }

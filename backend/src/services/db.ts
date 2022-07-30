@@ -10,7 +10,7 @@ export const contractDatabaseRef = (selector: string) => {
     const app = getFirebaseApp();
     const database = getDatabase(app);
     return database.ref(`${getSmartContractId()}/${selector}`);
-  } catch (e) {
+  } catch (e: any) {
     throw new Error(e);
   }
 };
