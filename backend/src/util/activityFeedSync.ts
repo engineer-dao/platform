@@ -1,4 +1,4 @@
-import { TypedEvent } from '../contracts-typechain/common';
+import { TypedEvent } from '../../contracts-typechain/common';
 import {
   JobApprovedEvent,
   JobCanceledEvent,
@@ -14,7 +14,7 @@ import {
   JobReportedEvent,
   JobStartedEvent,
   JobTimeoutPayoutEvent,
-} from '../contracts-typechain/Job';
+} from '../../contracts-typechain/Job';
 import crypto from 'crypto';
 import { IBlockchainEventRef } from '../interfaces/IBlockchainEventRef';
 import { loadAllEvents } from '../services/contract';

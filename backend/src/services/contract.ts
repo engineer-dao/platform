@@ -1,4 +1,4 @@
-import { Job, Job__factory } from '../contracts-typechain';
+import { Job, Job__factory } from '../../contracts-typechain';
 import { getProvider } from './ethereum';
 
 export const loadAllEvents = async (fromBlock?: number, toBlock?: number) => {
