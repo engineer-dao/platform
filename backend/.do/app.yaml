@@ -67,5 +67,5 @@ services:
     name: platform-backend
     routes:
       - path: /
-    run_command: yarn start
+    run_command: yarn start:do
     source_dir: backend

@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsc --build",
     "start": "ts-node ./src/index.ts",
+    "start:do": "node ./build/src/index.js",
     "watch:dev": "env-cmd -f .env.dev yarn watch",
     "watch:prod": "env-cmd -f .env.prod yarn watch",
     "watch": "nodemon --config nodemon.json src/index.ts",
