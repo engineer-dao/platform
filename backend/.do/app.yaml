@@ -55,7 +55,7 @@ envs:
 name: stable-dev
 region: nyc
 services:
-  - build_command: yarn && yarn build && cd ../contracts && yarn build
+  - build_command: cd ../contracts && yarn build && cd ../backend && yarn && yarn build
     environment_slug: node-js
     github:
       branch: main
