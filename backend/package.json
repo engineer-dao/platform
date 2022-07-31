@@ -6,6 +6,7 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc --build",
+    "postbuild": "cp -R node_modules build/node_modules",
     "start": "ts-node ./src/index.ts",
     "start:do": "node ./build/src/index.js",
     "watch:dev": "env-cmd -f .env.dev yarn watch",
