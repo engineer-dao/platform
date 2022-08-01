@@ -10,18 +10,22 @@ import ipfs_get from './api/ipfs/get';
 
 process.on('uncaughtException', (err) => {
   console.error(`uncaughtException error caught: ${err.message}`);
+  process.exit(0);
 });
 
 process.on('unhandledRejection', (err: any) => {
   console.error(`unhandledRejection error caught: ${err.message}`);
+  process.exit(0);
 });
 
 process.on('SIGINT', () => {
   console.info('SIGINT received');
+  process.exit(0);
 });
 
 process.on('SIGTERM', () => {
   console.info('SIGTERM received');
+  process.exit(0);
 });
 
 const app = express();

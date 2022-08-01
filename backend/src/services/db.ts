@@ -41,7 +41,10 @@ const getFirebaseApp = () => {
 
       const serviceAccount = cert({
         projectId: 'engineerdao',
-        privateKey: process.env.FIREBASE_SERVICE_ACCOUNT_KEY,
+        privateKey: process.env.FIREBASE_SERVICE_ACCOUNT_KEY.replace(
+          '\\n',
+          '\n'
+        ),
         clientEmail:
           'firebase-adminsdk-h7yfg@engineerdao.iam.gserviceaccount.com',
       });
