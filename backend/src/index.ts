@@ -8,6 +8,22 @@ import add_job from './api/ipfs/add-job';
 import add_report from './api/ipfs/add-report';
 import ipfs_get from './api/ipfs/get';
 
+process.on('uncaughtException', (err) => {
+  console.error(`uncaughtException error caught: ${err.message}`);
+});
+
+process.on('unhandledRejection', (err: any) => {
+  console.error(`unhandledRejection error caught: ${err.message}`);
+});
+
+process.on('SIGINT', () => {
+  console.info('SIGINT received');
+});
+
+process.on('SIGTERM', () => {
+  console.info('SIGTERM received');
+});
+
 const app = express();
 
 if (!process.env.CORS_ORIGIN) {
@@ -32,6 +48,8 @@ app.use(function (err: any, req: Request, res: Response, next: NextFunction) {
   return res.status(err.status).json({ message: err.message });
 });
 
-app.listen(process.env.PORT || 3001);
+const port = process.env.PORT || 3001;
 
-console.log('Listening on http://localhost:3001');
+app.listen(port);
+
+console.log(`Listening on port ${port}`);

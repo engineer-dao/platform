@@ -54,7 +54,7 @@ envs:
     value: https://dev.stablework.app
   - key: PORT
     scope: RUN_AND_BUILD_TIME
-    value: 8080
+    value: '8080'
 name: stable-dev
 region: nyc
 services:
