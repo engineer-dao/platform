@@ -12,6 +12,7 @@
     "scripts": {
         "build": "yarn lerna run build",
         "lint": "yarn lerna run lint",
+        "bootstrap": "yarn lerna run bootstrap",
         "clean": "yarn lerna run clean --parallel",
         "test": "yarn lerna run test --parallel"
     },

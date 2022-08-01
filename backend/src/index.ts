@@ -32,6 +32,6 @@ app.use(function (err: any, req: Request, res: Response, next: NextFunction) {
   return res.status(err.status).json({ message: err.message });
 });
 
-app.listen(3001);
+app.listen(process.env.PORT || 3001);
 
 console.log('Listening on http://localhost:3001');

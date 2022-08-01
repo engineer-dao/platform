@@ -52,6 +52,9 @@ envs:
   - key: CORS_ORIGIN
     scope: RUN_AND_BUILD_TIME
     value: https://dev.stablework.app
+  - key: PORT
+    scope: RUN_AND_BUILD_TIME
+    value: 8080
 name: stable-dev
 region: nyc
 services:
@@ -78,6 +81,6 @@ services:
     name: platform-backend
     routes:
       - path: /
-    build_command: cd ../contracts && yarn build
-    run_command: yarn start
-    source_dir: /backend
+    build_command: cd contracts && yarn build && cd ../backend && yarn build
+    run_command: cd backend && yarn start
+    source_dir: /
