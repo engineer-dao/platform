@@ -55,7 +55,18 @@ envs:
 name: stable-dev
 region: nyc
 services:
-  - build_command: cd ../contracts && yarn build && cd ../backend && yarn build
+  - cors:
+      allow_headers:
+        - '*'
+      allow_methods:
+        - GET
+        - OPTIONS
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+      allow_origins:
+        - prefix: https://dev.stablework.app
     environment_slug: node-js
     github:
       branch: main
@@ -67,5 +78,6 @@ services:
     name: platform-backend
     routes:
       - path: /
+    build_command: cd ../contracts && yarn build
     run_command: yarn start
-    source_dir: backend
+    source_dir: /backend
