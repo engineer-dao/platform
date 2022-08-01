@@ -44,6 +44,8 @@ const getFirebaseApp = () => {
         ''
       );
 
+      console.log(privateKey);
+
       const serviceAccount = cert({
         projectId: 'engineerdao',
         privateKey,
