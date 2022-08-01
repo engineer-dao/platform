@@ -39,9 +39,8 @@ const getFirebaseApp = () => {
         process.exit();
       }
 
-      const privateKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY.replaceAll(
-        '\\\n',
-        '\n'
+      const privateKey = JSON.parse(
+        JSON.stringify(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
       );
 
       console.log(privateKey);
