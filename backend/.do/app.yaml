@@ -75,7 +75,7 @@ services:
         - prefix: https://dev.stablework.app
     environment_slug: node-js
     github:
-      branch: main
+      branch: develop
       deploy_on_push: true
       repo: engineer-dao/platform
     http_port: 8080
