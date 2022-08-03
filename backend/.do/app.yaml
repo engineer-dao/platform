@@ -1,5 +1,5 @@
 domains:
-  - domain: dev.stablework.app
+  - domain: dev-backend.stablework.app
     type: PRIMARY
 envs:
   - key: FIREBASE_API_KEY
