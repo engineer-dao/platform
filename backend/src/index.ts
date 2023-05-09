@@ -1,5 +1,5 @@
 require('dotenv').config();
-import express, { Request, Response } from 'express';
+import express from 'express';
 import cors from 'cors';
 import activity_message from './api/activity/message';
 import sync_events from './api/activity/syncEvents';
@@ -48,11 +48,6 @@ app.get('/api/ipfs/add_report', add_report);
 app.get('/api/ipfs/ipfs_get', ipfs_get);
 
 app.post('/api/alchemyhook', sync_events);
-
-app.use(function (err: any, req: Request, res: Response) {
-  console.error(err.stack);
-  return res.status(err.status).json({ message: err.message });
-});
 
 const port = process.env.PORT || 3001;
 
